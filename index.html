@@ -7,13 +7,14 @@
 
     <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/48/purchase-order.png">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 
     <style>
+        /* --- CUSTOM STYLES --- */
         :root {
             --primary-color: #5E72E4; --secondary-color: #F4F5F7; --success-color: #2DCE89;
             --info-color: #11CDEF; --warning-color: #FB6340; --danger-color: #F5365C;
@@ -22,14 +23,13 @@
             --text-dark: #32325D; --text-muted: #8898AA; --border-color: #E9ECEF;
         }
         body { font-family: 'Poppins', sans-serif; background-color: var(--content-bg); }
-        
-        /* === FIX STARTS HERE === */
-        #app-container { display: none; } /* App screen ko default roop se hide karein */
-        /* === FIX ENDS HERE === */
+        
+        /* Rule to hide the main app by default */
+        #app-container { display: none; } 
 
         .view { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        #loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); z-index: 10002; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); display: none; /* Initially hidden */ }
+        #loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); z-index: 10002; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); display: none; }
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 10003; }
         .toast-notification { padding: 15px 20px; color: white; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 7px 14px rgba(50,50,93,.1), 0 3px 6px rgba(0,0,0,.08); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; }
         .toast-notification.success { background: linear-gradient(87deg, #2dce89 0, #2dcecc 100%) !important; }
@@ -178,7 +178,7 @@
             if (user && sessionStorage.getItem('authToken')) {
                 setupUIForRole(JSON.parse(user));
             } else {
-                // By default, loginWrapper is visible and appContainer is hidden by CSS
+                // By default, loginWrapper is visible and appContainer is hidden by CSS. No action needed.
             }
             
             $('#login-form').on('submit', handleLogin);
@@ -263,8 +263,7 @@
 
         function handleRoleChange() {
             const isVendor = $('#reg-role').val() === 'Vendor';
-            // === FIX: Using .css() for more direct control over visibility ===
-            $('#reg-company-wrapper').css('display', isVendor ? 'block' : 'none');
+            $('#reg-company-wrapper').css('display', isVendor ? 'block' : 'none');
             $('#reg-gstin-wrapper').css('display', isVendor ? 'block' : 'none');
             $('#reg-company').prop('required', isVendor);
         }
@@ -281,7 +280,6 @@
         }
         
         async function setupUIForRole(user) {
-            // === FIX: Using jQuery's show/hide for robust visibility control ===
             loginWrapper.hide();
             appContainer.show();
 
@@ -301,7 +299,6 @@
         // =================== VIEW LOADERS ========================
         // =========================================================
         
-        // --- SHIPPER (USER) VIEWS ---
         async function load_user_create_load_view() {
             $('#load-items-container').html(''); 
             if (TRUCK_TYPES.length === 0 || ITEM_LIST.length === 0) {
@@ -318,7 +315,7 @@
                     return;
                 }
             }
-            addLoadItem(); // Add the form to the page
+            addLoadItem();
         }
 
         async function load_user_status_view() {
@@ -332,19 +329,12 @@
             result.data.forEach(req => {
                 const loadsHTML = req.loads.map(load => {
                     const awardedHtml = load.status === 'Awarded' ? `<small class="d-block text-success">Awarded to: ${load.awarded_vendor || 'N/A'} (Amount: ${formatCurrency(load.awarded_amount)})</small>` : '';
-                    return `<li class="list-group-item">
-                        <div class="d-flex w-100 justify-content-between">
-                            <small><strong>${load.item_name}</strong> to ${load.unloading_point_address.substring(0,20)}...</small>
-                            <span class="badge bg-${getBadgeColor(load.status)}">${load.status}</span>
-                        </div>
-                        ${awardedHtml}
-                    </li>`;
+                    return `<li class="list-group-item"><div class="d-flex w-100 justify-content-between"><small><strong>${load.item_name}</strong> to ${load.unloading_point_address.substring(0,20)}...</small><span class="badge bg-${getBadgeColor(load.status)}">${load.status}</span></div>${awardedHtml}</li>`;
                 }).join('');
                 listDiv.append(`<div class="card mb-3"><div class="card-header d-flex justify-content-between"><strong>Req ID: REQ-${req.requisition_id}</strong><span class="badge bg-${getBadgeColor(req.status)}">${req.status}</span></div><ul class="list-group list-group-flush">${loadsHTML}</ul></div>`);
             });
         }
         
-        // --- TRUCKER (VENDOR) VIEWS ---
         async function load_vendor_open_loads_view() {
             const result = await apiCall('/requirements/assigned');
             const tableBody = $('#vendor-loads-tbody');
@@ -353,28 +343,17 @@
                 renderEmptyState('#vendor-loads-empty-state', 'No open loads assigned for bidding.', 'fa-clipboard-list');
                 return;
             }
-
+            $('#vendor-loads-empty-state').html('');
             result.data.forEach(load => {
                 let historyHtml = '<small class="text-muted">No bids yet</small>';
                 if (load.my_bid_history && load.my_bid_history.length > 0) {
                     historyHtml = load.my_bid_history.map(bid => `<div><span class="badge bg-secondary">${formatCurrency(bid.bid_amount)} (Rank: L${bid.rank || 'N/A'})</span></div>`).join('');
                 }
-                const rowHtml = `
-                    <tr data-load-id="${load.load_id}">
-                        <td><small><strong>From:</strong> ${load.loading_point_address}<br><strong>To:</strong> ${load.unloading_point_address}</small></td>
-                        <td>${load.item_name}</td>
-                        <td>${load.approx_weight_tonnes} MT</td>
-                        <td>${load.truck_name}</td>
-                        <td>${formatDate(load.requirement_date)}</td>
-                        <td>${load.my_rank ? `<span class="badge bg-primary fs-6">L${load.my_rank}</span>` : '<span class="text-muted">Not Bid</span>'}</td>
-                        <td>${historyHtml}</td>
-                        <td><input type="number" step="100" class="form-control form-control-sm bid-amount" placeholder="e.g., 25000"></td>
-                    </tr>`;
+                const rowHtml = `<tr data-load-id="${load.load_id}"><td><small><strong>From:</strong> ${load.loading_point_address}<br><strong>To:</strong> ${load.unloading_point_address}</small></td><td>${load.item_name}</td><td>${load.approx_weight_tonnes} MT</td><td>${load.truck_name}</td><td>${formatDate(load.requirement_date)}</td><td>${load.my_rank ? `<span class="badge bg-primary fs-6">L${load.my_rank}</span>` : '<span class="text-muted">Not Bid</span>'}</td><td>${historyHtml}</td><td><input type="number" step="100" class="form-control form-control-sm bid-amount" placeholder="e.g., 25000"></td></tr>`;
                 tableBody.append(rowHtml);
             });
         }
 
-        // --- ADMIN VIEWS ---
         async function load_admin_pending_loads_view() {
              const container = $('#pending-loads-container').html('<div class="text-center p-4">Loading...</div>');
              const result = await apiCall('/requirements/pending');
@@ -390,7 +369,6 @@
                 const reqLoads = pendingLoads.filter(load => load.requisition_id == reqId);
                 const loadsHTML = reqLoads.map(load => `<li class="list-group-item"><input class="form-check-input me-2 load-check-box" type="checkbox" value="${load.load_id}" checked><label class="form-check-label">${load.item_name} (${load.approx_weight_tonnes} MT) from ${load.loading_point_address.substring(0,20)}... to ${load.unloading_point_address.substring(0,20)}...</label></li>`).join('');
                 const truckersHTML = allTruckers.map(v => `<div class="form-check form-check-inline"><input class="form-check-input trucker-assign-check" type="checkbox" value="${v.user_id}"><label class="form-check-label">${v.full_name}</label></div>`).join('');
-                
                 accordion.append(`<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${reqId}">Req ID: REQ-${reqId} (By: ${req.creator}) - ${reqLoads.length} loads</button></h2><div id="collapse-${reqId}" class="accordion-collapse collapse" data-bs-parent="#pending-reqs-accordion"><div class="accordion-body"><h6>Select loads to approve:</h6><ul class="list-group mb-3">${loadsHTML}</ul><h6 class="d-flex justify-content-between"><span>Assign truckers:</span><div class="form-check form-check-inline"><input class="form-check-input me-2" type="checkbox" onchange="toggleAllInParent(this, 'trucker-assign-check')"><label>Select All</label></div></h6><div class="border rounded p-2">${truckersHTML}</div><div class="mt-3"><button class="btn btn-success" onclick="handleBulkApproval('${reqId}')">Process Selected Loads</button></div></div></div></div>`);
              });
         }
@@ -402,40 +380,7 @@
         function addLoadItem() {
             const truckOptions = TRUCK_TYPES.map(p => `<option value='${p.truck_type_id}'>${p.truck_name} (${p.dala_length_feet} ft)</option>`).join('');
             const itemOptions = ITEM_LIST.map(p => `<option value='${p.item_id}'>${p.item_name}</option>`).join('');
-            
-            const itemHtml = `
-                <div class="card card-body mb-3">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Loading Point Full Address</label>
-                            <textarea class="form-control loading-point" rows="3" placeholder="Full address with contact details and PIN code" required></textarea>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Unloading Point Full Address</label>
-                            <textarea class="form-control unloading-point" rows="3" placeholder="Full address with contact details and PIN code" required></textarea>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Material / Item</label>
-                            <select class="form-select item-id" required><option value="">Select Material...</option>${itemOptions}</select>
-                        </div>
-                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Approx. Weight (in Metric Tonnes)</label>
-                            <input type="number" step="0.01" class="form-control weight" placeholder="e.g., 15.5" required>
-                        </div>
-                    </div>
-                    <div class="row">
-                       <div class="col-md-6 mb-3">
-                            <label class="form-label">Required Truck Type</label>
-                            <select class="form-select truck-type-id" required><option value="">Select Truck Type...</option>${truckOptions}</select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label>Requirement Date</label>
-                            <input type="date" class="form-control req-date" required>
-                        </div>
-                    </div>
-                </div>`;
+            const itemHtml = `<div class="card card-body mb-3"><div class="row"><div class="col-md-6 mb-3"><label class="form-label">Loading Point Full Address</label><textarea class="form-control loading-point" rows="3" placeholder="Full address with contact details and PIN code" required></textarea></div><div class="col-md-6 mb-3"><label class="form-label">Unloading Point Full Address</label><textarea class="form-control unloading-point" rows="3" placeholder="Full address with contact details and PIN code" required></textarea></div></div><div class="row"><div class="col-md-6 mb-3"><label class="form-label">Material / Item</label><select class="form-select item-id" required><option value="">Select Material...</option>${itemOptions}</select></div><div class="col-md-6 mb-3"><label class="form-label">Approx. Weight (in Metric Tonnes)</label><input type="number" step="0.01" class="form-control weight" placeholder="e.g., 15.5" required></div></div><div class="row"><div class="col-md-6 mb-3"><label class="form-label">Required Truck Type</label><select class="form-select truck-type-id" required><option value="">Select Truck Type...</option>${truckOptions}</select></div><div class="col-md-6 mb-3"><label>Requirement Date</label><input type="date" class="form-control req-date" required></div></div></div>`;
             $('#load-items-container').append(itemHtml);
             $('.item-id, .truck-type-id').select2({ theme: "bootstrap-5" });
         }
@@ -459,7 +404,6 @@
                     requirement_date: card.find('.req-date').val(),
                 });
             });
-
             const result = await apiCall('/requisitions', 'POST', { items: JSON.stringify(itemsPayload) });
             if (result.success) {
                 showToast(result.message, 'success');
@@ -472,9 +416,9 @@
             $('#vendor-loads-tbody tr').each(function() {
                 const row = $(this);
                 const bidAmountInput = row.find('.bid-amount');
-                if (bidAmountInput.val()) { // Only submit if a value is entered
+                if (bidAmountInput.val()) {
                     bidsToSubmit.push({
-                        itemId: row.data('load-id'), // Sending load_id as itemId for backend compatibility
+                        itemId: row.data('load-id'),
                         bid_amount: parseFloat(bidAmountInput.val())
                     });
                 }
@@ -485,7 +429,7 @@
             const result = await apiCall('/bids/bulk', 'POST', { bids: bidsToSubmit });
             if (result.success) {
                 showToast(result.message, 'success');
-                load_vendor_open_loads_view(); // Refresh the view
+                load_vendor_open_loads_view();
             }
         }
 
@@ -496,7 +440,6 @@
             if (approvedLoadIds.length === 0) {
                 if (!confirm("No loads selected. This will mark the requisition as processed without activating any loads. Continue?")) return;
             }
-            // Sending approvedLoadIds as approvedItemIds for backend compatibility
             const result = await apiCall('/requisitions/approve', 'POST', { approvedItemIds: approvedLoadIds, vendorAssignments: truckerAssignments, requisitionId: reqId });
             if (result.success) {
                 showToast(result.message, 'success');
@@ -513,7 +456,7 @@
         function hideLoader(){$('#loader-overlay').css('display', 'none')}
         function formatCurrency(v){const n=parseFloat(v);return isNaN(n)?'₹0.00':`₹${n.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}`}
         function getBadgeColor(s){return {'Awarded':'primary','Active':'success','Pending Approval':'warning','Submitted':'info','Rejected':'danger','Processed': 'secondary'}[s]||'dark'}
-        function formatDate(dateString) { if (!dateString) return 'N/A'; const date = new Date(dateString); return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }); }
+        function formatDate(dateString) { if (!dateString) return 'N/A'; const date = new Date(dateString); return date.toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }); }
         function toggleAllInParent(source, targetClass) { $(source).closest('.accordion-body').find(`input[type="checkbox"].${targetClass}`).prop('checked', source.checked); }
 
     </script>
