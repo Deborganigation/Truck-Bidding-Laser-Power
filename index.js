@@ -39,7 +39,7 @@ const dbConfig = {
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE, // Ensure this is 'logistics_db' in your .env file
+    database: process.env.DB_DATABASE, // Make sure this is 'logistics_db' in .env
     port: process.env.DB_PORT,
     waitForConnections: true,
     connectionLimit: 10,
@@ -54,8 +54,6 @@ if (process.env.DB_CA_CERT_CONTENT) {
         ca: process.env.DB_CA_CERT_CONTENT.replace(/\\n/g, '\n')
     };
     console.log("SSL Configuration loaded from Environment Variable.");
-} else {
-    console.warn("WARNING: DB_CA_CERT_CONTENT is not set. SSL connection might fail in production.");
 }
 const dbPool = mysql.createPool(dbConfig);
 
@@ -75,6 +73,13 @@ const authenticateToken = (req, res, next) => {
 const isAdminOrSuperAdmin = (req, res, next) => {
     if (!['Admin', 'Super Admin'].includes(req.user.role)) {
         return res.status(403).json({ success: false, message: 'Forbidden: Admin access required' });
+    }
+    next();
+};
+
+const isSuperAdmin = (req, res, next) => {
+    if (req.user.role !== 'Super Admin') {
+        return res.status(403).json({ success: false, message: 'Forbidden: Super Admin access required' });
     }
     next();
 };
@@ -100,40 +105,35 @@ app.get('/api/master-data/items', authenticateToken, async (req, res, next) => {
     }
 });
 
+
 // --- 1. AUTH & USER MANAGEMENT ---
-app.post('/api/login', async (req, res, next) => { 
-    try { 
-        const { email, password } = req.body; 
-        if (!email || !password) return res.status(400).json({ success: false, message: 'Email and password are required.' }); 
-        
-        const [rows] = await dbPool.query('SELECT * FROM users WHERE email = ? AND is_active = 1', [email]); 
-        if (rows.length === 0) return res.status(401).json({ success: false, message: 'Invalid credentials or account inactive.' }); 
-        
-        const user = rows[0]; 
-        if (!user.password_hash) return res.status(500).json({ success: false, message: 'Server configuration error.' }); 
-        
-        const match = await bcrypt.compare(password, user.password_hash); 
-        if (!match) return res.status(401).json({ success: false, message: 'Invalid credentials.' }); 
-        
-        const payload = { userId: user.user_id, role: user.role, fullName: user.full_name, email: user.email }; 
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '8h' }); 
-        
-        delete user.password_hash; 
-        res.json({ success: true, token, user }); 
-    } catch (error) { 
-        next(error); 
+app.post('/api/login', async (req, res, next) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) return res.status(400).json({ success: false, message: 'Email and password are required.' });
+        const [rows] = await dbPool.query('SELECT * FROM users WHERE email = ? AND is_active = 1', [email]);
+        if (rows.length === 0) return res.status(401).json({ success: false, message: 'Invalid credentials or account inactive.' });
+        const user = rows[0];
+        const match = await bcrypt.compare(password, user.password_hash);
+        if (!match) return res.status(401).json({ success: false, message: 'Invalid credentials.' });
+        const payload = { userId: user.user_id, role: user.role, fullName: user.full_name, email: user.email };
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '8h' });
+        delete user.password_hash;
+        res.json({ success: true, token, user });
+    } catch (error) {
+        next(error);
     }
 });
 
-app.post('/api/register', async (req, res, next) => { 
-    try { 
-        const { FullName, Email, Password, Role, CompanyName, ContactNumber, GSTIN } = req.body; 
-        const hashedPassword = await bcrypt.hash(Password, 10); 
-        await dbPool.query('INSERT INTO pending_users (full_name, email, password, role, company_name, contact_number, gstin) VALUES (?, ?, ?, ?, ?, ?, ?)', [FullName, Email, hashedPassword, Role, CompanyName, ContactNumber, GSTIN]); 
-        res.status(201).json({ success: true, message: 'Registration successful! Awaiting admin approval.' }); 
-    } catch (error) { 
-        if (error.code === 'ER_DUP_ENTRY') return res.status(400).json({ success: false, message: 'This email is already registered.' }); 
-        next(error); 
+app.post('/api/register', async (req, res, next) => {
+    try {
+        const { FullName, Email, Password, Role, CompanyName, ContactNumber, GSTIN } = req.body;
+        const hashedPassword = await bcrypt.hash(Password, 10);
+        await dbPool.query('INSERT INTO pending_users (full_name, email, password, role, company_name, contact_number, gstin) VALUES (?, ?, ?, ?, ?, ?, ?)', [FullName, Email, hashedPassword, Role, CompanyName, ContactNumber, GSTIN]);
+        res.status(201).json({ success: true, message: 'Registration successful! Awaiting admin approval.' });
+    } catch (error) {
+        if (error.code === 'ER_DUP_ENTRY') return res.status(400).json({ success: false, message: 'This email is already registered.' });
+        next(error);
     }
 });
 
@@ -151,7 +151,7 @@ app.post('/api/requisitions', authenticateToken, async (req, res, next) => {
         const [reqResult] = await connection.query("INSERT INTO requisitions (created_by, status, created_at) VALUES (?, 'Pending Approval', ?)", [req.user.userId, new Date()]);
         const reqId = reqResult.insertId;
 
-        for (const [i, load] of parsedItems.entries()) {
+        for (const load of parsedItems) {
             await connection.query(
                 `INSERT INTO truck_loads (requisition_id, created_by, loading_point_address, unloading_point_address, item_id, approx_weight_tonnes, truck_type_id, requirement_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending Approval')`,
                 [reqId, req.user.userId, load.loading_point_address, load.unloading_point_address, load.item_id, load.approx_weight_tonnes, load.truck_type_id, load.requirement_date]
@@ -175,12 +175,11 @@ app.get('/api/requisitions/my-status', authenticateToken, async (req, res, next)
         
         const reqIds = myReqs.map(r => r.requisition_id);
         const [loads] = await dbPool.query(`
-            SELECT tl.*, ac.awarded_amount, u.full_name as awarded_vendor, im.item_name, ttm.truck_name
+            SELECT tl.*, ac.awarded_amount, u.full_name as awarded_vendor, im.item_name
             FROM truck_loads tl
             LEFT JOIN awarded_contracts ac ON tl.load_id = ac.load_id
             LEFT JOIN users u ON ac.vendor_id = u.user_id
             JOIN item_master im ON tl.item_id = im.item_id
-            JOIN truck_type_master ttm ON tl.truck_type_id = ttm.truck_type_id
             WHERE tl.requisition_id IN (?) ORDER BY tl.load_id ASC
         `, [reqIds]);
         
@@ -289,13 +288,17 @@ app.post('/api/requisitions/approve', authenticateToken, isAdminOrSuperAdmin, as
     }
 });
 
-// All other routes remain the same as your original file...
-// User Management, Messaging, etc.
+// --- USER MANAGEMENT & OTHER ROUTES (Mostly unchanged from your original) ---
+// (Paste the remaining routes from your old index.js here, after this comment)
+// ... for example: app.get('/api/admin/bidding-history', ...), app.get('/api/users', ...), etc.
+// IMPORTANT: You will need to manually update any routes that used 'requisition_items' or 'item_id'
+// For example, in /api/admin/bidding-history, you need to join with `truck_loads` on `load_id`.
 
 // ================== GLOBAL ERROR HANDLER ==================
 app.use((err, req, res, next) => {
     console.error("====== GLOBAL ERROR HANDLER CAUGHT AN ERROR ======");
-    console.error("ROUTE: ", req.method, req.originalUrl, err.message);
+    console.error("ROUTE: ", req.method, req.originalUrl);
+    console.error(err);
     res.status(500).send({ success: false, message: err.message || 'Something went wrong!' });
 });
 
