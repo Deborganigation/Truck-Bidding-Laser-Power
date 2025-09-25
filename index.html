@@ -80,17 +80,23 @@
             <div class="logo"> <i class="fas fa-truck"></i> <span>DEB'S LOGISTICS</span> </div>
             <div id="nav-links" class="flex-grow-1">
                 <a class="nav-link admin-nav-item" data-view="admin-dashboard-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a>
-                <a class="nav-link admin-nav-item" data-view="admin-pending-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-inbox"></i> <span>Load Approvals</span></div></a>
-                <a class="nav-link admin-nav-item" data-view="admin-active-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-truck-loading"></i> <span>Active Loads</span></div></a>
+                <a class="nav-link admin-nav-item" data-view="admin-pending-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-inbox"></i> <span>Requisition Approvals</span></div></a>
+                <a class="nav-link admin-nav-item" data-view="admin-active-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-truck-loading"></i> <span>All Requirements</span></div></a>
                 <a class="nav-link admin-nav-item" data-view="admin-bidding-history-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-history"></i> <span>Bidding History</span></div></a>
+                <a class="nav-link admin-nav-item" data-view="admin-awarded-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>Awarded Contracts</span></div></a>
+                <a class="nav-link admin-nav-item" data-view="admin-reports-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-chart-line"></i> <span>Reports & Analytics</span></div></a>
+                <a class="nav-link admin-nav-item" data-view="admin-pending-users-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-user-check"></i> <span>User Approvals</span></div></a>
                 <a class="nav-link admin-nav-item" data-view="admin-user-control-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-users-cog"></i> <span>User Control</span></div></a>
                 
                 <a class="nav-link vendor-nav-item" data-view="vendor-dashboard-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a>
-                <a class="nav-link vendor-nav-item" data-view="vendor-open-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-clipboard-list"></i> <span>Open Loads for Bidding</span></div></a>
+                <a class="nav-link vendor-nav-item" data-view="vendor-open-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-clipboard-list"></i> <span>My Open Requirements</span></div></a>
                 <a class="nav-link vendor-nav-item" data-view="vendor-my-bids-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-gavel"></i> <span>My Bidding History</span></div></a>
+                <a class="nav-link vendor-nav-item" data-view="vendor-awarded-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>My Awarded Contracts</span></div></a>
 
-                <a class="nav-link user-nav-item" data-view="user-create-load-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-plus-circle"></i> <span>Post a New Load</span></div></a>
-                <a class="nav-link user-nav-item" data-view="user-status-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-history"></i> <span>My Load Status</span></div></a>
+                <a class="nav-link user-nav-item" data-view="user-create-load-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-plus-circle"></i> <span>Create Requisition</span></div></a>
+                <a class="nav-link user-nav-item" data-view="user-status-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-history"></i> <span>My Requisition Status</span></div></a>
+
+                <a class="nav-link admin-nav-item user-nav-item vendor-nav-item" data-view="messaging-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-comments"></i> <span>Messages</span></div></a>
             </div>
             <div class="user-profile">
                 <div><h6 id="user-name-sidebar" class="mb-0 text-white"></h6><small id="user-email-sidebar" class="text-muted"></small></div>
@@ -126,7 +132,7 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="adminActionModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-primary text-white"><h5 class="modal-title" id="adminActionModalTitle">Bids for Load</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body" id="adminActionModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-success" onclick="handleAwardSubmit()">Award Selected Bid</button></div></div></div></div>
+    <div class="modal fade" id="adminActionModal" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header bg-primary text-white"><h5 class="modal-title" id="adminActionModalTitle">Bids for Load</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body" id="adminActionModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-success" onclick="handleAwardSubmit()">Award Selected Bid(s)</button></div></div></div></div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -147,16 +153,22 @@
     const views = {
         'admin-dashboard-view': `<div class="card"><div class="card-body">Admin Dashboard Coming Soon...</div></div>`,
         'admin-pending-loads-view': `<div class="card"><div class="card-header"><h5 class="mb-0">Pending Load Approvals</h5></div><div class="card-body"><div id="pending-loads-container"></div></div></div>`,
-        'admin-active-loads-view': `<div class="card"><div class="card-header"><h5 class="mb-0">All Active Loads</h5></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle"><thead><tr><th>Req ID</th><th>Shipper</th><th>Route</th><th>Load Details</th><th>Assigned Truckers</th><th>Status</th><th>Actions</th></tr></thead><tbody id="admin-loads-tbody"></tbody></table><div id="admin-loads-empty-state"></div></div></div>`,
+        'admin-active-loads-view': `<div class="card"><div class="card-header"><h5 class="mb-0">All Active Loads</h5></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle"><thead><tr><th>Req ID</th><th>Shipper</th><th>Route</th><th>Load Details</th><th>Assigned Truckers</th><th>L1 Bid</th><th>Status</th><th>Actions</th></tr></thead><tbody id="admin-loads-tbody"></tbody></table><div id="admin-loads-empty-state"></div></div></div>`,
         'admin-bidding-history-view': `<div class="card"><div class="card-body">Bidding History Coming Soon...</div></div>`,
+        'admin-awarded-loads-view': `<div class="card"><div class="card-body">Awarded Loads Coming Soon...</div></div>`,
+        'admin-reports-view': `<div class="card"><div class="card-body">Reports & Analytics Coming Soon...</div></div>`,
+        'admin-pending-users-view': `<div class="card"><div class="card-body">User Approvals Coming Soon...</div></div>`,
         'admin-user-control-view': `<div class="card"><div class="card-body">User Control Coming Soon...</div></div>`,
         
         'vendor-dashboard-view': `<div class="card"><div class="card-body">Trucker Dashboard Coming Soon...</div></div>`,
         'vendor-open-loads-view': `<div class="d-flex justify-content-end align-items-center mb-3"><button class="btn btn-success" onclick="handleBulkBidSubmit()"><i class="fas fa-check-double me-2"></i>Submit All Entered Bids</button></div><div id="vendor-loads-container"></div><div id="vendor-loads-empty-state"></div>`,
         'vendor-my-bids-view': `<div class="card"><div class="card-body">My Bidding History Coming Soon...</div></div>`,
+        'vendor-awarded-loads-view': `<div class="card"><div class="card-body">My Awarded Contracts Coming Soon...</div></div>`,
         
-        'user-create-load-view': `<div class="card"><div class="card-header"><h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Post a New Truck Load</h5></div><div class="card-body"><form id="create-load-form"><div id="load-item-container"></div><hr/><button type="submit" class="btn btn-primary w-100 fw-bold">Submit Load Request for Approval</button></form></div></div>`,
+        'user-create-load-view': `<div class="card"><div class="card-header"><h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Post a New Load</h5></div><div class="card-body"><form id="create-load-form"><div id="load-item-container"></div><hr/><button type="submit" class="btn btn-primary w-100 fw-bold">Submit Load Request for Approval</button></form></div></div>`,
         'user-status-view': `<div class="card"><div class="card-header"><h5 class="mb-0"><i class="fas fa-history me-2"></i>My Load Request Status</h5></div><div class="card-body" id="user-req-status-list"></div></div>`,
+        
+        'messaging-view': `<div class="card"><div class="card-body">Messaging Coming Soon...</div></div>`,
     };
     
     // =========================================================
@@ -195,13 +207,12 @@
             if (body) options.body = JSON.stringify(body);
             
             const response = await fetch(API_BASE_URL + endpoint, options);
-            const result = await response.json();
-            
-            if (!response.ok) {
+            if (!response.ok) { // Check for non-2xx responses
                 if (response.status === 401 || response.status === 403) handleLogout();
-                throw new Error(result.message || `API Error: ${response.statusText}`);
+                const errorResult = await response.json().catch(() => ({ message: `HTTP Error: ${response.statusText}` }));
+                throw new Error(errorResult.message);
             }
-            return result;
+            return await response.json();
         } catch (error) {
             showToast(error.message, 'error');
             throw error;
@@ -211,7 +222,8 @@
     }
 
     function navigateTo(viewId) {
-        mainView.html(views[viewId]);
+        const targetView = views[viewId] || `<div class="card"><div class="card-body">View "${viewId}" not found.</div></div>`;
+        mainView.html(targetView);
         $('#nav-links .nav-link').removeClass('active');
         const navLink = $(`[data-view="${viewId}"]`);
         if (navLink.length) {
@@ -228,10 +240,11 @@
         const currentViewLink = $('#nav-links .nav-link.active');
         if (currentViewLink.length > 0) {
             showToast('Refreshing data...', 'info');
-            if (currentViewLink.data('view') === 'user-create-load-view') {
+            const viewId = currentViewLink.data('view');
+            if (viewId === 'user-create-load-view') {
                 MASTER_DATA = { truckTypes: [], items: [] };
             }
-            navigateTo(currentViewLink.data('view'));
+            navigateTo(viewId);
         }
     }
     
@@ -242,7 +255,7 @@
         e.preventDefault();
         const email = $('#email').val(), password = $('#password').val();
         try {
-            const result = await apiCall('/login', 'POST', { email, password });
+            const result = await apiCall('/api/login', 'POST', { email, password });
             sessionStorage.setItem('loggedInUser', JSON.stringify(result.user));
             sessionStorage.setItem('authToken', result.token);
             await setupUIForRole(result.user);
@@ -266,7 +279,7 @@
     async function handleRegistration(e) {
         e.preventDefault();
         const data = { FullName: $('#reg-fullname').val(), Email: $('#reg-email').val(), Password: $('#reg-password').val(), Role: $('#reg-role').val(), CompanyName: $('#reg-company').val(), ContactNumber: $('#reg-contact').val(), GSTIN: $('#reg-gstin').val() };
-        const result = await apiCall('/register', 'POST', data);
+        const result = await apiCall('/api/register', 'POST', data);
         if (result.success) {
             showToast(result.message, 'success');
             registerModal.hide();
@@ -297,8 +310,8 @@
             showToast('Loading master data...', 'info');
             try {
                 const [trucksRes, itemsRes] = await Promise.all([
-                    apiCall('/master-data/truck-types'),
-                    apiCall('/master-data/items')
+                    apiCall('/api/master-data/truck-types'),
+                    apiCall('/api/master-data/items')
                 ]);
                 MASTER_DATA.truckTypes = trucksRes.data;
                 MASTER_DATA.items = itemsRes.data;
@@ -312,7 +325,7 @@
         try {
             await fetchMasterData();
             $('#load-item-container').html(getLoadItemHtml());
-            $('.item-id-select, .truck-type-select').select2({ theme: "bootstrap-5" });
+            $('.item-id-select, .truck-type-select').select2({ theme: "bootstrap-5", dropdownParent: $('#app-container') });
         } catch (e) {
             $('#load-item-container').html(`<div class="alert alert-danger">${e.message}</div>`);
         }
@@ -320,7 +333,7 @@
 
     async function load_user_status_view() {
         const listDiv = $('#user-req-status-list').html('<div class="text-center p-4">Loading...</div>'); 
-        const result = await apiCall('/requisitions/my-status');
+        const result = await apiCall('/api/requisitions/my-status');
         if (!result.success || result.data.length === 0) {
             return renderEmptyState('#user-req-status-list', 'You have not posted any loads yet.', 'fa-file-signature');
         }
@@ -339,7 +352,7 @@
     }
         
     async function load_vendor_open_loads_view() {
-        const result = await apiCall('/requirements/assigned');
+        const result = await apiCall('/api/requirements/assigned');
         const container = $('#vendor-loads-container').empty();
         if (!result.success || result.data.length === 0) {
             return renderEmptyState('#vendor-loads-empty-state', 'No open loads assigned for bidding.', 'fa-clipboard-list');
@@ -381,21 +394,21 @@
     }
 
     async function load_admin_pending_loads_view() {
-        const container = $('#pending-loads-container').html('<div class="text-center p-4">Loading...</div>');
-        const result = await apiCall('/requirements/pending');
-        if (!result.success || result.data.groupedReqs.length === 0) {
+         const container = $('#pending-loads-container').html('<div class="text-center p-4">Loading...</div>');
+         const result = await apiCall('/api/requirements/pending');
+         if (!result.success || result.data.groupedReqs.length === 0) {
             return renderEmptyState('#pending-loads-container', 'No loads are pending approval.', 'fa-inbox');
-        }
-        const { groupedReqs, pendingLoads, allTruckers } = result.data;
-        container.html('<div class="accordion" id="pending-reqs-accordion"></div>');
-        const accordion = $('#pending-reqs-accordion');
-        groupedReqs.forEach(req => {
+         }
+         const { groupedReqs, pendingLoads, allTruckers } = result.data;
+         container.html('<div class="accordion" id="pending-reqs-accordion"></div>');
+         const accordion = $('#pending-reqs-accordion');
+         groupedReqs.forEach(req => {
             const reqId = req.requisition_id;
             const reqLoads = pendingLoads.filter(load => load.requisition_id == reqId);
             const loadsHTML = reqLoads.map(load => `<li class="list-group-item"><input class="form-check-input me-2 load-check-box" type="checkbox" value="${load.load_id}" checked><label class="form-check-label">${load.item_name} (${load.approx_weight_tonnes} MT) from ${load.loading_point_address.substring(0,20)}...</label></li>`).join('');
             const truckersHTML = allTruckers.map(v => `<div class="form-check form-check-inline"><input class="form-check-input trucker-assign-check" type="checkbox" value="${v.user_id}"><label class="form-check-label">${v.full_name}</label></div>`).join('');
             accordion.append(`<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${reqId}">Req ID: REQ-${reqId} (By: ${req.creator}) - ${reqLoads.length} loads</button></h2><div id="collapse-${reqId}" class="accordion-collapse collapse" data-bs-parent="#pending-reqs-accordion"><div class="accordion-body"><h6>Select loads to approve:</h6><ul class="list-group mb-3">${loadsHTML}</ul><h6>Assign truckers:</h6><div class="border rounded p-2">${truckersHTML}</div><div class="mt-3"><button class="btn btn-success" onclick="handleBulkApproval('${reqId}')">Process Selected Loads</button></div></div></div></div>`);
-        });
+         });
     }
 
     // =========================================================
@@ -418,7 +431,7 @@
             truck_type_id: card.find('.truck-type-select').val(),
             requirement_date: card.find('.req-date').val(),
         };
-        const result = await apiCall('/requisitions', 'POST', { items: JSON.stringify([payload]) });
+        const result = await apiCall('/api/requisitions', 'POST', { items: JSON.stringify([payload]) });
         if (result.success) {
             showToast(result.message, 'success');
             navigateTo('user-create-load-view');
@@ -426,23 +439,9 @@
     }
     
     async function handleBulkBidSubmit() {
-        const bidsToSubmit = [];
-        $('.bidding-card').each(function() {
-            const card = $(this);
-            const bidInput = card.find('.bid-amount');
-            if (bidInput.length > 0 && bidInput.val()) {
-                bidsToSubmit.push({ 
-                    itemId: card.find('.input-group').data('load-id'), 
-                    bid_amount: parseFloat(bidInput.val()) 
-                });
-            }
-        });
-        if (bidsToSubmit.length === 0) return showToast('No new bids were entered.', 'warning');
-        const result = await apiCall('/bids/bulk', 'POST', { bids: bidsToSubmit });
-        if (result.success) {
-            showToast(result.message, 'success');
-            load_vendor_open_loads_view();
-        }
+        // This function is for a different UI, but we can adapt it if needed.
+        // For now, we use handleSingleBid.
+        showToast("Please submit bids one by one using the 'Submit Bid' button.", "info");
     }
 
     async function handleSingleBid(button) {
@@ -455,10 +454,10 @@
             return showToast('Please enter a bid amount.', 'error');
         }
         const bidData = {
-            itemId: loadId, // Backend expects itemId
+            itemId: loadId, // Backend expects itemId for compatibility
             bid_amount: parseFloat(bidInput.val())
         };
-        const result = await apiCall('/bids/bulk', 'POST', { bids: [bidData] });
+        const result = await apiCall('/api/bids/bulk', 'POST', { bids: [bidData] });
         if (result.success) {
             showToast(result.message, 'success');
             load_vendor_open_loads_view();
@@ -472,7 +471,7 @@
         if (approvedLoadIds.length === 0) return alert("Please select at least one load to approve.");
         if (truckerAssignments.length === 0) return alert("Please assign at least one trucker.");
         
-        const result = await apiCall('/requisitions/approve', 'POST', { approvedItemIds: approvedLoadIds, vendorAssignments: truckerAssignments, requisitionId: reqId });
+        const result = await apiCall('/api/requisitions/approve', 'POST', { approvedItemIds: approvedLoadIds, vendorAssignments: truckerAssignments, requisitionId: reqId });
         if (result.success) {
             showToast(result.message, 'success');
             load_admin_pending_loads_view();
@@ -488,7 +487,7 @@
     function hideLoader(){$('#loader-overlay').css('display', 'none')}
     function formatCurrency(v){const n=parseFloat(v);return isNaN(n)?'₹0.00':`₹${n.toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:0})}`}
     function getBadgeColor(s){return {'Awarded':'primary','Active':'success','Pending Approval':'warning','Submitted':'info','Rejected':'danger','Processed': 'secondary'}[s]||'dark'}
-    function formatDate(dateString) { if (!dateString) return 'N/A'; const date = new Date(dateString); const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone; return date.toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: userTimezone }); }
+    function formatDate(dateString) { if (!dateString) return 'N/A'; const date = new Date(dateString); return date.toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }); }
     function toggleAllInParent(source, targetClass) { $(source).closest('.accordion-body').find(`input[type="checkbox"].${targetClass}`).prop('checked', source.checked); }
 
     </script>
