@@ -1,571 +1,509 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DEB'S PROCUREMENT</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEB'S LOGISTICS</title>
 
-    <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/48/purchase-order.png">
+    <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/48/purchase-order.png">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
-
-    <style>
-        :root {
-            --primary-color: #5E72E4; --secondary-color: #F4F5F7; --success-color: #2DCE89;
-            --info-color: #11CDEF; --warning-color: #FB6340; --danger-color: #F5365C;
-            --sidebar-bg: #172B4D; --sidebar-text: #8898AA; --sidebar-hover-bg: #1F3866;
-            --sidebar-active-text: #ffffff; --content-bg: #F8F9FE; --card-bg: #ffffff;
-            --text-dark: #32325D; --text-muted: #8898AA; --border-color: #E9ECEF;
-        }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--content-bg); }
-        .hidden { display: none !important; }
-        .view { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        #loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); z-index: 10002; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
-        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 10003; }
-        .toast-notification { padding: 15px 20px; color: white; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 7px 14px rgba(50,50,93,.1), 0 3px 6px rgba(0,0,0,.08); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; }
-        .toast-notification.success { background: linear-gradient(87deg, #2dce89 0, #2dcecc 100%) !important; }
-        .toast-notification.error { background: linear-gradient(87deg, #f5365c 0, #f56036 100%) !important; }
-        .toast-notification.info { background: linear-gradient(87deg, #11cdef 0, #1171ef 100%) !important; }
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        #login-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #172B4D; }
-        #login-video-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; filter: brightness(0.4); }
-        #login-container { width: 100%; max-width: 420px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.2); color: white; }
-        #login-container .form-control { background-color: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; }
-        #login-container .form-control::placeholder { color: rgba(255,255,255,0.7); }
-        #login-container a { color: var(--info-color); }
-        .password-container { position: relative; }
-        .password-container .toggle-password { position: absolute; top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer; color: rgba(255,255,255,0.7); }
-        .wrapper { display: flex; }
-        .sidebar { width: 260px; background: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 1001; transition: all 0.3s ease-in-out; box-shadow: 0 0 2rem 0 rgba(136,152,170,.15); }
-        .sidebar .logo { font-size: 1.2rem; font-weight: 600; text-align: center; color: white; padding: 22px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
-        .sidebar .logo i { color: var(--info-color); }
-        .sidebar .nav-link { color: var(--sidebar-text); padding: 12px 25px; border-radius: .375rem; margin: 0 1rem 5px; transition: all 0.2s ease; white-space: nowrap; cursor: pointer; display: flex; align-items: center; justify-content: space-between;}
-        .sidebar .nav-link:hover { background-color: var(--sidebar-hover-bg); color: var(--sidebar-active-text); }
-        .sidebar .nav-link.active { background: linear-gradient(87deg, #5e72e4 0, #825ee4 100%) !important; color: var(--sidebar-active-text); font-weight: 500; box-shadow: 0 7px 14px rgba(50,50,93,.1), 0 3px 6px rgba(0,0,0,.08); }
-        .sidebar .nav-link .nav-link-text { display: flex; align-items: center; }
-        .sidebar .nav-link .nav-link-text i { margin-right: 15px; width: 20px; text-align: center; font-size: .95rem; }
-        .sidebar .user-profile { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding: 15px 10px; text-align: center; }
-        .main-content { width: 100%; padding: 30px; margin-left: 260px; transition: margin-left 0.3s ease-in-out; }
-        .sidebar.collapsed { width: 90px; }
-        .sidebar.collapsed .logo span, .sidebar.collapsed .nav-link span, .sidebar.collapsed .nav-link .badge, .sidebar.collapsed .user-profile div { display: none; }
-        .sidebar.collapsed .logo i { margin: 0; }
-        .sidebar.collapsed .nav-link { justify-content: center; }
-        .sidebar.collapsed .nav-link i { margin: 0; font-size: 1.2rem; }
-        body.sidebar-collapsed .main-content { margin-left: 90px; }
-        .top-header { display: flex; justify-content: space-between; align-items: center; background: transparent; padding: 0; margin-bottom: 30px; }
-        .sidebar-toggle-btn { background: none; border: none; font-size: 1.2rem; color: var(--text-dark); }
-        #notification-bell { position: relative; }
-        #notification-badge { position: absolute; top: -5px; right: -8px; }
-        .stat-card { border: none; border-radius: .5rem; color: white; padding: 25px; box-shadow: 0 15px 35px rgba(50,50,93,.1), 0 5px 15px rgba(0,0,0,.07) !important; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 18px 35px rgba(50,50,93,.1), 0 8px 15px rgba(0,0,0,.07) !important; }
-        .stat-card .display-4 { font-weight: 600; }
-        .stat-card i.stat-icon { font-size: 3.5rem; opacity: 0.3; transform: rotate(-15deg); }
-        .bg-gradient-primary { background: linear-gradient(87deg, #5e72e4 0, #825ee4 100%) !important; }
-        .bg-gradient-success { background: linear-gradient(87deg, #2dce89 0, #2dcecc 100%) !important; }
-        .bg-gradient-warning { background: linear-gradient(87deg, #fb6340 0, #fbb140 100%) !important; }
-        .bg-gradient-info { background: linear-gradient(87deg, #11cdef 0, #1171ef 100%) !important; }
-        .kpi-card-small { background: var(--card-bg); border-radius: .5rem; padding: 1rem; box-shadow: 0 1px 3px rgba(50,50,93,.15), 0 1px 0 rgba(0,0,0,.02); display: flex; align-items: center; }
-        .kpi-card-small .kpi-icon { font-size: 1.5rem; padding: 12px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin-right: 15px; color: #fff; }
-        .kpi-card-small .kpi-info h6 { color: var(--text-muted); margin-bottom: 0px; text-transform: uppercase; font-size: 0.75rem; font-weight: 600;}
-        .kpi-card-small .kpi-info p { font-size: 1.5rem; font-weight: 600; margin-bottom: 0; line-height: 1.2; color: var(--text-dark);}
-        .card { border: none; border-radius: .5rem; box-shadow: 0 1px 3px rgba(50,50,93,.15), 0 1px 0 rgba(0,0,0,.02); }
+    <style>
+        :root {
+            --primary-color: #5E72E4; --secondary-color: #F4F5F7; --success-color: #2DCE89;
+            --info-color: #11CDEF; --warning-color: #FB6340; --danger-color: #F5365C;
+            --sidebar-bg: #172B4D; --sidebar-text: #8898AA; --sidebar-hover-bg: #1F3866;
+            --sidebar-active-text: #ffffff; --content-bg: #F8F9FE; --card-bg: #ffffff;
+            --text-dark: #32325D; --text-muted: #8898AA; --border-color: #E9ECEF;
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--content-bg); }
+        .hidden { display: none !important; }
+        .view { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        #loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); z-index: 10002; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 10003; }
+        .toast-notification { padding: 15px 20px; color: white; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 7px 14px rgba(50,50,93,.1), 0 3px 6px rgba(0,0,0,.08); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; }
+        .toast-notification.success { background: linear-gradient(87deg, #2dce89 0, #2dcecc 100%) !important; }
+        .toast-notification.error { background: linear-gradient(87deg, #f5365c 0, #f56036 100%) !important; }
+        .toast-notification.info { background: linear-gradient(87deg, #11cdef 0, #1171ef 100%) !important; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        #login-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #172B4D; }
+        #login-video-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; filter: brightness(0.4); }
+        #login-container { width: 100%; max-width: 420px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.2); color: white; }
+        #login-container .form-control { background-color: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; }
+        #login-container .form-control::placeholder { color: rgba(255,255,255,0.7); }
+        #login-container a { color: var(--info-color); }
+        .password-container { position: relative; }
+        .password-container .toggle-password { position: absolute; top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer; color: rgba(255,255,255,0.7); }
+        .wrapper { display: flex; }
+        .sidebar { width: 260px; background: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 1001; transition: all 0.3s ease-in-out; box-shadow: 0 0 2rem 0 rgba(136,152,170,.15); }
+        .sidebar .logo { font-size: 1.2rem; font-weight: 600; text-align: center; color: white; padding: 22px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .sidebar .logo i { color: var(--info-color); }
+        .sidebar .nav-link { color: var(--sidebar-text); padding: 12px 25px; border-radius: .375rem; margin: 0 1rem 5px; transition: all 0.2s ease; white-space: nowrap; cursor: pointer; display: flex; align-items: center; justify-content: space-between;}
+        .sidebar .nav-link:hover { background-color: var(--sidebar-hover-bg); color: var(--sidebar-active-text); }
+        .sidebar .nav-link.active { background: linear-gradient(87deg, #5e72e4 0, #825ee4 100%) !important; color: var(--sidebar-active-text); font-weight: 500; box-shadow: 0 7px 14px rgba(50,50,93,.1), 0 3px 6px rgba(0,0,0,.08); }
+        .sidebar .nav-link .nav-link-text { display: flex; align-items: center; }
+        .sidebar .nav-link .nav-link-text i { margin-right: 15px; width: 20px; text-align: center; font-size: .95rem; }
+        .sidebar .user-profile { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding: 15px 10px; text-align: center; }
+        .main-content { width: 100%; padding: 30px; margin-left: 260px; transition: margin-left 0.3s ease-in-out; }
+        .card { border: none; border-radius: .5rem; box-shadow: 0 1px 3px rgba(50,50,93,.15), 0 1px 0 rgba(0,0,0,.02); }
         .card-header { background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); font-weight: 600; padding: 1.25rem 1.5rem; }
-        .card-body { padding: 1.5rem; }
-        .table-hover>tbody>tr:hover>* { background-color: #f6f9fc; }
-        .bidding-card { background-color: #fff; border-radius: .5rem; box-shadow: 0 1px 3px rgba(50,50,93,.15), 0 1px 0 rgba(0,0,0,.02); margin-bottom: 1.5rem; transition: all 0.3s ease; }
-        .bidding-card:hover { box-shadow: 0 7px 14px rgba(50,50,93,.1), 0 3px 6px rgba(0,0,0,.08); transform: translateY(-3px); }
-        .bidding-card-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); background-color: #f6f9fc; }
-        .bidding-card-body { padding: 1.5rem; }
-        .bid-input-area { background-color: #f6f9fc; border-radius: .5rem; padding: 1.25rem; border: 1px dashed var(--border-color); }
-        .bid-input-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; align-items: end; }
-        .bidding-card .not-applicable { background-color: #e9ecef; color: #6c757d; }
-        .chart-container { position: relative; height: 300px; width: 100%; }
-        .chart-no-data { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--text-muted); font-style: italic; }
-        
-        /* NEW: WhatsApp like chat bubbles */
-        .message-bubble { padding: 8px 12px; border-radius: 18px; margin-bottom: 10px; max-width: 75%; display: inline-block; word-wrap: break-word; position: relative; }
-        .message-bubble.sent { background-color: #dcf8c6; float: right; clear: both; border-bottom-right-radius: 4px; }
-        .message-bubble.received { background-color: #f1f0f0; float: left; clear: both; border-bottom-left-radius: 4px; }
-        .message-bubble::after { content: ''; position: absolute; bottom: 0; height: 20px; width: 20px; }
-        .message-bubble.sent::after { background-color: #dcf8c6; right: -10px; border-bottom-left-radius: 16px; clip-path: path("M 20 0 A 20 20 0 0 1 0 20 L 20 20 L 20 0 Z"); }
-        .message-bubble.received::after { background-color: #f1f0f0; left: -10px; border-bottom-right-radius: 16px; clip-path: path("M 0 0 A 20 20 0 0 0 20 20 L 0 20 L 0 0 Z"); }
-        
-        .timestamp { font-size: 0.75rem; color: #999; margin-top: 5px; text-align: right; }
-        .ticks { font-size: 0.8rem; margin-left: 5px; color: #999; }
-        .ticks.read { color: #34b7f1; }
-        #chat-messages { display: flex; flex-direction: column; }
-        .table th[rowspan="2"] { vertical-align: middle; }
-        .table .text-center-deep { text-align: center; }
-        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
-        .empty-state i { font-size: 2.5rem; margin-bottom: 1rem; }
-        th.sortable { cursor: pointer; }
-        th.sortable:hover { color: var(--primary-color); }
-        .super-admin-only { display: none; }
-        @media (max-width: 992px) { .sidebar { transform: translateX(-100%); width: 280px; } .sidebar.active { transform: translateX(0); } .main-content { margin-left: 0; } .sidebar-toggle-btn.desktop { display: none; } #header-title { width: 100%; text-align: center; margin-top: 10px; order: 3; } }
-        @media (min-width: 993px) { .sidebar-toggle-btn.mobile { display: none; } }
-    </style>
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 2.5rem; margin-bottom: 1rem; }
+    </style>
 </head>
 <body>
 
-    <div id="loader-overlay" class="hidden"><div class="spinner-border text-primary" role="status"></div></div>
-    <div id="toast-container"></div>
+    <div id="loader-overlay" class="hidden"><div class="spinner-border text-primary" role="status"></div></div>
+    <div id="toast-container"></div>
 
-    <div id="login-wrapper">
-        <video autoplay muted loop id="login-video-bg"> <source src="https://laserpowerinfra.com/frontassets/img/slider/Banner_v04_HD_L.mp4" type="video/mp4"> </video>
-        <div id="login-container" class="p-4 p-md-5">
-            <h2 class="text-center mb-1 fw-bold"><i class="fas fa-tasks text-info"></i> DEB'S PROCUREMENT</h2>
-            <p class="text-center mb-4">Login to your account</p>
-            <form id="login-form">
-                <div class="mb-3"><input type="email" id="email" class="form-control" placeholder="Email" required></div>
-                <div class="mb-3 password-container">
-                    <input type="password" id="password" class="form-control" placeholder="Password" required>
-                    <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+        <div id="login-wrapper">
+        <video autoplay muted loop id="login-video-bg"> <source src="https://laserpowerinfra.com/frontassets/img/slider/Banner_v04_HD_L.mp4" type="video/mp4"> </video>
+        <div id="login-container" class="p-4 p-md-5">
+            <h2 class="text-center mb-1 fw-bold"><i class="fas fa-truck text-info"></i> DEB'S LOGISTICS</h2>
+            <p class="text-center mb-4">Login to your account</p>
+            <form id="login-form">
+                <div class="mb-3"><input type="email" id="email" class="form-control" placeholder="Email" required></div>
+                <div class="mb-3 password-container">
+                    <input type="password" id="password" class="form-control" placeholder="Password" required>
+                    <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 fw-bold">Log In</button>
+            </form>
+            <div id="login-error-msg" class="text-danger text-center small mt-2 fw-bold" style="display: none;"></div>
+            <p class="text-center mt-3 small">Don't have an account? <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Register Now</a></p>
+        </div>
+    </div>
+
+        <div id="app-container" class="wrapper hidden">
+                <nav class="sidebar" id="sidebar">
+            <div class="logo"> <i class="fas fa-truck"></i> <span>DEB'S LOGISTICS</span> </div>
+            <div id="nav-links" class="flex-grow-1">
+                                <a class="nav-link admin-nav-item" data-view="admin-dashboard-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a>
+                <a class="nav-link admin-nav-item" data-view="admin-pending-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-inbox"></i> <span>Load Approvals</span></div></a>
+                <a class="nav-link admin-nav-item" data-view="admin-active-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-truck-loading"></i> <span>Active Loads</span></div></a>
+                <a class="nav-link admin-nav-item" data-view="admin-bidding-history-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-history"></i> <span>Bidding History</span></div></a>
+                <a class="nav-link admin-nav-item" data-view="admin-user-control-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-users-cog"></i> <span>User Control</span></div></a>
+                
+                                <a class="nav-link vendor-nav-item" data-view="vendor-dashboard-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a>
+                <a class="nav-link vendor-nav-item" data-view="vendor-open-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-clipboard-list"></i> <span>Open Loads for Bidding</span></div></a>
+                <a class="nav-link vendor-nav-item" data-view="vendor-my-bids-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-gavel"></i> <span>My Bidding History</span></div></a>
+
+                                <a class="nav-link user-nav-item" data-view="user-create-load-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-plus-circle"></i> <span>Post a New Load</span></div></a>
+                <a class="nav-link user-nav-item" data-view="user-status-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-history"></i> <span>My Load Status</span></div></a>
+            </div>
+            <div class="user-profile">
+                <div><h6 id="user-name-sidebar" class="mb-0 text-white"></h6><small id="user-email-sidebar" class="text-muted"></small></div>
+                <button onclick="handleLogout()" class="btn btn-sm btn-outline-danger w-100 mt-2"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></button>
+            </div>
+        </nav>
+
+                <main class="main-content" id="main-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 id="header-title" class="h4 mb-0 fw-bold text-dark"></h1>
+                <button class="btn btn-sm btn-outline-primary" onclick="handleManualRefresh()"><i class="fas fa-sync-alt me-2"></i>Refresh Data</button>
+            </div>
+            <div id="main-view"></div>
+        </main>
+    </div>
+
+        <div class="modal fade" id="registerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white"><h5 class="modal-title">Create Account</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form id="register-form">
+                        <div class="mb-3"><select id="reg-role" class="form-select" required><option value="">Register as...</option><option value="User">Shipper (I have loads to move)</option><option value="Vendor">Trucker (I own trucks)</option></select></div>
+                        <div class="mb-2"><input type="text" id="reg-fullname" class="form-control" placeholder="Full Name" required></div>
+                        <div class="mb-2"><input type="email" id="reg-email" class="form-control" placeholder="Email" required></div>
+                        <div class="mb-2"><input type="password" id="reg-password" class="form-control" placeholder="Password" required></div>
+                        <div class="mb-2"><input type="text" id="reg-contact" class="form-control" placeholder="Contact Number" required></div>
+                        <div class="mb-2 hidden" id="reg-company-wrapper"><input type="text" id="reg-company" class="form-control" placeholder="Company Name"></div>
+                        <div class="mb-3 hidden" id="reg-gstin-wrapper"><input type="text" id="reg-gstin" class="form-control" placeholder="GSTIN (Optional)"></div>
+                        <button type="submit" class="btn btn-success w-100 fw-bold">Register</button>
+                    </form>
                 </div>
-                <button type="submit" class="btn btn-primary w-100 fw-bold">Log In</button>
-            </form>
-            <div id="login-error-msg" class="text-danger text-center small mt-2 fw-bold" style="display: none;"></div>
-            <p class="text-center mt-3 small">Don't have an account? <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Register Now</a></p>
+            </div>
         </div>
     </div>
 
-    <div id="app-container" class="wrapper hidden">
-        <nav class="sidebar" id="sidebar">
-            <div class="logo"> <i class="fas fa-tasks"></i> <span>DEB'S PROCUREMENT</span> </div>
-            <div id="nav-links" class="flex-grow-1">
-                <a class="nav-link admin-nav-item" data-view="admin-dashboard-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a>
-                <a class="nav-link admin-nav-item" data-view="admin-pending-reqs-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-inbox"></i> <span>Requisition Approvals</span></div><span class="badge bg-warning rounded-pill" id="badge-pending-reqs"></span></a>
-                <a class="nav-link admin-nav-item" data-view="admin-requirements-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-file-alt"></i> <span>All Requirements</span></div></a>
-                <a class="nav-link admin-nav-item" data-view="admin-bidding-history-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-history"></i> <span>Bidding History</span></div></a>
-                <a class="nav-link admin-nav-item" data-view="admin-awarded-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>Awarded Contracts</span></div></a>
-                <a class="nav-link admin-nav-item" data-view="admin-reports-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-chart-line"></i> <span>Reports & Analytics</span></div></a>
-                <a class="nav-link admin-nav-item" data-view="admin-pending-users-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-user-check"></i> <span>User Approvals</span></div><span class="badge bg-warning rounded-pill" id="badge-pending-users"></span></a>
-                <a class="nav-link admin-nav-item" data-view="admin-user-control-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-users-cog"></i> <span>User Control</span></div></a>
-                <a class="nav-link vendor-nav-item" data-view="vendor-dashboard-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a>
-                <a class="nav-link vendor-nav-item" data-view="vendor-requirements-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-clipboard-list"></i> <span>My Open Requirements</span></div></a>
-                <a class="nav-link vendor-nav-item" data-view="vendor-my-bids-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-gavel"></i> <span>My Bidding History</span></div></a>
-                <a class="nav-link vendor-nav-item" data-view="vendor-awarded-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>My Awarded Contracts</span></div></a>
-                <a class="nav-link user-nav-item" data-view="user-create-req-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-edit"></i> <span>Create Requisition</span></div></a>
-                <a class="nav-link user-nav-item" data-view="user-status-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-history"></i> <span>My Requisition Status</span></div></a>
-                <a class="nav-link admin-nav-item user-nav-item vendor-nav-item" data-view="messaging-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-comments"></i> <span>Messages</span></div><span class="badge bg-danger rounded-pill" id="badge-unread-messages"></span></a>
-            </div>
-            <div class="user-profile">
-                <div><h6 id="user-name-sidebar" class="mb-0 text-white"></h6><small id="user-email-sidebar" class="text-muted"></small></div>
-                <button onclick="handleLogout()" class="btn btn-sm btn-outline-danger w-100 mt-2"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></button>
-            </div>
-        </nav>
-        <main class="main-content" id="main-content">
-            <div class="top-header">
-                <div class="d-flex align-items-center">
-                    <button class="sidebar-toggle-btn mobile" id="sidebar-toggle-mobile"><i class="fas fa-bars"></i></button>
-                    <button class="sidebar-toggle-btn desktop" id="sidebar-toggle-desktop"><i class="fas fa-bars"></i></button>
-                    <h1 id="header-title" class="h4 mb-0 ms-3 fw-bold text-dark"></h1>
-                </div>
-                <div class="d-flex align-items-center gap-3">
-                    <div class="dropdown">
-                        <button class="btn btn-light" type="button" id="notification-bell" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-bell"></i><span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;"></span></button>
-                        <ul class="dropdown-menu dropdown-menu-end" id="notification-list" aria-labelledby="notification-bell">
-                                <li><a class="dropdown-item fw-bold text-center" href="#" onclick="handleMarkAllNotificationsRead(event)">Mark All as Read</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-muted text-center" href="#">No new notifications</a></li>
-                        </ul>
-                    </div>
-                    <button class="btn btn-sm btn-outline-primary" onclick="handleManualRefresh()"><i class="fas fa-sync-alt me-2"></i>Refresh Data</button>
-                </div>
-            </div>
-            <div id="main-view"></div>
-        </main>
-    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <script>
+        // =========================================================
+        // ================ CONFIG & STATE =========================
+        // =========================================================
+        const API_BASE_URL = '/api';
+        let TRUCK_TYPES = [], ITEM_LIST = [];
+        let loginWrapper, appContainer, mainView, headerTitle;
+        let registerModal;
 
-    <div class="modal fade" id="registerModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Create Account</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="register-form"><div class="mb-3"><select id="reg-role" class="form-select" required><option value="">Register as...</option><option value="User">User</option><option value="Vendor">Vendor</option></select></div><div class="mb-2"><input type="text" id="reg-fullname" class="form-control" placeholder="Full Name" required></div><div class="mb-2"><input type="email" id="reg-email" class="form-control" placeholder="Email" required></div><div class="mb-2"><input type="password" id="reg-password" class="form-control" placeholder="Password" required></div><div class="mb-2"><input type="text" id="reg-contact" class="form-control" placeholder="Contact Number" required></div><div class="mb-2 hidden" id="reg-company-wrapper"><input type="text" id="reg-company" class="form-control" placeholder="Company Name"></div><div class="mb-3 hidden" id="reg-gstin-wrapper"><input type="text" id="reg-gstin" class="form-control" placeholder="GSTIN (Optional)"></div><button type="submit" class="btn btn-success w-100 fw-bold">Register</button></form></div></div></div></div>
-    <div class="modal fade" id="adminActionModal" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header bg-primary text-white"><h5 class="modal-title" id="adminActionModalTitle">Item Details</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body" id="adminActionModalBody"><div id="req-image-preview" class="text-center my-3"></div><div class="table-responsive"><table class="table table-striped table-sm" id="bids-table"><thead><tr><th><input type="checkbox" class="bid-checkbox-all" onchange="toggleAllInParent(this, 'bid-checkbox')"></th><th>Rank</th><th>Vendor</th><th>Unit Price (₹)</th><th>Freight (₹)</th><th>Total Amount (₹)</th><th>Status</th></tr></thead><tbody id="bids-tbody"></tbody></table></div></div><div class="modal-footer"><div class="w-100"><div class="mb-2"><label class="form-label">Remarks (Mandatory for Action)</label><textarea id="admin-action-remarks" class="form-control" rows="2"></textarea></div><div class="d-flex justify-content-end"><button type="button" class="btn btn-warning me-2" id="reopen-bidding-btn">Re-open Bidding</button><button type="button" class="btn btn-secondary me-auto" onclick="selectAllL1Bids()">Select All L1 Bids</button><button type="button" class="btn btn-success" onclick="handleAwardSubmit()">Award/Re-award Selected</button></div></div></div></div></div></div>
-    <div class="modal fade" id="editUserModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Edit User Details</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="edit-user-form"><input type="hidden" id="edit-userid"><div class="mb-2"><label class="form-label">Full Name</label><input type="text" id="edit-fullname" class="form-control" required></div><div class="mb-2"><label class="form-label">Email</label><input type="email" id="edit-email" class="form-control" required></div><div class="mb-2"><label class="form-label">Role</label><select id="edit-role" class="form-select" required><option value="User">User</option><option value="Vendor">Vendor</option><option value="Admin">Admin</option><option value="Super Admin">Super Admin</option></select></div><div class="mb-2"><label class="form-label">Company Name</label><input type="text" id="edit-company" class="form-control"></div><div class="mb-2"><label class="form-label">Contact Number</label><input type="text" id="edit-contact" class="form-control"></div><div class="mb-2"><label class="form-label">GSTIN</label><input type="text" id="edit-gstin" class="form-control"></div><div class="mb-2"><label class="form-label">New Password (Optional)</label><input type="password" id="edit-password" class="form-control" placeholder="Leave blank to keep unchanged"></div><button type="submit" class="btn btn-success w-100">Save Changes</button></form></div></div></div></div>
-    <div class="modal fade" id="addUserModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Add New User</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="add-user-form"><div class="mb-3"><label class="form-label">Role</label><select id="add-role" class="form-select" required><option value="">Select role...</option><option value="User">User</option><option value="Vendor">Vendor</option><option value="Admin">Admin</option><option value="Super Admin">Super Admin</option></select></div><div class="mb-2"><label class="form-label">Full Name</label><input type="text" id="add-fullname" class="form-control" required></div><div class="mb-2"><label class="form-label">Email</label><input type="email" id="add-email" class="form-control" required></div><div class="mb-2"><label class="form-label">Password</label><input type="password" id="add-password" class="form-control" required></div><div class="mb-2"><label class="form-label">Contact Number</label><input type="text" id="add-contact" class="form-control" required></div><div class="mb-2"><label class="form-label">Company Name (for Vendors)</label><input type="text" id="add-company" class="form-control"></div><div class="mb-3"><label class="form-label">GSTIN (Optional)</label><input type="text" id="add-gstin" class="form-control"></div><button type="submit" class="btn btn-success w-100 fw-bold">Create User</button></form></div></div></div></div>
-    <div class="modal fade" id="reopenBiddingModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-warning"><h5 class="modal-title">Re-open Bidding</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="reopen-item-ids"><div class="mb-3"><label for="reopen-remarks" class="form-label"><strong>Remarks (Mandatory)</strong></label><textarea id="reopen-remarks" class="form-control" rows="2" placeholder="Reason for re-opening bids..."></textarea></div><div class="mb-3"><label class="form-label d-flex justify-content-between"><span>Select Vendors for New Bidding Round</span><div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="reopen-select-all-vendors" onchange="toggleAllInParent(this, 'reopen-vendor-checkbox')"><label class="form-check-label small" for="reopen-select-all-vendors">Select All</label></div></label><div id="reopen-vendor-checklist" class="border rounded p-3" style="max-height: 200px; overflow-y: auto;"></div></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-warning" onclick="submitReopenBidding()">Confirm & Re-open</button></div></div></div></div>
-    <div class="modal fade" id="bulkUploadModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Bulk Upload Requirements</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"> <p>Please upload an Excel file (.xlsx) with the required columns. <a href="#" onclick="downloadBulkTemplate()">Download Template</a></p><hr> <form id="bulk-upload-form"> <div class="mb-3"> <label for="bulk-upload-file" class="form-label">Select Excel File</label> <input class="form-control" type="file" id="bulk-upload-file" accept=".xlsx, .xls" required> </div> <div class="mb-3"> <label class="form-label d-flex justify-content-between"><span>Select Vendors to Notify</span><div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="select-all-vendors-bulk" onchange="toggleAllInParent(this, 'bulk-vendor-checkbox')"><label class="form-check-label small" for="select-all-vendors-bulk">Select All</label></div></label> <div id="bulk-vendor-checklist" class="border rounded p-3" style="max-height: 150px; overflow-y: auto;"></div> </div> <button type="submit" class="btn btn-success w-100">Upload and Submit</button> </form> </div></div></div></div>
-    <div class="modal fade" id="advancedBulkAwardModal" tabindex="-1"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title" id="advancedBulkAwardModalTitle">Advanced Bulk Award</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><p class="text-muted">Select one winning bid for each item you wish to award.</p><div class="accordion" id="advanced-bulk-award-modal-body"></div></div><div class="modal-footer"><div class="w-100"><div class="mb-2"><label class="form-label">Remarks (Mandatory)</label><textarea id="advanced-bulk-award-remarks" class="form-control" rows="2" placeholder="e.g., Awarded based on quality and price."></textarea></div><div class="d-flex justify-content-end"><button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-success" onclick="handleSubmitAdvancedBulkAward()">Submit Awards</button></div></div></div></div></div></div>
-    <div class="modal fade" id="forcePasswordResetModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Set a New Password</h5></div><div class="modal-body"><p class="text-muted">For security, you must set a new password before you can continue.</p><form id="force-password-reset-form"><div class="mb-3"><label class="form-label">New Password</label><input type="password" id="force-new-password" class="form-control" required></div><button type="submit" class="btn btn-primary w-100">Set Password and Login</button></form></div></div></div></div>
-    <div class="modal fade" id="assignVendorsModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="assignVendorModalTitle">Assign Vendors</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="assign-vendor-req-id"><div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" id="assign-vendor-select-all" onchange="toggleAllInParent(this, 'assign-vendor-checkbox')"><label class="form-check-label" for="assign-vendor-select-all">Select All Vendors</label></div><hr><div id="assign-vendor-checklist" class="border rounded p-3" style="max-height: 250px; overflow-y: auto;"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-primary" onclick="handleUpdateVendorAssignments()">Save Changes</button></div></div></div></div>
-    <div class="modal fade" id="bulkBidErrorModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-danger text-white"><h5 class="modal-title">Bidding Status</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Some bids could not be submitted.</p><ul id="bulk-bid-error-list"></ul></div><div class="modal-footer"><button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button></div></div></div></div>
+        // =========================================================
+        // =================== VIEW TEMPLATES ======================
+        // =========================================================
+        const views = {
+            'admin-dashboard-view': `<div class="card"><div class="card-body">Admin Dashboard Coming Soon...</div></div>`,
+            'admin-pending-loads-view': `<div class="card"><div class="card-header"><h5 class="mb-0">Pending Load Approvals</h5></div><div class="card-body"><div id="pending-loads-container"></div></div></div>`,
+            'admin-active-loads-view': `<div class="card"><div class="card-header"><h5 class="mb-0">All Active Loads</h5></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle"><thead><tr><th>Req ID</th><th>Shipper</th><th>Route</th><th>Details</th><th>Assigned Truckers</th><th>Status</th><th>Actions</th></tr></thead><tbody id="admin-loads-tbody"></tbody></table><div id="admin-loads-empty-state"></div></div></div>`,
+            'admin-bidding-history-view': `<div class="card"><div class="card-body">Bidding History Coming Soon...</div></div>`,
+            'admin-user-control-view': `<div class="card"><div class="card-body">User Control Coming Soon...</div></div>`,
+            
+            'vendor-dashboard-view': `<div class="card"><div class="card-body">Trucker Dashboard Coming Soon...</div></div>`,
+            'vendor-open-loads-view': `<div class="d-flex justify-content-end align-items-center mb-3"><button class="btn btn-success" onclick="handleBulkBidSubmit()"><i class="fas fa-check-double me-2"></i>Submit All Entered Bids</button></div><div class="card"><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Route</th><th>Load Details</th><th>Weight</th><th>Truck Type</th><th>Date</th><th>My Rank</th><th>My Bid History</th><th>Your Bid (₹)</th></tr></thead><tbody id="vendor-loads-tbody"></tbody></table></div><div id="vendor-loads-empty-state"></div></div></div>`,
+            'vendor-my-bids-view': `<div class="card"><div class="card-body">My Bidding History Coming Soon...</div></div>`,
+            
+            'user-create-load-view': `<div class="card"><div class="card-header"><h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Post a New Truck Load</h5></div><div class="card-body"><form id="create-load-form"><div id="load-items-container"></div><hr/><button type="submit" class="btn btn-primary w-100 fw-bold">Submit Load Request for Approval</button></form></div></div>`,
+            'user-status-view': `<div class="card"><div class="card-header"><h5 class="mb-0"><i class="fas fa-history me-2"></i>My Load Request Status</h5></div><div class="card-body" id="user-req-status-list"></div></div>`,
+        };
+        
+        // =========================================================
+        // ================ CORE APP LOGIC =========================
+        // =========================================================
+        $(document).ready(() => {
+            loginWrapper = $('#login-wrapper'); appContainer = $('#app-container'); mainView = $('#main-view'); headerTitle = $('#header-title');
+            try { registerModal = new bootstrap.Modal('#registerModal'); } catch (e) { console.error("Error initializing modals:", e); }
+            const user = sessionStorage.getItem('loggedInUser');
+            if (user && sessionStorage.getItem('authToken')) { setupUIForRole(JSON.parse(user)); } else { loginWrapper.removeClass('hidden'); appContainer.addClass('hidden'); }
+            
+            $('#login-form').on('submit', handleLogin);
+            $('#register-form').on('submit', handleRegistration);
+            $(document).on('submit', '#create-load-form', handleLoadSubmit);
+            $('#reg-role').on('change', handleRoleChange);
+            $('#togglePassword').on('click', function() { const passwordInput = $('#password'); const type = passwordInput.attr('type') === 'password' ? 'text' : 'password'; passwordInput.attr('type', type); $(this).toggleClass('fa-eye-slash fa-eye'); });
+        });
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    
-    <script>
-        // =========================================================
-        // ================ CONFIG & STATE =========================
-        // =========================================================
-        const API_BASE_URL = '/api';
-        const PRODUCT_DATA_URL = 'https://script.google.com/macros/s/AKfycby3IzOVIOHdlJrWMPlpdARP-EQ5ve8xhKDNAN2iTWEZwPnY2Y3-tali3zTD4CnBgHyLOw/exec';
-        let PRODUCT_LIST = [], LOCATION_DROPDOWN_DATA = [];
-        let loginWrapper, appContainer, mainView, headerTitle;
-        let registerModal, adminActionModal, editUserModal, bulkUploadModal, advancedBulkAwardModal, reopenBiddingModal, bulkBidErrorModal;
-        let addUserModal, forcePasswordResetModal, assignVendorsModal;
-        let charts = {};
-        let chatPollingInterval = null;
-        let backgroundRefreshInterval = null;
-        let itemCounter = 0;
-        let userSortState = { column: 'full_name', order: 'asc' };
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            showLoader();
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                const token = sessionStorage.getItem('authToken');
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+                const options = { method, headers };
+                if (body) options.body = JSON.stringify(body);
+                const response = await fetch(API_BASE_URL + endpoint, options);
+                const result = await response.json();
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) { handleLogout(); }
+                    throw new Error(result.message || `API Error: ${response.statusText}`);
+                }
+                return result;
+            } catch (error) {
+                showToast(error.message, 'error');
+                throw error;
+            } finally {
+                hideLoader();
+            }
+        }
+
+        function navigateTo(viewId) {
+            mainView.html(views[viewId]);
+            $('#nav-links .nav-link').removeClass('active');
+            const navLink = $(`[data-view="${viewId}"]`);
+            if (navLink.length) {
+                navLink.addClass('active');
+                headerTitle.text(navLink.find('span').text().trim());
+            }
+            const loadFunctionName = `load_${viewId.replace(/-/g, '_')}`;
+            if (typeof window[loadFunctionName] === 'function') {
+                window[loadFunctionName]();
+            }
+        }
+
+        async function handleManualRefresh() {
+            const currentViewLink = $('#nav-links .nav-link.active');
+            if (currentViewLink.length > 0) {
+                showToast('Refreshing data...', 'info');
+                if (currentViewLink.data('view') === 'user-create-load-view') {
+                    TRUCK_TYPES = []; ITEM_LIST = [];
+                }
+                navigateTo(currentViewLink.data('view'));
+            }
+        }
+        
+        // =========================================================
+        // ================= AUTH FUNCTIONS ======================
+        // =========================================================
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const errorDiv = $('#login-error-msg');
+            errorDiv.hide();
+            const email = $('#email').val();
+            const password = $('#password').val();
+            try {
+                const result = await apiCall('/login', 'POST', { email, password }); 
+                sessionStorage.setItem('loggedInUser', JSON.stringify(result.user));
+                sessionStorage.setItem('authToken', result.token);
+                await setupUIForRole(result.user);
+            } catch (error) {
+                errorDiv.text(error.message || 'Invalid credentials.').show();
+            }
+        }
+
+        function handleLogout() {
+            sessionStorage.clear();
+            window.location.reload();
+        }
+
+        function handleRoleChange() {
+            const isVendor = $('#reg-role').val() === 'Vendor';
+            $('#reg-company-wrapper').toggleClass('hidden', !isVendor);
+            $('#reg-gstin-wrapper').toggleClass('hidden', !isVendor);
+            $('#reg-company').prop('required', isVendor);
+        }
+
+        async function handleRegistration(e) {
+            e.preventDefault();
+            const data = { FullName: $('#reg-fullname').val(), Email: $('#reg-email').val(), Password: $('#reg-password').val(), Role: $('#reg-role').val(), CompanyName: $('#reg-company').val(), ContactNumber: $('#reg-contact').val(), GSTIN: $('#reg-gstin').val() };
+            const result = await apiCall('/register', 'POST', data);
+            if (result.success) {
+                showToast(result.message, 'success');
+                registerModal.hide();
+                $(e.target)[0].reset();
+            }
+        }
+        
+        async function setupUIForRole(user) {
+            loginWrapper.addClass('hidden');
+            appContainer.removeClass('hidden');
+            $('#user-name-sidebar').text(user.full_name);
+            $('#user-email-sidebar').text(user.email);
+            $('#nav-links .nav-link').hide();
+            
+            if (user.role === 'Admin' || user.role === 'Super Admin') { $('.admin-nav-item').css('display', 'flex'); }
+            if (user.role === 'Vendor') { $('.vendor-nav-item').css('display', 'flex'); }
+            if (user.role === 'User') { $('.user-nav-item').css('display', 'flex'); }
+
+            const defaultViewMap = { 'Super Admin': 'admin-dashboard-view', 'Admin': 'admin-dashboard-view', 'Vendor': 'vendor-dashboard-view', 'User': 'user-create-load-view' };
+            navigateTo(defaultViewMap[user.role]);
+        }
+
+        // =========================================================
+        // =================== VIEW LOADERS ========================
+        // =========================================================
         
-        Chart.register(ChartDataLabels);
+        // --- SHIPPER (USER) VIEWS ---
+        async function load_user_create_load_view() {
+            $('#load-items-container').html(''); 
+            if (TRUCK_TYPES.length === 0 || ITEM_LIST.length === 0) {
+                showToast('Loading master data...', 'info');
+                try {
+                    const [trucksRes, itemsRes] = await Promise.all([
+                        apiCall('/master-data/truck-types'),
+                        apiCall('/master-data/items')
+                    ]);
+                    TRUCK_TYPES = trucksRes.data;
+                    ITEM_LIST = itemsRes.data;
+                } catch(e) {
+                    $('#load-items-container').html(`<div class="alert alert-danger">Failed to load master data. Please try refreshing the page.</div>`);
+                    return;
+                }
+            }
+            addLoadItem(); // Add the form to the page
+        }
 
-        const views = {
-            'admin-dashboard-view': `
-                <div class="row g-4 mb-4">
-                    <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-primary" onclick="navigateTo('admin-requirements-view')"><div><h5 class="mb-0">Active Items</h5><p class="display-4" id="stats-active-items">--</p></div><i class="fas fa-file-alt stat-icon"></i></div></div>
-                    <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-success" onclick="navigateTo('admin-pending-users-view')"><div><h5 class="mb-0">Pending Users</h5><p class="display-4" id="stats-pending-users">--</p></div><i class="fas fa-user-check stat-icon"></i></div></div>
-                    <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-warning" onclick="navigateTo('admin-pending-reqs-view')"><div><h5 class="mb-0">Pending Reqs</h5><p class="display-4" id="stats-pending-reqs">--</p></div><i class="fas fa-inbox stat-icon"></i></div></div>
-                    <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-info" onclick="navigateTo('admin-awarded-view')"><div><h5 class="mb-0">Items Awarded</h5><p class="display-4" id="stats-awarded-contracts">--</p></div><i class="fas fa-trophy stat-icon"></i></div></div>
-                </div>
-                <div class="row g-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header"><h5 class="mb-0"><i class="fas fa-chart-area me-2"></i>Analytics Overview</h5></div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-lg-7 mb-4 mb-lg-0">
-                                        <h6 class="text-muted text-center">Requisition Trends (Monthly)</h6>
-                                        <div class="chart-container" style="height: 250px;"><canvas id="adminRequisitionChart"></canvas></div>
-                                    </div>
-                                    <div class="col-lg-5">
-                                        <h6 class="text-muted text-center">Top Vendor Bidding Activity</h6>
-                                        <div class="chart-container" style="height: 250px;"><canvas id="adminVendorBiddingChart"></canvas></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>`,
-            'admin-pending-reqs-view': `<div class="card"><div class="card-header"><h5 class="mb-0">Pending Requisition Approvals</h5></div><div class="card-body"><div id="pending-reqs-accordion-container"></div></div></div>`,
-            'admin-requirements-view': `<div class="card"><div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2"><h5 class="mb-0">All Active Requirement Items</h5><div><button class="btn btn-success btn-sm" onclick="handleAdvancedBulkAward()"><i class="fas fa-trophy me-2"></i>Award Selected</button><button class="btn btn-primary btn-sm" onclick="openBulkUploadModal()"><i class="fas fa-upload me-2"></i>Bulk Upload</button></div></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle" id="admin-req-table"><thead class="table-light"><tr><th rowspan="2"><input type="checkbox" onchange="toggleAllInParent(this, 'req-item-checkbox')"></th><th rowspan="2">Req ID</th><th rowspan="2">Item Name & Code</th><th rowspan="2">Assigned Vendors</th><th rowspan="2">Status</th><th rowspan="2">L1 Vendor</th><th colspan="3" class="text-center-deep">L1 Rate (₹)</th><th rowspan="2">Actions</th></tr><tr><th>Unit Price</th><th>Freight</th><th>Total</th></tr></thead><tbody id="admin-req-tbody"></tbody></table><div id="admin-req-empty-state"></div></div></div>`,
-            'admin-bidding-history-view': `<div class="card"><div class="card-header d-flex justify-content-between align-items-center"><h5 class="mb-0">Bidding History</h5><button class="btn btn-sm btn-success" onclick="downloadBiddingHistoryReport()"><i class="fas fa-download me-2"></i>Download Report</button></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle" id="admin-bids-table"><thead class="table-light"><tr><th>Req ID</th><th>Item</th><th>Vendor</th><th>Unit Price (₹)</th><th>Freight (₹)</th><th>Total Amount (₹)</th><th>Status</th><th>Date</th></tr></thead><tbody id="admin-bids-tbody"></tbody></table><div id="admin-bids-empty-state"></div></div></div>`,
-            'admin-awarded-view': `<div class="card"><div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2"><h5 class="mb-0">Awarded Contracts</h5><div><button class="btn btn-danger btn-sm me-2" onclick="handleBulkReopenModal()"><i class="fas fa-history me-2"></i>Re-open Selected</button><button class="btn btn-sm btn-success" onclick="downloadAdminAwardedContractsReport()"><i class="fas fa-download me-2"></i>Download Report</button></div></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle" id="admin-awarded-table"><thead class="table-light"><tr><th><input type="checkbox" onchange="toggleAllInParent(this, 'awarded-item-checkbox')"></th><th>Req. ID</th><th>Item Name</th><th>Vendor</th><th>Unit Price (₹)</th><th>Freight (₹)</th><th>Total (₹)</th><th>Date</th><th>Actions</th></tr></thead><tbody id="admin-awarded-tbody"></tbody></table><div id="admin-awarded-empty-state"></div></div></div>`,
-            'admin-reports-view': `<div class="card mb-4"><div class="card-header"><h5 class="mb-0">Analytics Filters</h5></div><div class="card-body"><div class="row g-3 align-items-center"><div class="col-md-5"><label class="form-label form-label-sm">Start Date</label><input type="date" id="report-start-date" class="form-control form-control-sm"></div><div class="col-md-5"><label class="form-label form-label-sm">End Date</label><input type="date" id="report-end-date" class="form-control form-control-sm"></div><div class="col-md-2 d-grid"><button id="report-apply-filter" class="btn btn-primary btn-sm mt-md-3">Apply Filter</button></div></div></div></div><div class="row g-4 mb-4"><div class="col-xl-3 col-md-6"><div class="kpi-card-small"><div class="kpi-icon bg-gradient-primary"><i class="fas fa-rupee-sign"></i></div><div class="kpi-info"><h6>Total Spend</h6><p id="report-total-spend">--</p></div></div></div><div class="col-xl-3 col-md-6"><div class="kpi-card-small"><div class="kpi-icon bg-gradient-success"><i class="fas fa-percent"></i></div><div class="kpi-info"><h6>L1 Award Rate</h6><p id="report-l1-award-rate">--</p></div></div></div><div class="col-xl-3 col-md-6"><div class="kpi-card-small"><div class="kpi-icon bg-gradient-info"><i class="fas fa-check-circle"></i></div><div class="kpi-info"><h6>Items Awarded</h6><p id="report-awarded-count">--</p></div></div></div><div class="col-xl-3 col-md-6"><div class="kpi-card-small"><div class="kpi-icon bg-gradient-warning"><i class="fas fa-hand-holding-usd"></i></div><div class="kpi-info"><h6>Cost Savings</h6><p id="report-cost-savings">--</p></div></div></div></div><div class="row g-4"><div class="col-lg-6"><div class="card h-100"><div class="card-header"><h5 class="mb-0">Spend by Vendor</h5></div><div class="card-body"><div class="chart-container"><canvas id="vendorSpendChart"></canvas></div></div></div></div><div class="col-lg-6"><div class="card h-100"><div class="card-header"><h5 class="mb-0">Awarded Value Over Time</h5></div><div class="card-body"><div class="chart-container"><canvas id="awardedValueChart"></canvas></div></div></div></div></div><div class="card mt-4"><div class="card-header d-flex justify-content-between"><h6 class="mb-0">Detailed Awarded Contracts Report</h6><button class="btn btn-sm btn-outline-success" onclick="downloadDetailedReport()"><i class="fas fa-download me-2"></i>Download Full Report</button></div><div class="card-body table-responsive p-0"><table class="table table-sm table-hover" id="detailed-report-table"><thead class="table-light"><tr><th>Req ID</th><th>Item Name</th><th>Vendor</th><th>Awarded Amount (₹)</th><th>Award Date</th></tr></thead><tbody id="detailed-report-tbody"></tbody></table><div id="detailed-report-empty-state"></div></div></div>`,
-            'admin-pending-users-view': `<div class="card"><div class="card-header"><h5 class="mb-0">Pending User Approvals</h5></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle" id="admin-pending-users-table"><thead class="table-light"><tr><th>Name</th><th>Email</th><th>Role</th><th>Company</th><th>Contact</th><th>Action</th></tr></thead><tbody id="admin-pending-users-tbody"></tbody></table><div id="admin-pending-users-empty-state"></div></div></div>`,
-            'admin-user-control-view': `<div class="card"><div class="card-header d-flex justify-content-between align-items-center"><h5 class="mb-0">User Control Center</h5><button class="btn btn-success btn-sm" onclick="openAddUserModal()"><i class="fas fa-plus me-2"></i>Add User</button></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle" id="admin-users-table"><thead class="table-light"><tr><th class="sortable" onclick="handleUserSort('full_name')">Name <span id="sort-icon-full_name"></span></th><th>Email</th><th class="sortable" onclick="handleUserSort('role')">Role <span id="sort-icon-role"></span></th><th>Company</th><th>Contact</th><th>GSTIN</th><th>Action</th></tr></thead><tbody id="admin-users-tbody"></tbody></table><div id="admin-users-empty-state"></div></div></div>`,
-            'vendor-dashboard-view': `
-                <div class="row g-4 mb-4">
-                    <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-info" onclick="navigateTo('vendor-requirements-view')"><div><h5 class="mb-0">Assigned Items</h5><p class="display-4" id="vendor-stats-assigned">--</p></div><i class="fas fa-file-signature stat-icon"></i></div></div>
-                    <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-primary" onclick="navigateTo('vendor-my-bids-view')"><div><h5 class="mb-0">Bids Submitted</h5><p class="display-4" id="vendor-stats-submitted">--</p></div><i class="fas fa-gavel stat-icon"></i></div></div>
-                    <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-success" onclick="navigateTo('vendor-awarded-view')"><div><h5 class="mb-0">Contracts Won</h5><p class="display-4" id="vendor-stats-won">--</p></div><i class="fas fa-trophy stat-icon"></i></div></div>
-                    <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-warning" onclick="navigateTo('vendor-requirements-view')"><div><h5 class="mb-0">Needs My Bid</h5><p class="display-4" id="vendor-stats-needs-bid">--</p></div><i class="fas fa-edit stat-icon"></i></div></div>
-                </div>
-                <div class="row g-4">
-                    <div class="col-lg-5">
-                        <div class="card h-100">
-                            <div class="card-header"><h5 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i>Performance Snapshot</h5></div>
-                            <div class="card-body p-2"><ul class="list-group list-group-flush" id="vendor-kpi-container"></ul></div>
-                        </div>
-                    </div>
-                    <div class="col-lg-7">
-                        <div class="card h-100">
-                            <div class="card-header d-flex justify-content-between align-items-center"><span><i class="fas fa-history me-2"></i>My Recent Bids</span><button class="btn btn-sm btn-outline-primary" onclick="navigateTo('vendor-my-bids-view')">View All</button></div>
-                            <div class="card-body p-0"><div class="list-group list-group-flush" id="vendor-recent-bids"></div></div>
-                        </div>
-                    </div>
-                </div>`,
-            'vendor-requirements-view': `<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                                            <h5 class="mb-0">My Open Requirements for Bidding</h5>
-                                            <button class="btn btn-success" onclick="handleBulkBidSubmit()"><i class="fas fa-check-double me-2"></i>Submit All Entered Bids</button>
-                                         </div>
-                                         <div id="vendor-reqs-container"></div>
-                                         <div id="vendor-reqs-empty-state"></div>`,
-            'vendor-my-bids-view': `<div class="card"><div class="card-header d-flex justify-content-between align-items-center"><h5 class="mb-0">My Bidding History</h5><button class="btn btn-sm btn-success" onclick="downloadMyBidsReport()"><i class="fas fa-download me-2"></i>Download Report</button></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle" id="vendor-bids-table"><thead class="table-light"><tr><th rowspan="2">Req. ID</th><th rowspan="2">Item Name</th><th colspan="3" class="text-center-deep">My Bid (₹)</th><th rowspan="2">My Rank</th><th rowspan="2">Status</th><th colspan="3" class="text-center-deep">L1 Bid (₹)</th><th rowspan="2">Date</th></tr><tr><th>Unit Price</th><th>Freight</th><th>Total</th><th>Unit Price</th><th>Freight</th><th>Total</th></tr></thead><tbody id="vendor-bids-tbody"></tbody></table><div id="vendor-bids-empty-state"></div></div></div>`,
-            'vendor-awarded-view': `<div class="card"><div class="card-header d-flex justify-content-between align-items-center"><h5 class="mb-0">My Awarded Contracts</h5><button class="btn btn-sm btn-success" onclick="downloadMyAwardedContractsReport()"><i class="fas fa-download me-2"></i>Download Report</button></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle" id="vendor-awarded-table"><thead class="table-light"><tr><th>Req. ID</th><th>Item</th><th>Unit Price (₹)</th><th>Freight (₹)</th><th>Total Amount (₹)</th><th>Date</th></tr></thead><tbody id="vendor-awarded-tbody"></tbody></table><div id="vendor-awarded-empty-state"></div></div></div>`,
-            'user-create-req-view': `<div class="card"><div class="card-header"><h5 class="mb-0"><i class="fas fa-edit me-2"></i>Create a New Requisition</h5></div><div class="card-body"><form id="requisition-form"><div id="requisition-items-container"></div><button type="button" class="btn btn-outline-secondary w-100 mb-3" onclick="addRequisitionItem()"><i class="fas fa-plus me-2"></i>Add another item</button><div class="card p-3 mb-3"><h6 class="mt-2 d-flex justify-content-between align-items-center">Select Vendors to Notify<div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="select-all-vendors-user"><label class="form-check-label small" for="select-all-vendors-user">Select All</label></div></h6><div id="req-vendor-checklist" class="border rounded p-3" style="max-height: 150px; overflow-y: auto;"></div></div><button type="submit" class="btn btn-primary w-100 fw-bold">Submit Requisition for Approval</button></form></div></div>`,
-            'user-status-view': `<div class="card"><div class="card-header"><h5 class="mb-0"><i class="fas fa-history me-2"></i>My Requisition Status</h5></div><div class="card-body" id="user-req-status-list"></div></div>`,
-            'messaging-view': `<div class="card" style="height: calc(100vh - 125px);"><div class="row g-0 h-100"><div class="col-lg-4 col-12 border-end d-flex flex-column"><div class="card-header d-flex justify-content-between align-items-center"><h5 class="mb-0">Conversations</h5><button class="btn btn-sm btn-outline-primary" onclick="load_messaging_view()"><i class="fas fa-sync-alt"></i></button></div><div class="p-2 border-bottom"><input type="text" id="chat-search" class="form-control" placeholder="Search users to chat..."></div><div id="chat-list" class="list-group list-group-flush" style="overflow-y: auto; flex-grow: 1;"></div></div><div class="col-lg-8 col-12 d-flex flex-column"><div id="chat-main" class="h-100"><div id="chat-welcome" class="d-flex align-items-center justify-content-center h-100"><div class="text-center text-muted"><i class="fas fa-comments fa-3x mb-3"></i><p>Select a conversation to start messaging.</p></div></div><div id="chat-window" class="d-none h-100 d-flex flex-column"><div class="card-header d-flex justify-content-between align-items-center border-bottom"><h5 id="chat-with-name" class="mb-0"></h5><button class="btn btn-sm btn-outline-success" id="download-chat-btn"><i class="fas fa-download me-1"></i> Download History</button></div><div id="chat-messages" class="card-body p-4" style="overflow-y: auto; flex-grow: 1;"></div><div class="card-footer bg-light p-3 border-top"><form id="message-form" class="d-flex"><input type="text" id="message-input" class="form-control" placeholder="Type a message..." autocomplete="off" required><button type="submit" class="btn btn-primary ms-2"><i class="fas fa-paper-plane"></i></button></form></div></div></div></div></div></div>`
-        };
-        
-        // =========================================================
-        // ================ UTILITY FUNCTIONS ======================
-        // =========================================================
-        
-        function debounce(func, delay) { let timeout; return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), delay); }; }
-        function renderEmptyState(containerSelector, message, iconClass = 'fa-folder-open') { $(containerSelector).html(`<div class="empty-state"><i class="fas ${iconClass}"></i><p>${message}</p></div>`); }
-
-        // =========================================================
-        // ================ CHART CREATION =========================
-        // =========================================================
-        function createChart(chartId, type, data, options = {}) {
-            if (charts[chartId]) charts[chartId].destroy();
-            const ctx = document.getElementById(chartId)?.getContext('2d');
-            if (!ctx) return;
-            const container = ctx.canvas.parentElement;
-            $(container).find('.chart-no-data').remove();
-            if (!data.labels || data.labels.length === 0) {
-                $(container).append('<div class="chart-no-data">No data to display</div>');
+        async function load_user_status_view() {
+            const listDiv = $('#user-req-status-list').html('<div class="text-center p-4">Loading...</div>'); 
+            const result = await apiCall('/requisitions/my-status');
+            if (!result.success || result.data.length === 0) {
+                renderEmptyState('#user-req-status-list', 'You have not posted any loads yet.', 'fa-file-signature');
                 return;
             }
-            const defaultOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 12, family: 'Poppins' }, color: '#555' } }, datalabels: { display: false } }, scales: { x: { ticks: { font: { family: 'Poppins' } }, grid: { display: false } }, y: { ticks: { font: { family: 'Poppins' } } } } };
-            const finalOptions = $.extend(true, defaultOptions, options);
-            if (type === 'doughnut' || type === 'pie') {
-                finalOptions.plugins.datalabels = { display: true, formatter: (value, context) => { const sum = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0); const percentage = sum > 0 ? (value * 100 / sum).toFixed(0) + "%" : "0%"; return `${value}\n(${percentage})`; }, color: '#fff', textAlign: 'center', font: { weight: 'bold', size: 12, family: 'Poppins' } };
-            }
-            if (type === 'bar') {
-                data.datasets.forEach(dataset => { dataset.borderRadius = 5; dataset.borderWidth = 1; dataset.borderColor = 'rgba(0,0,0,0.1)'; dataset.borderSkipped = false; });
-            }
-            charts[chartId] = new Chart(ctx, { type, data, options: finalOptions });
-        }
-        
-        // =========================================================
-        // ================ CORE APP LOGIC =========================
-        // =========================================================
-        $(document).ready(() => {
-            loginWrapper = $('#login-wrapper'); appContainer = $('#app-container'); mainView = $('#main-view'); headerTitle = $('#header-title');
-            try { registerModal = new bootstrap.Modal('#registerModal'); adminActionModal = new bootstrap.Modal('#adminActionModal'); editUserModal = new bootstrap.Modal('#editUserModal'); reopenBiddingModal = new bootstrap.Modal('#reopenBiddingModal'); bulkUploadModal = new bootstrap.Modal('#bulkUploadModal'); advancedBulkAwardModal = new bootstrap.Modal('#advancedBulkAwardModal'); addUserModal = new bootstrap.Modal('#addUserModal'); forcePasswordResetModal = new bootstrap.Modal('#forcePasswordResetModal'); assignVendorsModal = new bootstrap.Modal('#assignVendorsModal'); bulkBidErrorModal = new bootstrap.Modal('#bulkBidErrorModal'); } catch (e) { console.error("Error initializing modals:", e); }
-            const user = sessionStorage.getItem('loggedInUser');
-            if (user && sessionStorage.getItem('authToken')) { setupUIForRole(JSON.parse(user)); } else { loginWrapper.removeClass('hidden'); appContainer.addClass('hidden'); }
-            
-            $('#login-form').on('submit', handleLogin);
-            $('#register-form').on('submit', handleRegistration);
-            $(document).on('submit', '#requisition-form', handleRequisitionSubmit);
-            $(document).on('submit', '#add-user-form', handleAddUserSubmit);
-            $(document).on('submit', '#force-password-reset-form', handleForcePasswordResetSubmit);
-            $('#reg-role').on('change', handleRoleChange);
-            $('#edit-user-form').on('submit', handleUserUpdateSubmit);
-            $('#bulk-upload-form').on('submit', handleBulkUpload);
-            $('#sidebar-toggle-desktop, #sidebar-toggle-mobile').on('click', () => { if(window.innerWidth < 992) { $('#sidebar').toggleClass('active'); } else { $('#sidebar').toggleClass('collapsed'); $('body').toggleClass('sidebar-collapsed'); } });
-            $('#togglePassword').on('click', function() { const passwordInput = $('#password'); const type = passwordInput.attr('type') === 'password' ? 'text' : 'password'; passwordInput.attr('type', type); $(this).toggleClass('fa-eye-slash fa-eye'); });
-            $(document).on('click', '.btn-view-bids', function() { openAdminActionModal($(this).data('item-id'), $(this).data('item-name')); });
-        });
-
-        async function apiCall(endpoint, method = 'GET', body = null, isFormData = false, showLoaderFlag = true, showErrorToast = true) {
-            if (showLoaderFlag) showLoader();
-            try {
-                const headers = {};
-                const token = sessionStorage.getItem('authToken');
-                if (token) headers['Authorization'] = `Bearer ${token}`;
-                if (!isFormData) headers['Content-Type'] = 'application/json';
-                const options = { method, headers };
-                if (body) options.body = isFormData ? body : JSON.stringify(body);
-                const finalUrl = endpoint.startsWith('http') ? endpoint : API_BASE_URL + endpoint;
-                const response = await fetch(finalUrl, options);
-                const resultText = await response.text();
-                let result;
-                try { result = JSON.parse(resultText); } catch (e) { throw new Error("Received an invalid response from the server."); }
-                
-                if (!response.ok) {
-                    if (response.status === 401 || response.status === 403) { handleLogout(); }
-                    throw new Error(result.message || `API Error: ${response.statusText}`);
-                }
-                return result;
-            } catch (error) {
-                if (showErrorToast) {
-                    showToast(error.message, 'error');
-                }
-                console.error(`API Call Error to ${endpoint}:`, error);
-                throw error;
-            } finally {
-                if (showLoaderFlag) hideLoader();
-            }
-        }
-
-        function navigateTo(viewId) { if (!viewId || !views[viewId]) { console.error("View not found:", viewId); return; } if (chatPollingInterval) { clearInterval(chatPollingInterval); chatPollingInterval = null; } mainView.html(views[viewId]); $('#nav-links .nav-link').removeClass('active'); const navLink = $(`[data-view="${viewId}"]`); if (navLink.length) { navLink.addClass('active'); headerTitle.text(navLink.find('span').text().trim()); } if (window.innerWidth < 992) { $('#sidebar').removeClass('active'); } const loadFunctionName = `load_${viewId.replace(/-/g, '_')}`; if (typeof window[loadFunctionName] === 'function') { window[loadFunctionName](); } }
-        async function handleManualRefresh() { const currentViewLink = $('#nav-links .nav-link.active'); if (currentViewLink.length > 0) { showToast('Refreshing data...', 'info'); const viewId = currentViewLink.data('view'); if (viewId === 'user-create-req-view') { PRODUCT_LIST = []; LOCATION_DROPDOWN_DATA = []; } navigateTo(viewId); } }
-        
-        async function handleLogin(e) {
-            e.preventDefault();
-            const errorDiv = $('#login-error-msg');
-            errorDiv.hide();
-            const email = $('#email').val();
-            const password = $('#password').val();
-            try {
-                const result = await apiCall('/login', 'POST', { email, password }, false, true, false); 
-                if (result.success) {
-                    sessionStorage.setItem('loggedInUser', JSON.stringify(result.user));
-                    sessionStorage.setItem('authToken', result.token);
-                    if (result.forceReset) {
-                        forcePasswordResetModal.show();
-                    } else {
-                        await setupUIForRole(result.user);
-                    }
-                }
-            } catch (error) {
-                errorDiv.text(error.message || 'Invalid credentials. Please try again.').show();
-            }
-        }
-        function handleLogout() { if(backgroundRefreshInterval) clearInterval(backgroundRefreshInterval); sessionStorage.clear(); window.location.reload(); }
-        function handleRoleChange() { const isVendor = $('#reg-role').val() === 'Vendor'; $('#reg-company-wrapper').toggleClass('hidden', !isVendor); $('#reg-gstin-wrapper').toggleClass('hidden', !isVendor); $('#reg-company').prop('required', isVendor); }
-        async function handleRegistration(e) { e.preventDefault(); const data = { FullName: $('#reg-fullname').val(), Email: $('#reg-email').val(), Password: $('#reg-password').val(), Role: $('#reg-role').val(), CompanyName: $('#reg-company').val(), ContactNumber: $('#reg-contact').val(), GSTIN: $('#reg-gstin').val() }; const result = await apiCall('/register', 'POST', data); if (result.success) { showToast(result.message, 'success'); registerModal.hide(); $(e.target)[0].reset(); } }
-        
-        async function setupUIForRole(user) {
-            loginWrapper.addClass('hidden');
-            appContainer.removeClass('hidden');
-            $('#user-name-sidebar').text(user.full_name);
-            $('#user-email-sidebar').text(user.email);
-            $('#nav-links .nav-link').hide();
-            
-            if (user.role === 'Admin' || user.role === 'Super Admin') {
-                $('.admin-nav-item').css('display', 'flex');
-            }
-            if (user.role === 'Vendor') { $('.vendor-nav-item').css('display', 'flex'); }
-            if (user.role === 'User') { $('.user-nav-item').css('display', 'flex'); }
-
-            if (user.role !== 'User') {
-                if (backgroundRefreshInterval) clearInterval(backgroundRefreshInterval);
-                backgroundRefreshInterval = setInterval(backgroundRefreshData, 120000);
-            }
-            await fetchSidebarCounts();
-            await fetchNotifications();
-            const defaultViewMap = { 'Super Admin': 'admin-dashboard-view', 'Admin': 'admin-dashboard-view', 'Vendor': 'vendor-dashboard-view', 'User': 'user-create-req-view' };
-            navigateTo(defaultViewMap[user.role]);
-             if (user.role === 'Super Admin') {
-                setTimeout(() => $('.super-admin-only').removeClass('hidden'), 100);
-            }
-        }
-
-        async function load_admin_dashboard_view() { const result = await apiCall('/admin/dashboard-stats'); if (result.success) { const data = result.data; $('#stats-active-items').text(data.activeItems || '0'); $('#stats-pending-users').text(data.pendingUsers || '0'); $('#stats-pending-reqs').text(data.pendingRequisitionsCount || '0'); $('#stats-awarded-contracts').text(data.awardedContracts || '0'); createChart('adminRequisitionChart', 'bar', { labels: data.charts.reqTrends.labels, datasets: [{ label: 'Requisitions Created', data: data.charts.reqTrends.data, backgroundColor: '#5E72E4' }] }); createChart('adminVendorBiddingChart', 'doughnut', { labels: data.charts.biddingActivity.labels, datasets: [{ label: 'Bids Submitted', data: data.charts.biddingActivity.data, backgroundColor: ['#5E72E4', '#2DCE89', '#FB6340', '#11CDEF', '#F5365C'] }] }); } }
-        async function load_admin_pending_reqs_view() { const container = $('#pending-reqs-accordion-container').html('<div class="text-center p-4">Loading...</div>'); const result = await apiCall('/requirements/pending'); if (!result.success || result.data.groupedReqs.length === 0) { renderEmptyState('#pending-reqs-accordion-container', 'No requisitions are pending approval.', 'fa-inbox'); return; } const { groupedReqs, pendingItems, allVendors } = result.data; container.html('<div class="accordion" id="pending-reqs-accordion"></div>'); const accordion = $('#pending-reqs-accordion'); groupedReqs.forEach(req => { const reqId = req.requisition_id; const reqItems = pendingItems.filter(item => item.requisition_id == reqId); const itemsHTML = reqItems.map(item => `<li class="list-group-item"><input class="form-check-input me-2 item-check-box" type="checkbox" value="${item.item_id}" checked><label class="form-check-label">${item.item_sl_no}. ${item.item_name} (${item.quantity} ${item.unit})</label></li>`).join(''); const suggestedVendorIds = (req.suggested_vendors || '').split('||').map(v => v.split(':')[0]); const vendorsHTML = allVendors.map(v => `<div class="form-check form-check-inline"><input class="form-check-input vendor-assign-check" type="checkbox" value="${v.user_id}" ${suggestedVendorIds.includes(String(v.user_id)) ? 'checked' : ''}><label class="form-check-label">${v.full_name}</label></div>`).join(''); accordion.append(`<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${reqId}">Req ID: REQ-${reqId || 'N/A'} (By: ${req.creator || 'N/A'}) - ${reqItems.length} items</button></h2><div id="collapse-${reqId}" class="accordion-collapse collapse" data-bs-parent="#pending-reqs-accordion"><div class="accordion-body"><h6>Select items to approve:</h6><ul class="list-group mb-3">${itemsHTML}</ul><h6 class="d-flex justify-content-between"><span>Assign vendors:</span><div class="form-check form-check-inline"><input class="form-check-input me-2" type="checkbox" onchange="toggleAllInParent(this, 'vendor-assign-check')"><label>Select All</label></div></h6><div class="border rounded p-2">${vendorsHTML}</div><div class="mt-3 d-flex justify-content-between"><button class="btn btn-success" onclick="handleBulkApproval('${reqId}')">Process Selected Items</button><button class="btn btn-danger super-admin-only" onclick="handleDeleteRequisition('${reqId}')">Delete Entire Requisition</button></div></div></div></div>`); }); const user = JSON.parse(sessionStorage.getItem('loggedInUser')); if(user.role === 'Super Admin') { $('.super-admin-only').removeClass('hidden'); } }
-        async function load_admin_requirements_view() { const result = await apiCall('/requirements/active'); if(!result.success) return; if(result.data.length === 0) { $('#admin-req-table').hide(); renderEmptyState('#admin-req-empty-state', 'No active requirements found.', 'fa-file-alt'); return; } $('#admin-req-table').show(); $('#admin-req-empty-state').empty(); const tableBody = result.data.map(item => { const itemNameEscaped = item.item_name ? item.item_name.replace(/"/g, '&quot;') : 'N/A'; return `<tr data-item-id="${item.item_id}"><td><input type="checkbox" class="form-check-input req-item-checkbox"></td><td>REQ-${item.requisition_id || 'N/A'}-${item.item_sl_no || 'N/A'}</td><td>${item.item_name || 'N/A'}<br/><small class="text-muted">${item.item_code || ''} | ${createImageLinks(item)}</small></td><td><small>${item.assigned_vendors || 'N/A'}</small></td><td><span class="badge bg-${getBadgeColor(item.status)}">${item.status || 'N/A'}</span></td><td>${item.l1_vendor || 'No Bids'}</td><td>${item.l1_ex_works_rate ? formatCurrency(item.l1_ex_works_rate) : '-'}</td><td>${item.l1_freight_rate ? formatCurrency(item.l1_freight_rate) : '-'}</td><td><strong>${item.l1_rate ? formatCurrency(item.l1_rate) : '-'}</strong></td><td><div class="btn-group btn-group-sm"><button class="btn btn-info btn-view-bids" data-item-id="${item.item_id}" data-item-name="${itemNameEscaped}">View Bids</button><button class="btn btn-secondary" onclick="openAssignVendorsModal(${item.requisition_id})">Assign</button></div></td></tr>`; }).join(''); $('#admin-req-tbody').html(tableBody); const user = JSON.parse(sessionStorage.getItem('loggedInUser')); if(user.role === 'Super Admin') { $('.super-admin-only').removeClass('hidden'); } }
-        async function load_admin_bidding_history_view() { const result = await apiCall('/admin/bidding-history'); if (!result.success) return; if(result.data.length === 0) { $('#admin-bids-table').hide(); renderEmptyState('#admin-bids-empty-state', 'No bidding history found.', 'fa-history'); return; } $('#admin-bids-table').show(); $('#admin-bids-empty-state').empty(); $('#admin-bids-tbody').html(result.data.map(bid => `<tr><td>REQ-${bid.requisition_id || 'N/A'}-${bid.item_sl_no || 'N/A'}</td><td>${bid.item_name || 'N/A'}</td><td>${bid.vendor_name || 'N/A'}</td><td>${formatCurrency(bid.ex_works_rate)}</td><td>${formatCurrency(bid.freight_rate)}</td><td><strong>${formatCurrency(bid.bid_amount)}</strong></td><td><span class="badge bg-${getBadgeColor(bid.bid_status)}">${bid.bid_status}</span></td><td>${formatDate(bid.submitted_at, true)}</td></tr>`).join('')); }
-        async function load_admin_awarded_view() { const result = await apiCall('/admin/awarded-contracts'); if (!result.success) return; if(result.data.length === 0) { $('#admin-awarded-table').hide(); renderEmptyState('#admin-awarded-empty-state', 'No awarded contracts found.', 'fa-trophy'); return; } $('#admin-awarded-table').show(); $('#admin-awarded-empty-state').empty(); $('#admin-awarded-tbody').html(result.data.map(contract => `<tr><td><input type="checkbox" class="form-check-input awarded-item-checkbox" data-item-id="${contract.item_id}"></td><td>REQ-${contract.requisition_id || 'N/A'}-${contract.item_sl_no || 'N/A'}</td><td>${contract.item_name || 'N/A'}</td><td>${contract.vendor_name || 'N/A'}</td><td>${formatCurrency(contract.ex_works_rate)}</td><td>${formatCurrency(contract.freight_rate)}</td><td><strong>${formatCurrency(contract.awarded_amount)}</strong></td><td>${formatDate(contract.awarded_date)}</td><td><div class="btn-group btn-group-sm"><button class="btn btn-info btn-view-bids" data-item-id="${contract.item_id}" data-item-name="${contract.item_name ? contract.item_name.replace(/"/g, '&quot;') : 'N/A'}">Bids</button><button class="btn btn-danger" onclick="handleSingleReopenBidding(${contract.item_id})">Re-open</button></div></td></tr>`).join('')); }
-        async function load_admin_pending_users_view() { const result = await apiCall('/users/pending'); if (!result.success) return; if(result.data.length === 0) { $('#admin-pending-users-table').hide(); renderEmptyState('#admin-pending-users-empty-state', 'No users are pending approval.', 'fa-user-check'); return; } $('#admin-pending-users-table').show(); $('#admin-pending-users-empty-state').empty(); $('#admin-pending-users-tbody').html(result.data.map(user => `<tr><td>${user.full_name || 'N/A'}</td><td>${user.email || 'N/A'}</td><td>${user.role || 'N/A'}</td><td>${user.company_name || '-'}</td><td>${user.contact_number || '-'}</td><td><button class="btn btn-sm btn-success" onclick="approveUser(${user.temp_id})">Approve</button> <button class="btn btn-sm btn-danger super-admin-only" onclick="rejectUser(${user.temp_id})">Reject</button></td></tr>`).join('')); const user = JSON.parse(sessionStorage.getItem('loggedInUser')); if(user.role === 'Super Admin') { $('.super-admin-only').removeClass('hidden'); } }
-        async function load_admin_user_control_view() { const { column, order } = userSortState; const result = await apiCall(`/users?sortBy=${column}&order=${order}`); $('#admin-users-table th.sortable span').html(''); const icon = order === 'asc' ? '<i class="fas fa-sort-up ms-1"></i>' : '<i class="fas fa-sort-down ms-1"></i>'; $(`#sort-icon-${column}`).html(icon); if (!result.success) return; if(result.data.length === 0) { $('#admin-users-table').hide(); renderEmptyState('#admin-users-empty-state', 'No users found.', 'fa-users'); return; } $('#admin-users-table').show(); $('#admin-users-empty-state').empty(); $('#admin-users-tbody').html(result.data.map(user => `<tr><td>${user.full_name || 'N/A'}</td><td>${user.email || 'N/A'}</td><td><span class="badge bg-${getBadgeColor(user.role)}">${user.role || 'N/A'}</span></td><td>${user.company_name || '-'}</td><td>${user.contact_number || '-'}</td><td>${user.gstin || '-'}</td><td><div class="btn-group btn-group-sm"><button class="btn btn-primary" onclick='openEditUserModal(${JSON.stringify(user)})'>Edit</button><button class="btn btn-danger super-admin-only" onclick="handleDeleteUser(${user.user_id})">Delete</button></div></td></tr>`).join('')); const currentUser = JSON.parse(sessionStorage.getItem('loggedInUser')); if(currentUser.role === 'Super Admin') { $('.super-admin-only').removeClass('hidden'); } }
-        async function load_admin_reports_view() { $('#report-apply-filter').off('click').on('click', updateReportView); updateReportView(); }
-        async function load_vendor_dashboard_view() { const result = await apiCall('/vendor/dashboard-stats'); if (result.success) { const data = result.data; $('#vendor-stats-assigned').text(data.assignedItems || '0'); $('#vendor-stats-submitted').text(data.submittedBids || '0'); $('#vendor-stats-won').text(data.contractsWon || '0'); $('#vendor-stats-needs-bid').text(data.needsBid || '0'); const kpiContainer = $('#vendor-kpi-container').empty(); const kpis = [ { title: 'Win Rate', value: data.winRate ? `${data.winRate.toFixed(1)}%` : '0%', icon: 'fa-tachometer-alt', color: 'primary' }, { title: 'Total Value Won', value: formatCurrency(data.totalWonValue), icon: 'fa-handshake', color: 'success' }, { title: 'Avg. Bid Rank', value: data.avgRank ? parseFloat(data.avgRank).toFixed(1) : 'N/A', icon: 'fa-balance-scale', color: 'warning' }, { title: 'L1 Bid Count', value: data.l1Bids || '0', icon: 'fa-chart-line', color: 'danger' } ]; if (kpis.length > 0) { kpis.forEach(kpi => kpiContainer.append(`<li class="list-group-item d-flex justify-content-between align-items-center"><span><i class="fas ${kpi.icon} text-${kpi.color} me-3"></i>${kpi.title}</span><span class="fw-bold h5 mb-0">${kpi.value}</span></li>`)); } else { kpiContainer.html('<li class="list-group-item text-center text-muted">No performance data yet.</li>'); } const recentBidsList = $('#vendor-recent-bids').empty(); if (data.recentBids && data.recentBids.length > 0) { data.recentBids.forEach(bid => recentBidsList.append(`<a href="#" class="list-group-item list-group-item-action"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1 small">${bid.item_name || 'Item Deleted'}</h6><span class="badge bg-${getBadgeColor(bid.bid_status)}">${bid.bid_status || 'N/A'}</span></div><p class="mb-1 small text-muted">My Bid: ${formatCurrency(bid.bid_amount)}</p></a>`)); } else { recentBidsList.html('<div class="list-group-item text-center text-muted small">No recent bids.</div>'); } } }
-        
-        async function load_vendor_requirements_view() {
-            const result = await apiCall('/requirements/assigned');
-            const container = $('#vendor-reqs-container').empty();
-            if (!result.success) return;
-            if (result.data.length === 0) {
-                renderEmptyState('#vendor-reqs-empty-state', 'No open requirements assigned for bidding.', 'fa-clipboard-list');
-                return;
-            }
-            $('#vendor-reqs-empty-state').empty();
-            result.data.forEach(item => {
-                let historyHtml = '<li class="list-group-item small text-muted">No bids submitted yet.</li>';
-                if (item.my_bid_history && item.my_bid_history.length > 0) {
-                    historyHtml = item.my_bid_history.map((bid, index) => `
-                        <li class="list-group-item small d-flex justify-content-between align-items-center">
-                            <span><strong>Bid ${index + 1}:</strong> Total: <strong>${formatCurrency(bid.bid_amount)}</strong></span>
-                            <span class="badge bg-info">Rank: ${bid.rank ? `L${bid.rank}` : 'N/A'}</span>
-                        </li>`).join('');
-                }
-                const attempts = item.bid_attempts || 0;
-                const bidInputHtml = (attempts >= 3) ? `<div class="text-center text-danger small p-3 bg-light rounded"><i class="fas fa-exclamation-circle me-1"></i> You have reached the maximum of 3 bids for this item.</div>` : `<div class="bid-input-area mt-3" data-bid-row-for="${item.item_id}"><div class="bid-input-group"><div><label class="form-label small mb-1 fw-bold">Your Next Bid (Attempt ${attempts + 1} of 3)</label><input type="number" step="0.01" class="form-control form-control-sm ex-works-rate" placeholder="Ex-works Rate/Unit"></div><div><label class="form-label small mb-1">Freight Rate/Unit</label><input type="number" step="0.01" class="form-control form-control-sm freight-rate ${!item.freight_required ? 'not-applicable' : ''}" placeholder="Freight Rate/Unit" ${!item.freight_required ? 'readonly value="0"' : 'value=""'}></div><div><label class="form-label small mb-1">Comments</label><input type="text" class="form-control form-control-sm comments" placeholder="Optional comments..."></div></div></div>`;
-                const itemCardHtml = `<div class="bidding-card" data-item='${JSON.stringify(item)}'><div class="bidding-card-header d-flex justify-content-between align-items-center"><h6 class="mb-0">${item.item_name || 'N/A'}</h6><small class="text-muted">REQ-${item.requisition_id}-${item.item_sl_no}</small></div><div class="bidding-card-body"><div class="row"><div class="col-md-8"><p class="mb-2"><strong>Location:</strong> ${item.delivery_location || 'N/A'}</p><p class="mb-2"><strong>Quantity:</strong> ${item.quantity || 'N/A'} ${item.unit || 'N/A'}</p><p class="mb-2"><strong>Links:</strong> ${createImageLinks(item) || 'None'}</p><p class="mb-0"><strong>My Current Rank:</strong> ${item.my_rank ? `<span class="badge bg-primary fs-6">L${item.my_rank}</span>` : '<span class="text-muted">Not Yet Bid</span>'}</p></div><div class="col-md-4"><div class="accordion" id="accordionHistory-${item.item_id}"><div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHistory-${item.item_id}">My Bidding History</button></h2><div id="collapseHistory-${item.item_id}" class="accordion-collapse collapse show" data-bs-parent="#accordionHistory-${item.item_id}"><ul class="list-group list-group-flush">${historyHtml}</ul></div></div></div></div></div>${bidInputHtml}</div></div>`;
-                container.append(itemCardHtml);
+            listDiv.html('');
+            result.data.forEach(req => {
+                const loadsHTML = req.loads.map(load => {
+                    const awardedHtml = load.status === 'Awarded' ? `<small class="d-block text-success">Awarded to: ${load.awarded_vendor || 'N/A'} (Amount: ${formatCurrency(load.awarded_amount)})</small>` : '';
+                    return `<li class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <small><strong>${load.item_name}</strong> to ${load.unloading_point_address.substring(0,20)}...</small>
+                            <span class="badge bg-${getBadgeColor(load.status)}">${load.status}</span>
+                        </div>
+                        ${awardedHtml}
+                    </li>`;
+                }).join('');
+                listDiv.append(`<div class="card mb-3"><div class="card-header d-flex justify-content-between"><strong>Req ID: REQ-${req.requisition_id}</strong><span class="badge bg-${getBadgeColor(req.status)}">${req.status}</span></div><ul class="list-group list-group-flush">${loadsHTML}</ul></div>`);
             });
         }
-        async function load_vendor_my_bids_view() { const result = await apiCall('/vendor/my-bids'); if (!result.success) return; if (result.data.length === 0) { $('#vendor-bids-table').hide(); renderEmptyState('#vendor-bids-empty-state', 'You have not submitted any bids yet.', 'fa-gavel'); return; } $('#vendor-bids-table').show(); $('#vendor-bids-empty-state').empty(); $('#vendor-bids-tbody').html(result.data.map(bid => { const l1ExWorks = bid.l1_ex_works_rate != null ? formatCurrency(bid.l1_ex_works_rate) : `<small class="text-muted">Not Awarded</small>`; const l1Freight = bid.l1_freight_rate != null ? formatCurrency(bid.l1_freight_rate) : `<small class="text-muted">Not Awarded</small>`; const l1Total = bid.l1_bid_amount != null ? `<strong>${formatCurrency(bid.l1_bid_amount)}</strong>` : `<small class="text-muted">Not Awarded</small>`; return `<tr><td>REQ-${bid.requisition_id || 'N/A'}-${bid.item_sl_no || 'N/A'}</td><td>${bid.item_name || 'N/A'}</td><td>${formatCurrency(bid.ex_works_rate)}</td><td>${formatCurrency(bid.freight_rate)}</td><td><strong>${formatCurrency(bid.bid_amount)}</strong></td><td>${bid.rank ? `<span class="badge bg-info">L${bid.rank}</span>` : 'N/A'}</td><td><span class="badge bg-${getBadgeColor(bid.bid_status)}">${bid.bid_status || 'N/A'}</span></td><td>${l1ExWorks}</td><td>${l1Freight}</td><td>${l1Total}</td><td>${formatDate(bid.submitted_at, true)}</td></tr>`; }).join('')); }
-        async function load_vendor_awarded_view() { const result = await apiCall('/vendor/my-awarded-contracts'); if (!result.success) return; if (result.data.length === 0) { $('#vendor-awarded-table').hide(); renderEmptyState('#vendor-awarded-empty-state', 'You have not been awarded any contracts yet.', 'fa-trophy'); return; } $('#vendor-awarded-table').show(); $('#vendor-awarded-empty-state').empty(); $('#vendor-awarded-tbody').html(result.data.map(c => `<tr><td>REQ-${c.requisition_id || 'N/A'}-${c.item_sl_no || 'N/A'}</td><td>${c.item_name || 'N/A'}</td><td>${formatCurrency(c.ex_works_rate)}</td><td>${formatCurrency(c.freight_rate)}</td><td><strong>${formatCurrency(c.awarded_amount)}</strong></td><td>${formatDate(c.awarded_date)}</td></tr>`).join('')); }
-        async function load_user_create_req_view() { $('#requisition-form')[0].reset(); $('#requisition-items-container').html(''); itemCounter = 0; if (PRODUCT_LIST.length === 0 || LOCATION_DROPDOWN_DATA.length === 0) { $('#requisition-items-container').html(`<div class="text-center p-5"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Fetching master data...</p></div>`); await fetchMasterData(); $('#requisition-items-container').html(''); } addRequisitionItem(); const result = await apiCall('/users/vendors'); if(result.success) { $('#req-vendor-checklist').html(result.data.map(v => `<div class="form-check"><input class="form-check-input" type="checkbox" value="${v.user_id}" id="v-${v.user_id}"><label class="form-check-label" for="v-${v.user_id}">${v.full_name}</label></div>`).join('')); $('#select-all-vendors-user').on('change', (e) => { $('#req-vendor-checklist input').prop('checked', e.target.checked); }); } }
-        async function load_user_status_view() { const listDiv = $('#user-req-status-list').html('<div class="text-center p-4">Loading...</div>'); const result = await apiCall('/requisitions/my-status'); if (result.success) { if (result.data.length > 0) { listDiv.html(''); } else { renderEmptyState('#user-req-status-list', 'You have not created any requisitions yet.', 'fa-file-signature'); return; } result.data.forEach(req => { const itemsHTML = req.items.map(item => { const awardedHtml = item.status === 'Awarded' ? `<small class="d-block text-success">Awarded to: ${item.awarded_vendor || 'N/A'} (Unit: ${formatCurrency(item.ex_works_rate)}, Freight: ${formatCurrency(item.freight_rate)}, Total: <strong>${formatCurrency(item.awarded_amount)}</strong>)</small>` : ''; return `<li class="list-group-item"><div class="d-flex w-100 justify-content-between"><small><strong>${item.item_sl_no || 'N/A'}.</strong> ${item.item_name || 'N/A'}</small><span class="badge bg-${getBadgeColor(item.status)}">${item.status || 'N/A'}</span></div>${awardedHtml}</li>`; }).join(''); listDiv.append(`<div class="card mb-3"><div class="card-header d-flex justify-content-between"><strong>Req ID: REQ-${req.requisition_id || 'N/A'}</strong><span class="badge bg-${getBadgeColor(req.status)}">${req.status || 'N/A'}</span></div><ul class="list-group list-group-flush">${itemsHTML}</ul></div>`); }); } }
-        async function load_messaging_view() { const chatList = $('#chat-list').html('<div class="list-group-item text-center">Loading users...</div>'); const result = await apiCall('/conversations/list'); if (!result.success) { chatList.html('<div class="list-group-item text-center text-danger">Could not load users.</div>'); return; } if (result.data.length === 0) { chatList.html('<div class="list-group-item text-center text-muted">No users available to chat.</div>'); return; } const renderList = (list) => { chatList.html(''); list.forEach(user => { const unreadBadge = user.unreadCount > 0 ? `<span class="badge bg-danger rounded-pill">${user.unreadCount}</span>` : ''; const lastMsg = user.lastMessage ? (user.lastMessage.length > 25 ? user.lastMessage.substring(0, 25) + '...' : user.lastMessage) : 'Start a conversation'; const timeAgo = user.lastMessageTimestamp ? formatDate(user.lastMessageTimestamp, true) : ''; const chatItem = $(`<a href="#" class="list-group-item list-group-item-action" data-userid="${user.user_id}" data-username="${user.full_name}"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1">${user.full_name || 'N/A'} <small class="text-muted">(${user.role || 'N/A'})</small></h6>${unreadBadge}</div><p class="mb-1 small text-muted">${lastMsg}</p><small class="text-muted">${timeAgo}</small></a>`); chatItem.on('click', (e) => { e.preventDefault(); $('#chat-list .list-group-item').removeClass('active'); chatItem.addClass('active'); openChat(user.user_id, user.full_name); }); chatList.append(chatItem); }); }; renderList(result.data); $('#chat-search').on('input', debounce(function() { const searchTerm = $(this).val().toLowerCase(); const filteredList = result.data.filter(u => u.full_name.toLowerCase().includes(searchTerm)); renderList(filteredList); }, 300)); }
         
-        // --- ALL EVENT HANDLERS & ACTION FUNCTIONS (NOW COMPLETE) ---
-        function handleUserSort(columnName) { if (userSortState.column === columnName) { userSortState.order = userSortState.order === 'asc' ? 'desc' : 'asc'; } else { userSortState.column = columnName; userSortState.order = 'asc'; } load_admin_user_control_view(); }
-        async function handleBulkBidSubmit() { const bidsToSubmit = []; $('#vendor-reqs-container .bidding-card').each(function() { const card = $(this); const item = JSON.parse(card.attr('data-item')); const bidInputArea = card.find('.bid-input-area'); if (bidInputArea.length === 0 || (item.bid_attempts || 0) >= 3) return; const newExWorks = bidInputArea.find('.ex-works-rate').val(); if (newExWorks) { bidsToSubmit.push({ itemId: item.item_id, ex_works_rate: parseFloat(newExWorks), freight_rate: parseFloat(bidInputArea.find('.freight-rate').val()) || 0, comments: bidInputArea.find('.comments').val() || '' }); } }); if (bidsToSubmit.length === 0) { return showToast('No new bids were entered.', 'warning'); } const result = await apiCall('/bids/bulk', 'POST', { bids: bidsToSubmit }); if (result.success) { showToast(result.message, 'success'); if (result.message.includes('skipped')) { $('#bulk-bid-error-list').html(`<li>${result.message}</li>`); bulkBidErrorModal.show(); } load_vendor_requirements_view(); } }
-        async function approveUser(tempId) { if (!confirm('Approve this user?')) return; const result = await apiCall('/users/approve', 'POST', { temp_id: tempId }); if (result.success) { showToast('User Approved!', 'success'); load_admin_pending_users_view(); fetchSidebarCounts(); } }
-        async function handleBulkApproval(reqId) { const container = $(`#collapse-${reqId}`); const approvedItemIds = container.find('.item-check-box:checked').map((i, el) => $(el).val()).get(); const vendorAssignments = container.find('.vendor-assign-check:checked').map((i, el) => $(el).val()).get(); if(approvedItemIds.length === 0) { if(!confirm("No items selected. This will mark the requisition as processed without activating any items. Continue?")) return; } const result = await apiCall('/requisitions/approve', 'POST', { approvedItemIds, vendorAssignments, requisitionId: reqId }); if(result.success) { showToast(result.message, 'success'); load_admin_pending_reqs_view(); fetchSidebarCounts(); } }
-        async function openAdminActionModal(itemId, itemName) { $('#adminActionModalTitle').text(`Bids for: ${itemName}`); $('#bids-tbody').html(`<tr><td colspan="7" class="text-center">Loading...</td></tr>`); adminActionModal.show(); const result = await apiCall(`/items/${itemId}/bids`); if(result.success) { const itemDetails = result.data.itemDetails; $('#bids-tbody').html(result.data.bids.map((bid, i) => { const bidDataForAward = { ...bid, ...itemDetails}; return ` <tr data-bid='${JSON.stringify(bidDataForAward)}'> <td><input class="form-check-input bid-checkbox" type="checkbox" ${bid.bid_status !== 'Submitted' ? 'disabled' : ''}></td> <td><span class="badge bg-info">L${i+1}</span></td> <td>${bid.vendor_name}</td> <td>${formatCurrency(bid.ex_works_rate)}</td> <td>${formatCurrency(bid.freight_rate)}</td> <td><strong>${formatCurrency(bid.bid_amount)}</strong></td> <td><span class="badge bg-${getBadgeColor(bid.bid_status)}">${bid.bid_status}</span></td> </tr>`; }).join('') || `<tr><td colspan="7" class="text-center">No bids submitted.</td></tr>`); $('#reopen-bidding-btn').off('click').on('click', () => { handleSingleReopenBidding(itemId); adminActionModal.hide(); }); } }
-        async function handleAwardSubmit() { const remarks = $('#admin-action-remarks').val(); if (!remarks) return showToast('Remarks are mandatory for awarding.', 'warning'); const selectedRows = $('#bids-tbody tr').filter((i, row) => $(row).find('.bid-checkbox').is(':checked')); if(selectedRows.length === 0) return showToast('Please select at least one bid to award.', 'warning'); const bidsToAward = []; selectedRows.each((i, row) => { const bidData = JSON.parse($(row).attr('data-bid')); bidData.remarks = remarks; bidsToAward.push(bidData); }); const result = await apiCall('/contracts/award', 'POST', { bids: bidsToAward }); if (result.success) { showToast(result.message, 'success'); sendConsolidatedAwardEmails(bidsToAward); adminActionModal.hide(); handleManualRefresh(); } }
-        async function openChat(recipientId, recipientName) { if (chatPollingInterval) clearInterval(chatPollingInterval); $('#chat-welcome').addClass('d-none'); $('#chat-window').removeClass('d-none'); $('#chat-with-name').text(recipientName); $('#message-form').off('submit').on('submit', (e) => { e.preventDefault(); handleSendMessage(recipientId); }); $('#download-chat-btn').off('click').on('click', () => { downloadChatHistory(recipientId, recipientName); }); const fetchAndRender = async () => { const currentUser = JSON.parse(sessionStorage.getItem('loggedInUser')); const result = await apiCall(`/messages/${recipientId}`, 'GET', null, false, false); if (!result.success) return; const messagesDiv = $('#chat-messages'); const isScrolledToBottom = messagesDiv.scrollTop() + messagesDiv.innerHeight() >= messagesDiv[0].scrollHeight - 20; messagesDiv.html(''); result.data.forEach(msg => { const isSent = msg.sender_id == currentUser.user_id; let tickIcon = 'fa-check'; let tickClass = ''; if (msg.status === 'read') { tickIcon = 'fa-check-double'; tickClass = 'read'; } const ticks = isSent ? `<span class="ticks ${tickClass}"><i class="fas ${tickIcon}"></i></span>` : ''; messagesDiv.append(`<div class="message-bubble ${isSent ? 'sent' : 'received'}"><div>${msg.message_body.replace(/\n/g, '<br>')}</div><div class="timestamp">${formatDate(msg.timestamp, true)} ${ticks}</div></div>`); }); if(isScrolledToBottom) messagesDiv.scrollTop(messagesDiv[0].scrollHeight); const chatItem = $(`#chat-list [data-userid="${recipientId}"]`); chatItem.find('.badge').remove(); }; await fetchAndRender(); chatPollingInterval = setInterval(fetchAndRender, 7000); }
-        async function handleSendMessage(recipientId) { const input = $('#message-input'); const messageBody = input.val().trim(); if(!messageBody) return; const tempId = Date.now(); const messagesDiv = $('#chat-messages'); const sentTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); messagesDiv.append(`<div class="message-bubble sent" id="msg-${tempId}"><div>${messageBody.replace(/\n/g, '<br>')}</div><div class="timestamp">${sentTime} <span class="ticks"><i class="fas fa-check"></i></span></div></div>`); messagesDiv.scrollTop(messagesDiv[0].scrollHeight); input.val(''); const result = await apiCall('/messages', 'POST', { recipientId, messageBody }, false, false); if(result.success) { $(`#msg-${tempId} .ticks`).html('<i class="fas fa-check-double"></i>'); } else { $(`#msg-${tempId} .timestamp`).text('Failed').css('color', 'red'); showToast('Failed to send message', 'error'); } }
-        function openAddUserModal() { $('#add-user-form')[0].reset(); const user = JSON.parse(sessionStorage.getItem('loggedInUser')); if (user.role !== 'Super Admin') { $('#add-role option[value="Super Admin"]').hide(); } else { $('#add-role option[value="Super Admin"]').show(); } addUserModal.show(); }
-        async function handleAddUserSubmit(e) { e.preventDefault(); const data = { full_name: $('#add-fullname').val(), email: $('#add-email').val(), password: $('#add-password').val(), role: $('#add-role').val(), company_name: $('#add-company').val(), contact_number: $('#add-contact').val(), gstin: $('#add-gstin').val() }; const result = await apiCall('/users/add', 'POST', data); if (result.success) { showToast('User created!', 'success'); addUserModal.hide(); load_admin_user_control_view(); } }
-        function openEditUserModal(user) { $('#edit-userid').val(user.user_id); $('#edit-fullname').val(user.full_name); $('#edit-email').val(user.email); $('#edit-role').val(user.role); $('#edit-company').val(user.company_name); $('#edit-contact').val(user.contact_number); $('#edit-gstin').val(user.gstin); $('#edit-password').val(''); const currentUser = JSON.parse(sessionStorage.getItem('loggedInUser')); if (currentUser.role !== 'Super Admin') { $('#edit-role option[value="Super Admin"]').hide(); } else { $('#edit-role option[value="Super Admin"]').show(); } editUserModal.show(); }
-        async function handleUserUpdateSubmit(e) { e.preventDefault(); const userId = $('#edit-userid').val(); const userData = { full_name: $('#edit-fullname').val(), email: $('#edit-email').val(), role: $('#edit-role').val(), company_name: $('#edit-company').val(), contact_number: $('#edit-contact').val(), gstin: $('#edit-gstin').val(), password: $('#edit-password').val() }; const result = await apiCall(`/users/${userId}`, 'PUT', userData); if(result.success) { showToast('User updated!', 'success'); editUserModal.hide(); load_admin_user_control_view(); } }
-        async function fetchMasterData(){if(PRODUCT_LIST.length===0){showToast('Loading master data...','info');try{const[productsResponse,locationsResponse]=await Promise.all([fetch(PRODUCT_DATA_URL),apiCall('/dropdowns/locations','GET',null,false,false)]);if(!productsResponse.ok)throw new Error('Network response for products not ok');PRODUCT_LIST=await productsResponse.json();if(locationsResponse.success)LOCATION_DROPDOWN_DATA=locationsResponse.data;showToast('Master data loaded.','success')}catch(e){showToast('Could not load master data. Please refresh.','error');console.error(e);$('#requisition-items-container').html(`<div class="alert alert-danger">Failed to load master data. Please try refreshing the page.</div>`)}}}
-        function addRequisitionItem() { itemCounter++; const productOptions = PRODUCT_LIST.map(p => `<option value='${JSON.stringify(p)}'>${p.ITEM_NAME}</option>`).join(''); const locationOptions = LOCATION_DROPDOWN_DATA.map(loc => `<option value="${loc}">${loc}</option>`).join(''); const itemHtml = `<div class="card card-body mb-3"><div class="d-flex justify-content-between"><h6>Item #${itemCounter}</h6>${itemCounter > 1 ? '<button type="button" class="btn-close" onclick="$(this).closest(\'.card\').remove()"></button>' : ''}</div><hr/><div class="row"><div class="col-md-4 mb-3"><label class="form-label">Item Code</label><input type="text" class="form-control req-item-code" oninput="syncItemFields(this)" placeholder="Type Code..."></div><div class="col-md-8 mb-3"><label class="form-label">Item Name (Product Name)</label><select class="form-select req-item-name" id="item-name-${itemCounter}" required onchange="syncItemFields(this)"><option value="">Select or Search...</option>${productOptions}</select></div></div><div class="row"><div class="col-md-4 mb-3"><label>Quantity</label><input type="number" step="any" class="form-control req-quantity" required></div><div class="col-md-4 mb-3"><label>Unit</label><input type="text" class="form-control req-unit" readonly></div><div class="col-md-4 mb-3"><label>Freight Required?</label><select class="form-select req-freight-required" required><option value="">Select...</option><option value="true">Yes</option><option value="false">No</option></select></div></div><div class="mb-3"><label>Delivery Location</label><select class="form-select req-delivery-location" required><option value="">Select Location...</option>${locationOptions}</select></div><div class="mb-3"><label>Description</label><textarea class="form-control req-description" rows="2"></textarea></div><div class="row"><div class="col-md-6 mb-3"><label>Drawing (Optional)</label><input type="file" class="form-control req-drawing-image"></div><div class="col-md-6 mb-3"><label>Specimen (Optional)</label><input type="file" class="form-control req-specimen-image"></div></div></div>`; $('#requisition-items-container').append(itemHtml); $(`#item-name-${itemCounter}`).select2({ theme: "bootstrap-5" }); }
-        function syncItemFields(el) { const card = $(el).closest('.card-body'); const codeInput = card.find('.req-item-code'); const nameSelect = card.find('.req-item-name'); const unitInput = card.find('.req-unit'); if ($(el).is('.req-item-name')) { try { const product = JSON.parse($(el).val()); codeInput.val(product.ITEM_CODE || ''); unitInput.val(product.UM || ''); } catch(e) { codeInput.val(''); unitInput.val(''); } } else if ($(el).is('.req-item-code')) { const enteredCode = codeInput.val().trim().toUpperCase(); const foundOption = $(nameSelect).find('option').filter(function() { try { const product = JSON.parse(this.value); return product.ITEM_CODE && product.ITEM_CODE.toUpperCase() === enteredCode; } catch(e){ return false;} }).val(); $(nameSelect).val(foundOption).trigger('change'); } }
-        async function handleRequisitionSubmit(e) { e.preventDefault(); try { const formData = new FormData(); const vendorIds = $('#req-vendor-checklist input:checked').map((i, el) => $(el).val()).get(); formData.append('vendorIds', JSON.stringify(vendorIds)); const itemsPayload = []; const itemCards = $('#requisition-items-container .card-body'); if (itemCards.length === 0) { showToast('Please add at least one item.', 'warning'); return; } for (let i = 0; i < itemCards.length; i++) { const card = $(itemCards[i]); const drawingFile = card.find('.req-drawing-image')[0].files[0]; const specimenFile = card.find('.req-specimen-image')[0].files[0]; if (drawingFile) formData.append(`drawing_${i}`, drawingFile); if (specimenFile) formData.append(`specimen_${i}`, specimenFile); itemsPayload.push({ ItemName: card.find('.req-item-name option:selected').text(), ItemCode: card.find('.req-item-code').val(), Quantity: card.find('.req-quantity').val(), Unit: card.find('.req-unit').val(), FreightRequired: card.find('.req-freight-required').val() === 'true', DeliveryLocation: card.find('.req-delivery-location').val(), Description: card.find('.req-description').val() }); } formData.append('items', JSON.stringify(itemsPayload)); const result = await apiCall('/requisitions', 'POST', formData, true); if(result.success) { showToast(result.message, 'success'); navigateTo('user-create-req-view'); } } catch (error) { console.error("Error during requisition submit:", error); showToast("An error occurred. Check all fields and try again.", "error"); } }
-        function showToast(m,t='info'){const c=$('#toast-container'),e=$(`<div><i class="fas ${t === 'success' ? 'fa-check-circle' : 'fa-times-circle'} me-2"></i><span>${m}</span></div>`).addClass(`toast-notification ${t}`);c.append(e);setTimeout(()=>e.remove(),5000)}
-        function showLoader(){$('#loader-overlay').removeClass('hidden')}
-        function hideLoader(){$('#loader-overlay').addClass('hidden')}
-        function toggleAllInParent(source, targetClass) { $(source).closest('table, .modal-body, .accordion-body, .card, .mb-3').find(`input[type="checkbox"].${targetClass}`).not(':disabled').prop('checked', source.checked); }
+        // --- TRUCKER (VENDOR) VIEWS ---
+        async function load_vendor_open_loads_view() {
+            const result = await apiCall('/requirements/assigned');
+            const tableBody = $('#vendor-loads-tbody');
+            tableBody.empty();
+            if (!result.success || result.data.length === 0) {
+                renderEmptyState('#vendor-loads-empty-state', 'No open loads assigned for bidding.', 'fa-clipboard-list');
+                return;
+            }
+
+            result.data.forEach(load => {
+                let historyHtml = '<small class="text-muted">No bids yet</small>';
+                if (load.my_bid_history && load.my_bid_history.length > 0) {
+                    historyHtml = load.my_bid_history.map(bid => `<div><span class="badge bg-secondary">${formatCurrency(bid.bid_amount)} (Rank: L${bid.rank || 'N/A'})</span></div>`).join('');
+                }
+                const rowHtml = `
+                    <tr data-load-id="${load.load_id}">
+                        <td><small><strong>From:</strong> ${load.loading_point_address}<br><strong>To:</strong> ${load.unloading_point_address}</small></td>
+                        <td>${load.item_name}</td>
+                        <td>${load.approx_weight_tonnes} MT</td>
+                        <td>${load.truck_name}</td>
+                        <td>${formatDate(load.requirement_date)}</td>
+                        <td>${load.my_rank ? `<span class="badge bg-primary fs-6">L${load.my_rank}</span>` : '<span class="text-muted">Not Bid</span>'}</td>
+                        <td>${historyHtml}</td>
+                        <td><input type="number" step="100" class="form-control form-control-sm bid-amount" placeholder="e.g., 25000"></td>
+                    </tr>`;
+                tableBody.append(rowHtml);
+            });
+        }
+
+        // --- ADMIN VIEWS ---
+        async function load_admin_pending_loads_view() {
+             const container = $('#pending-loads-container').html('<div class="text-center p-4">Loading...</div>');
+             const result = await apiCall('/requirements/pending');
+             if (!result.success || result.data.groupedReqs.length === 0) {
+                renderEmptyState('#pending-loads-container', 'No loads are pending approval.', 'fa-inbox');
+                return;
+             }
+             const { groupedReqs, pendingLoads, allTruckers } = result.data;
+             container.html('<div class="accordion" id="pending-reqs-accordion"></div>');
+             const accordion = $('#pending-reqs-accordion');
+             groupedReqs.forEach(req => {
+                const reqId = req.requisition_id;
+                const reqLoads = pendingLoads.filter(load => load.requisition_id == reqId);
+                const loadsHTML = reqLoads.map(load => `<li class="list-group-item"><input class="form-check-input me-2 load-check-box" type="checkbox" value="${load.load_id}" checked><label class="form-check-label">${load.item_name} (${load.approx_weight_tonnes} MT) from ${load.loading_point_address.substring(0,20)}... to ${load.unloading_point_address.substring(0,20)}...</label></li>`).join('');
+                const truckersHTML = allTruckers.map(v => `<div class="form-check form-check-inline"><input class="form-check-input trucker-assign-check" type="checkbox" value="${v.user_id}"><label class="form-check-label">${v.full_name}</label></div>`).join('');
+                
+                accordion.append(`<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${reqId}">Req ID: REQ-${reqId} (By: ${req.creator}) - ${reqLoads.length} loads</button></h2><div id="collapse-${reqId}" class="accordion-collapse collapse" data-bs-parent="#pending-reqs-accordion"><div class="accordion-body"><h6>Select loads to approve:</h6><ul class="list-group mb-3">${loadsHTML}</ul><h6 class="d-flex justify-content-between"><span>Assign truckers:</span><div class="form-check form-check-inline"><input class="form-check-input me-2" type="checkbox" onchange="toggleAllInParent(this, 'trucker-assign-check')"><label>Select All</label></div></h6><div class="border rounded p-2">${truckersHTML}</div><div class="mt-3"><button class="btn btn-success" onclick="handleBulkApproval('${reqId}')">Process Selected Loads</button></div></div></div></div>`);
+             });
+        }
+
+        // =========================================================
+        // =============== ACTION HANDLERS =======================
+        // =========================================================
+
+        function addLoadItem() {
+            const truckOptions = TRUCK_TYPES.map(p => `<option value='${p.truck_type_id}'>${p.truck_name} (${p.dala_length_feet} ft)</option>`).join('');
+            const itemOptions = ITEM_LIST.map(p => `<option value='${p.item_id}'>${p.item_name}</option>`).join('');
+            
+            const itemHtml = `
+                <div class="card card-body mb-3">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Loading Point Full Address</label>
+                            <textarea class="form-control loading-point" rows="3" placeholder="Full address with contact details and PIN code" required></textarea>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Unloading Point Full Address</label>
+                            <textarea class="form-control unloading-point" rows="3" placeholder="Full address with contact details and PIN code" required></textarea>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Material / Item</label>
+                            <select class="form-select item-id" required><option value="">Select Material...</option>${itemOptions}</select>
+                        </div>
+                         <div class="col-md-6 mb-3">
+                            <label class="form-label">Approx. Weight (in Metric Tonnes)</label>
+                            <input type="number" step="0.01" class="form-control weight" placeholder="e.g., 15.5" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                       <div class="col-md-6 mb-3">
+                            <label class="form-label">Required Truck Type</label>
+                            <select class="form-select truck-type-id" required><option value="">Select Truck Type...</option>${truckOptions}</select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Requirement Date</label>
+                            <input type="date" class="form-control req-date" required>
+                        </div>
+                    </div>
+                </div>`;
+            $('#load-items-container').append(itemHtml);
+            $('.item-id, .truck-type-id').select2({ theme: "bootstrap-5" });
+        }
+        
+        async function handleLoadSubmit(e) {
+            e.preventDefault();
+            const itemsPayload = [];
+            const itemCards = $('#load-items-container .card-body');
+            if (itemCards.length === 0) {
+                showToast('Please add load details.', 'warning');
+                return;
+            }
+            itemCards.each(function() {
+                const card = $(this);
+                itemsPayload.push({
+                    loading_point_address: card.find('.loading-point').val(),
+                    unloading_point_address: card.find('.unloading-point').val(),
+                    item_id: card.find('.item-id').val(),
+                    approx_weight_tonnes: card.find('.weight').val(),
+                    truck_type_id: card.find('.truck-type-id').val(),
+                    requirement_date: card.find('.req-date').val(),
+                });
+            });
+
+            const result = await apiCall('/requisitions', 'POST', { items: JSON.stringify(itemsPayload) });
+            if (result.success) {
+                showToast(result.message, 'success');
+                navigateTo('user-create-load-view');
+            }
+        }
+        
+        async function handleBulkBidSubmit() {
+            const bidsToSubmit = [];
+            $('#vendor-loads-tbody tr').each(function() {
+                const row = $(this);
+                const bidAmountInput = row.find('.bid-amount');
+                if (bidAmountInput.val()) { // Only submit if a value is entered
+                    bidsToSubmit.push({
+                        itemId: row.data('load-id'), // Sending load_id as itemId for backend compatibility
+                        bid_amount: parseFloat(bidAmountInput.val())
+                    });
+                }
+            });
+            if (bidsToSubmit.length === 0) {
+                return showToast('No new bids were entered.', 'warning');
+            }
+            const result = await apiCall('/bids/bulk', 'POST', { bids: bidsToSubmit });
+            if (result.success) {
+                showToast(result.message, 'success');
+                load_vendor_open_loads_view(); // Refresh the view
+            }
+        }
+
+        async function handleBulkApproval(reqId) {
+            const container = $(`#collapse-${reqId}`);
+            const approvedLoadIds = container.find('.load-check-box:checked').map((i, el) => $(el).val()).get();
+            const truckerAssignments = container.find('.trucker-assign-check:checked').map((i, el) => $(el).val()).get();
+            if (approvedLoadIds.length === 0) {
+                if (!confirm("No loads selected. This will mark the requisition as processed without activating any loads. Continue?")) return;
+            }
+            // Sending approvedLoadIds as approvedItemIds for backend compatibility
+            const result = await apiCall('/requisitions/approve', 'POST', { approvedItemIds: approvedLoadIds, vendorAssignments: truckerAssignments, requisitionId: reqId });
+            if (result.success) {
+                showToast(result.message, 'success');
+                load_admin_pending_loads_view();
+            }
+        }
+
+        // =========================================================
+        // ================ UTILITY FUNCTIONS ======================
+        // =========================================================
+        function renderEmptyState(containerSelector, message, iconClass = 'fa-folder-open') { $(containerSelector).html(`<div class="empty-state"><i class="fas ${iconClass}"></i><p>${message}</p></div>`); }
+        function showToast(m,t='info'){const c=$('#toast-container'),e=$(`<div><i class="fas ${t === 'success' ? 'fa-check-circle' : 'fa-times-circle'} me-2"></i><span>${m}</span></div>`).addClass(`toast-notification ${t}`);c.append(e);setTimeout(()=>e.remove(),5000)}
+        function showLoader(){$('#loader-overlay').removeClass('hidden')}
+        function hideLoader(){$('#loader-overlay').addClass('hidden')}
         function formatCurrency(v){const n=parseFloat(v);return isNaN(n)?'₹0.00':`₹${n.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}`}
-        function getBadgeColor(s){return {'Awarded':'primary','Active':'success','Pending Approval':'warning','Submitted':'info','Rejected':'danger','Processed': 'secondary', 'Bidding Closed': 'dark', 'Admin': 'info', 'Super Admin': 'danger', 'Vendor': 'success', 'User': 'secondary'}[s]||'dark'}
-        function createImageLinks(item) { if (!item.drawing_url && !item.specimen_url) return ''; const links = []; if(item.drawing_url) links.push(`<a href="${item.drawing_url}" target="_blank" onclick="event.stopPropagation()" title="Drawing"><i class="fas fa-ruler-combined"></i></a>`); if(item.specimen_url) links.push(`<a href="${item.specimen_url}" target="_blank" onclick="event.stopPropagation()" title="Specimen"><i class="fas fa-image"></i></a>`); return links.join(' '); }
-        async function updateReportView() { const startDate = $('#report-start-date').val(); const endDate = $('#report-end-date').val(); const result = await apiCall('/admin/reports-data', 'POST', { startDate, endDate }); if (!result.success) return; const data = result.data; $('#report-total-spend').text(formatCurrency(data.kpis.totalSpend)); $('#report-l1-award-rate').text(`${data.kpis.l1AwardRate.toFixed(1)}%`); $('#report-awarded-count').text(data.kpis.awardedItemsCount); $('#report-cost-savings').text(formatCurrency(data.kpis.costSavings)); const reportTbody = $('#detailed-report-tbody').empty(); if(data.detailedReport.length > 0) { $('#detailed-report-table').show(); $('#detailed-report-empty-state').empty(); data.detailedReport.forEach(row => { reportTbody.append(`<tr><td>REQ-${row.requisition_id || 'N/A'}-${row.item_sl_no || 'N/A'}</td><td>${row.item_name || 'N/A'}</td><td>${row.vendor_name || 'N/A'}</td><td>${formatCurrency(row.awarded_amount)}</td><td>${formatDate(row.awarded_date)}</td></tr>`); }); } else { $('#detailed-report-table').hide(); renderEmptyState('#detailed-report-empty-state', 'No data for the selected period.'); } createChart('vendorSpendChart', 'pie', { labels: Object.keys(data.charts.vendorSpend), datasets: [{ data: Object.values(data.charts.vendorSpend), backgroundColor: ['#5E72E4', '#2DCE89', '#FB6340', '#11CDEF', '#F5365C', '#8898AA'], }] }, { responsive: true, maintainAspectRatio: false }); createChart('awardedValueChart', 'bar', { labels: Object.keys(data.charts.awardedValue), datasets: [{ label: 'Awarded Value (₹)', data: Object.values(data.charts.awardedValue), backgroundColor: 'rgba(94, 114, 228, 0.8)', borderColor: '#5E72E4'}] }, { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }); createChart('itemSpendChart', 'bar', { labels: data.charts.itemSpend.labels, datasets: [{ label: 'Total Spend (₹)', data: data.charts.itemSpend.data, backgroundColor: '#FB6340' }] }, { responsive: true, maintainAspectRatio: false, indexAxis: 'y' }); createChart('itemFrequencyChart', 'doughnut', { labels: data.charts.itemFrequency.labels, datasets: [{ label: 'Procurement Count', data: data.charts.itemFrequency.data, backgroundColor: ['#11CDEF', '#F5365C', '#FFD600', '#2DCE89', '#5E72E4'] }] }, { responsive: true, maintainAspectRatio: false }); }
-        
-        async function fetchNotifications() { const result = await apiCall('/notifications', 'GET', null, false, false); const notificationList = $('#notification-list'); const badge = $('#notification-badge'); if (result.success && result.data.length > 0) { badge.text(result.data.length).show(); notificationList.find('li:not(:first-child, .dropdown-divider)').remove(); result.data.forEach(notif => { const item = $(`<li><a class="dropdown-item" href="#" onclick="navigateTo('${notif.view}')">${notif.text}</a></li>`); notificationList.find('.dropdown-divider').before(item); }); } else { badge.text('').hide(); notificationList.find('li:not(:first-child, .dropdown-divider)').remove(); notificationList.find('.dropdown-divider').after('<li><a class="dropdown-item text-muted text-center" href="#">No new notifications</a></li>'); } }
-        async function fetchSidebarCounts() { const result = await apiCall('/sidebar-counts', 'GET', null, false, false); if (result.success) { const counts = result.data; $('#badge-unread-messages').text(counts.unreadMessages > 0 ? counts.unreadMessages : '').toggle(counts.unreadMessages > 0); $('#badge-pending-reqs').text(counts.pendingReqs > 0 ? counts.pendingReqs : '').toggle(counts.pendingReqs > 0); $('#badge-pending-users').text(counts.pendingUsers > 0 ? counts.pendingUsers : '').toggle(counts.pendingUsers > 0); } }
-        async function handleMarkAllNotificationsRead(e) { if (e) e.preventDefault(); const result = await apiCall('/notifications/mark-all-read', 'POST', null, false, false); if (result.success) { showToast('Notifications marked as read.', 'success'); await fetchNotifications(); await fetchSidebarCounts(); } }
-        async function backgroundRefreshData() { const user = JSON.parse(sessionStorage.getItem('loggedInUser')); if (!user) return; const currentView = $('#nav-links .nav-link.active').data('view'); if (currentView === 'admin-dashboard-view' || currentView === 'vendor-dashboard-view') { navigateTo(currentView); } await fetchNotifications(); await fetchSidebarCounts(); }
-        
-        function formatDate(dateString, includeTime = false) {
-            if (!dateString) return 'N/A';
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return 'Invalid Date';
-            const options = { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'Asia/Kolkata' };
-            if (includeTime) {
-                options.hour = '2-digit';
-                options.minute = '2-digit';
-                options.hour12 = true;
-            }
-            return date.toLocaleString('en-IN', options);
-        }
+        function getBadgeColor(s){return {'Awarded':'primary','Active':'success','Pending Approval':'warning','Submitted':'info','Rejected':'danger','Processed': 'secondary'}[s]||'dark'}
+        function formatDate(dateString) { if (!dateString) return 'N/A'; const date = new Date(dateString); return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }); }
+        function toggleAllInParent(source, targetClass) { $(source).closest('.accordion-body').find(`input[type="checkbox"].${targetClass}`).prop('checked', source.checked); }
 
-        // ALL FUNCTIONS ARE NOW COMPLETE AND INCLUDED
-        async function sendConsolidatedAwardEmails(winningBids) { const adminEmailsResult = await apiCall('/users/admins', 'GET', null, false, false); const adminEmails = adminEmailsResult.success ? adminEmailsResult.data : []; const notificationsByVendor = {}; winningBids.forEach(bid => { if (bid.vendor_email) { if (!notificationsByVendor[bid.vendor_email]) { notificationsByVendor[bid.vendor_email] = { vendorName: bid.vendor_name, items: [], totalValue: 0 }; } const bidAmount = parseFloat(bid.bid_amount); notificationsByVendor[bid.vendor_email].items.push({ name: bid.item_name, amount: bidAmount, reqId: `REQ-${bid.requisition_id}-${bid.item_sl_no}`, qty: bid.quantity, unit: bid.unit }); notificationsByVendor[bid.vendor_email].totalValue += bidAmount; } }); for (const email in notificationsByVendor) { const notification = notificationsByVendor[email]; const subject = `Contract Award Notification from DEB'S PROCUREMENT`; const itemsHtml = notification.items.map(item => `<tr><td style="padding: 10px; border-bottom: 1px solid #dee2e6;">${item.name} (${item.reqId}) <br><small style="color: #555;">Qty: ${item.qty} ${item.unit}</small></td><td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: right; vertical-align: middle;">${formatCurrency(item.amount)}</td></tr>`).join(''); const htmlBody = `<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 20px auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;"><div style="background-color: #5E72E4; color: white; padding: 20px; text-align: center;"><h1 style="margin: 0;">Contract Awarded</h1></div><div style="padding: 20px;"><p>Dear ${notification.vendorName},</p><p>Congratulations! We are pleased to inform you that you have been awarded the following contract(s) based on your recent bid submission:</p><table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;"><thead style="background-color: #f8f9fa;"><tr><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Item Description</th><th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Awarded Amount</th></tr></thead><tbody>${itemsHtml}</tbody><tfoot><tr style="font-weight: bold; background-color: #f8f9fa;"><td style="padding: 10px; text-align: right;">Total Value:</td><td style="padding: 10px; text-align: right;">${formatCurrency(notification.totalValue)}</td></tr></tfoot></table><p style="margin-top: 25px;">Our procurement team will contact you shortly regarding the next steps. Thank you for your participation.</p><p>Sincerely,<br/><b>The DEB'S PROCUREMENT Team</b></p></div><div style="background-color: #f8f9fa; color: #6c757d; padding: 15px; text-align: center; font-size: 12px;"><p style="margin: 0;">This is an automated notification. Please do not reply directly to this email.</p></div></div>`; apiCall('/send-email', 'POST', { recipient: email, subject, htmlBody, cc: adminEmails }, false, false); } }
-        function exportToExcel(data, fileName) { try { const worksheet = XLSX.utils.json_to_sheet(data); const workbook = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(workbook, worksheet, 'Report'); XLSX.writeFile(workbook, fileName); showToast('Report downloaded successfully!', 'success'); } catch (error) { console.error("Error exporting to Excel:", error); showToast('Failed to download report.', 'error'); } }
-        async function downloadDetailedReport() { const startDate = $('#report-start-date').val(); const endDate = $('#report-end-date').val(); const result = await apiCall('/admin/reports-data', 'POST', { startDate, endDate }); if(result.success) { const formattedData = result.data.detailedReport.map(d => ({ 'Req ID': `REQ-${d.requisition_id}-${d.item_sl_no}`, 'Item Name': d.item_name, 'Vendor Name': d.vendor_name, 'Awarded Amount': d.awarded_amount, 'Award Date': formatDate(d.awarded_date) })); exportToExcel(formattedData, 'Detailed_Contracts_Report.xlsx'); } }
-        async function downloadBiddingHistoryReport() { const result = await apiCall('/admin/bidding-history'); if(result.success) { const formattedData = result.data.map(d => ({ 'Req ID': `REQ-${d.requisition_id}-${d.item_sl_no}`, 'Item Name': d.item_name, 'Vendor Name': d.vendor_name, 'Unit Price': d.ex_works_rate, 'Freight Rate': d.freight_rate, 'Total Bid Amount': d.bid_amount, 'Status': d.bid_status, 'Date': formatDate(d.submitted_at, true) })); exportToExcel(formattedData, 'Bidding_History_Report.xlsx'); }}
-        async function downloadAdminAwardedContractsReport() { const result = await apiCall('/admin/awarded-contracts'); if(result.success) { const dataToExport = result.data.map(c => ({ 'Req ID': `REQ-${c.requisition_id}-${c.item_sl_no}`, 'Item Name': c.item_name, 'Quantity': c.quantity, 'Unit': c.unit, 'Vendor Name': c.vendor_name, 'Unit Price': c.ex_works_rate, 'Freight Rate': c.freight_rate, 'Awarded Amount': c.awarded_amount, 'Awarded Date': formatDate(c.awarded_date), 'Remarks': c.remarks })); exportToExcel(dataToExport, 'Awarded_Contracts_Report.xlsx'); } }
-        async function downloadMyBidsReport() { const result = await apiCall('/vendor/my-bids'); if(result.success) { const dataToExport = result.data.map(bid => ({ 'Req ID': `REQ-${bid.requisition_id}-${bid.item_sl_no}`, 'Item Name': bid.item_name, 'My Unit Price (Rs)': bid.ex_works_rate, 'My Freight Rate (Rs)': bid.freight_rate, 'My Total Bid (Rs)': bid.bid_amount, 'My Rank': bid.rank ? `L${bid.rank}` : 'N/A', 'Status': bid.bid_status, 'L1 Unit Price': bid.l1_ex_works_rate, 'L1 Freight': bid.l1_freight_rate, 'L1 Total': bid.l1_bid_amount, 'Date Submitted': formatDate(bid.submitted_at, true) })); exportToExcel(dataToExport, 'My_Bidding_History.xlsx'); } }
-        async function downloadMyAwardedContractsReport() { const result = await apiCall('/vendor/my-awarded-contracts'); if(result.success) { const dataToExport = result.data.map(c => ({ 'Req ID': `REQ-${c.requisition_id}-${c.item_sl_no}`, 'Item Name': c.item_name, 'Unit Price (Rs)': c.ex_works_rate, 'Freight Rate (Rs)': c.freight_rate, 'Awarded Amount (Rs)': c.awarded_amount, 'Date Awarded': formatDate(c.awarded_date) })); exportToExcel(dataToExport, 'My_Awarded_Contracts.xlsx'); } }
-        async function downloadChatHistory(otherUserId, otherUserName) { showToast(`Generating chat history with ${otherUserName}...`, 'info'); const result = await apiCall(`/messages/${otherUserId}`); if (result.success && result.data.length > 0) { const currentUser = JSON.parse(sessionStorage.getItem('loggedInUser')); const formattedData = result.data.map(msg => { const senderName = msg.sender_id == currentUser.user_id ? "Me" : otherUserName; return { 'Timestamp': formatDate(msg.timestamp, true), 'Sender': senderName, 'Message': msg.message_body }; }); exportToExcel(formattedData, `Chat_History_with_${otherUserName}.xlsx`); } else { showToast('No chat history to download.', 'warning'); } }
-        async function openBulkUploadModal() { await loadVendorsForBulkUpload(); bulkUploadModal.show(); }
-        async function handleBulkUpload(e) { e.preventDefault(); const file = document.getElementById('bulk-upload-file').files[0]; const vendorIds = $('#bulk-vendor-checklist input:checked').map((i, el) => $(el).val()).get(); if (!file) return showToast('Please select a file.', 'error'); const formData = new FormData(); formData.append('bulkFile', file); formData.append('vendorIds', JSON.stringify(vendorIds)); const result = await apiCall('/requisitions/bulk-upload', 'POST', formData, true); if (result.success) { showToast(result.message, 'success'); bulkUploadModal.hide(); handleManualRefresh(); } }
-        async function loadVendorsForBulkUpload() { const checklistDiv = $('#bulk-vendor-checklist'); if (checklistDiv.children().length > 1 && !checklistDiv.find('p').length) return; checklistDiv.html('<p class="text-muted">Loading...</p>'); const result = await apiCall('/users/vendors'); if (result.success && result.data.length > 0) { checklistDiv.html(result.data.map(v => `<div class="form-check"><input class="form-check-input bulk-vendor-checkbox" type="checkbox" value="${v.user_id}" id="bulk-v-${v.user_id}"><label class="form-check-label" for="bulk-v-${v.user_id}">${v.full_name}</label></div>`).join('')); $('#select-all-vendors-bulk').off('change').on('change', (e) => checklistDiv.find('input').prop('checked', e.target.checked)); } else { checklistDiv.html('<p class="text-danger">No vendors found.</p>'); } }
-        function downloadBulkTemplate() { const data = [{ ItemCode: 'ABC-001', ItemName: 'Example Product', Quantity: 100, Unit: 'Pcs', FreightRequired: 'Yes', DeliveryLocation: 'Dhulaghar', Description: 'Detailed description here' }]; const worksheet = XLSX.utils.json_to_sheet(data); const workbook = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(workbook, worksheet, 'Template'); XLSX.writeFile(workbook, 'Requirement_Bulk_Upload_Template.xlsx'); }
-        async function handleForcePasswordResetSubmit(e) { e.preventDefault(); const newPassword = $('#force-new-password').val(); const result = await apiCall('/users/set-password', 'POST', { newPassword }); if (result.success) { showToast(result.message, 'success'); forcePasswordResetModal.hide(); const user = JSON.parse(sessionStorage.getItem('loggedInUser')); await setupUIForRole(user); } }
-        async function openAssignVendorsModal(requisitionId) { $('#assign-vendor-req-id').val(requisitionId); const checklistDiv = $('#assign-vendor-checklist').html('<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>'); assignVendorsModal.show(); const result = await apiCall(`/requisitions/${requisitionId}/assignments`); if (result.success) { const { allVendors, assignedVendorIds } = result.data; const vendorsHtml = allVendors.map(v => ` <div class="form-check"> <input class="form-check-input assign-vendor-checkbox" type="checkbox" value="${v.user_id}" id="assign-v-${v.user_id}" ${assignedVendorIds.includes(v.user_id) ? 'checked' : ''}> <label class="form-check-label" for="assign-v-${v.user_id}">${v.full_name}</label> </div>`).join(''); checklistDiv.html(vendorsHtml || '<p class="text-muted">No active vendors found.</p>'); } else { checklistDiv.html('<p class="text-danger">Could not load vendors.</p>'); } }
-        async function handleUpdateVendorAssignments() { const requisitionId = $('#assign-vendor-req-id').val(); const vendorIds = $('#assign-vendor-checklist input:checked').map((i, el) => $(el).val()).get(); const result = await apiCall(`/requisitions/${requisitionId}/assignments`, 'PUT', { vendorIds }); if (result.success) { showToast(result.message, 'success'); assignVendorsModal.hide(); handleManualRefresh(); } }
-        async function openReopenBiddingModal(itemIds) { $('#reopen-item-ids').val(JSON.stringify(itemIds)); $('#reopen-remarks').val(''); const checklistDiv = $('#reopen-vendor-checklist').html('<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>'); reopenBiddingModal.show(); const usersResult = await apiCall('/users/vendors', 'GET', null, false, false); if (usersResult.success && usersResult.data) { const vendors = usersResult.data; const vendorsHtml = vendors.map(v => `<div class="form-check"><input class="form-check-input reopen-vendor-checkbox" type="checkbox" value="${v.user_id}" id="reopen-v-${v.user_id}" checked><label class="form-check-label" for="reopen-v-${v.user_id}">${v.full_name}</label></div>`).join(''); checklistDiv.html(vendorsHtml || '<p class="text-muted">No vendors found.</p>'); } else { checklistDiv.html('<p class="text-danger">Could not load vendor list.</p>'); } }
-        async function handleSingleReopenBidding(itemId) { openReopenBiddingModal([itemId]); }
-        function handleBulkReopenModal() { const itemIdsToReopen = $('.awarded-item-checkbox:checked').map((i, el) => $(el).data('item-id')).get(); if (itemIdsToReopen.length === 0) return showToast('Please select at least one awarded item to re-open.', 'info'); openReopenBiddingModal(itemIdsToReopen); }
-        async function submitReopenBidding() { const itemIds = JSON.parse($('#reopen-item-ids').val()); const remarks = $('#reopen-remarks').val().trim(); if(!remarks) return showToast('Remarks are mandatory.', 'error'); const result = await apiCall('/items/reopen-bidding', 'POST', { itemIds, remarks }); if (result.success) { showToast(result.message, 'success'); reopenBiddingModal.hide(); handleManualRefresh(); } }
-        async function handleAdvancedBulkAward() { const itemIds = $('.req-item-checkbox:checked').map((i, el) => $(el).closest('tr').data('item-id')).get(); if (itemIds.length === 0) return showToast('Please select items to award.', 'warning'); const result = await apiCall('/admin/bids-for-items', 'POST', { itemIds }); if (!result.success) return; const accordionContainer = $('#advanced-bulk-award-modal-body').html(''); result.data.forEach((itemData, index) => { let bidsTableHtml = '<p class="text-center text-muted">No bids submitted.</p>'; if (itemData.bids.length > 0) { bidsTableHtml = `<div class="table-responsive"><table class="table table-sm table-striped"><thead><tr><th>Select</th><th>Rank</th><th>Vendor</th><th>Amount (₹)</th></tr></thead><tbody>${itemData.bids.map((bid, rankIndex) => { const bidDataForAward = { ...bid, ...itemData }; return `<tr><td><input class="form-check-input" type="radio" name="award-radio-${itemData.item_id}" value='${JSON.stringify(bidDataForAward)}'></td><td><span class="badge bg-info">L${rankIndex + 1}</span></td><td>${bid.vendor_name}</td><td><strong>${formatCurrency(bid.bid_amount)}</strong></td></tr>`; }).join('')}</tbody></table></div>`; } accordionContainer.append(`<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button ${index > 0 ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-award-${itemData.item_id}"><strong>Item:</strong> ${itemData.item_name}</button></h2><div id="collapse-award-${itemData.item_id}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" data-bs-parent="#advanced-bulk-award-modal-body"><div class="accordion-body">${bidsTableHtml}</div></div></div>`); }); $('#advanced-bulk-award-remarks').val(''); advancedBulkAwardModal.show(); }
-        async function handleSubmitAdvancedBulkAward() { const remarks = $('#advanced-bulk-award-remarks').val().trim(); if (!remarks) return showToast('Remarks are mandatory.', 'error'); const winningBids = $('#advanced-bulk-award-modal-body input[type="radio"]:checked').map((i, radio) => { const bidData = JSON.parse(radio.value); bidData.remarks = remarks; return bidData; }).get(); if (winningBids.length === 0) return showToast('Please select at least one bid to award.', 'warning'); const result = await apiCall('/contracts/award', 'POST', { bids: winningBids }); if (result.success) { showToast(result.message, 'success'); sendConsolidatedAwardEmails(winningBids); advancedBulkAwardModal.hide(); handleManualRefresh(); } }
-        function selectAllL1Bids() { const l1Row = $('#bids-tbody tr').first(); if (l1Row.length) { const checkbox = l1Row.find('.bid-checkbox'); if (!checkbox.is(':disabled')) { checkbox.prop('checked', true); } } }
-
-        // NEW: Super Admin delete functions
-        async function handleDeleteRequisition(reqId) {
-            if (confirm(`Are you sure you want to permanently delete Requisition REQ-${reqId} and all its related items and bids? This action cannot be undone.`)) {
-                try {
-                    const result = await apiCall(`/requisitions/${reqId}`, 'DELETE');
-                    if (result.success) {
-                        showToast(result.message, 'success');
-                        handleManualRefresh();
-                    }
-                } catch (error) { /* apiCall already shows toast */ }
-            }
-        }
-        async function rejectUser(tempId) {
-            if (confirm('Are you sure you want to reject and delete this pending user registration?')) {
-                try {
-                    const result = await apiCall(`/pending-users/${tempId}`, 'DELETE');
-                    if (result.success) {
-                        showToast(result.message, 'success');
-                        handleManualRefresh();
-                    }
-                } catch (error) { /* apiCall already shows toast */ }
-            }
-        }
-        async function handleDeleteUser(userId) {
-            if (confirm('Are you sure you want to permanently delete this user? All their data will be lost. This action cannot be undone.')) {
-                try {
-                    const result = await apiCall(`/users/${userId}`, 'DELETE');
-                    if (result.success) {
-                        showToast(result.message, 'success');
-                        handleManualRefresh();
-                    }
-                } catch (error) { /* apiCall already shows toast */ }
-            }
-        }
-    </script>
+    </script>
 </body>
 </html>
