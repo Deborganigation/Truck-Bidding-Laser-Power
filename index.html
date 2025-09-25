@@ -34,6 +34,8 @@
         #login-container { width: 100%; max-width: 420px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.2); color: white; }
         #login-container .form-control { background-color: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; }
         #login-container .form-control::placeholder { color: rgba(255,255,255,0.7); }
+        .password-container { position: relative; }
+        .password-container .toggle-password { position: absolute; top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer; color: rgba(255,255,255,0.7); }
         .wrapper { display: flex; }
         .sidebar { width: 260px; background: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 1001; transition: all 0.3s ease-in-out; box-shadow: 0 0 2rem 0 rgba(136,152,170,.15); }
         .sidebar .logo { font-size: 1.2rem; font-weight: 600; text-align: center; color: white; padding: 22px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
@@ -67,7 +69,10 @@
             <p class="text-center mb-4">Login to your account</p>
             <form id="login-form">
                 <div class="mb-3"><input type="email" id="email" class="form-control" placeholder="Email" required></div>
-                <div class="mb-3"><input type="password" id="password" class="form-control" placeholder="Password" required></div>
+                <div class="mb-3 password-container">
+                    <input type="password" id="password" class="form-control" placeholder="Password" required>
+                    <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+                </div>
                 <button type="submit" class="btn btn-primary w-100 fw-bold">Log In</button>
             </form>
             <div id="login-error-msg" class="text-danger text-center small mt-2 fw-bold" style="display: none;"></div>
@@ -194,6 +199,14 @@
         $('#register-form').on('submit', handleRegistration);
         $(document).on('submit', '#create-load-form', handleLoadSubmit);
         $('#reg-role').on('change', handleRoleChange);
+
+        // BUG FIX: Added event listener for show/hide password
+        $('#togglePassword').on('click', function() {
+            const passwordInput = $('#password');
+            const type = passwordInput.attr('type') === 'password' ? 'text' : 'password';
+            passwordInput.attr('type', type);
+            $(this).toggleClass('fa-eye-slash fa-eye');
+        });
     });
 
     async function apiCall(endpoint, method = 'GET', body = null) {
@@ -206,8 +219,11 @@
             const options = { method, headers };
             if (body) options.body = JSON.stringify(body);
             
-            const response = await fetch(API_BASE_URL + endpoint, options);
-            if (!response.ok) { // Check for non-2xx responses
+            // BUG FIX: Removed '/api' prefix from endpoint before concatenating
+            const finalUrl = API_BASE_URL + (endpoint.startsWith('/') ? endpoint : '/' + endpoint);
+            
+            const response = await fetch(finalUrl, options);
+            if (!response.ok) {
                 if (response.status === 401 || response.status === 403) handleLogout();
                 const errorResult = await response.json().catch(() => ({ message: `HTTP Error: ${response.statusText}` }));
                 throw new Error(errorResult.message);
@@ -255,7 +271,8 @@
         e.preventDefault();
         const email = $('#email').val(), password = $('#password').val();
         try {
-            const result = await apiCall('/api/login', 'POST', { email, password });
+            // BUG FIX: Removed '/api' prefix from the call
+            const result = await apiCall('/login', 'POST', { email, password });
             sessionStorage.setItem('loggedInUser', JSON.stringify(result.user));
             sessionStorage.setItem('authToken', result.token);
             await setupUIForRole(result.user);
@@ -279,7 +296,8 @@
     async function handleRegistration(e) {
         e.preventDefault();
         const data = { FullName: $('#reg-fullname').val(), Email: $('#reg-email').val(), Password: $('#reg-password').val(), Role: $('#reg-role').val(), CompanyName: $('#reg-company').val(), ContactNumber: $('#reg-contact').val(), GSTIN: $('#reg-gstin').val() };
-        const result = await apiCall('/api/register', 'POST', data);
+        // BUG FIX: Removed '/api' prefix
+        const result = await apiCall('/register', 'POST', data);
         if (result.success) {
             showToast(result.message, 'success');
             registerModal.hide();
@@ -310,8 +328,8 @@
             showToast('Loading master data...', 'info');
             try {
                 const [trucksRes, itemsRes] = await Promise.all([
-                    apiCall('/api/master-data/truck-types'),
-                    apiCall('/api/master-data/items')
+                    apiCall('/master-data/truck-types'),
+                    apiCall('/master-data/items')
                 ]);
                 MASTER_DATA.truckTypes = trucksRes.data;
                 MASTER_DATA.items = itemsRes.data;
@@ -333,7 +351,7 @@
 
     async function load_user_status_view() {
         const listDiv = $('#user-req-status-list').html('<div class="text-center p-4">Loading...</div>'); 
-        const result = await apiCall('/api/requisitions/my-status');
+        const result = await apiCall('/requisitions/my-status');
         if (!result.success || result.data.length === 0) {
             return renderEmptyState('#user-req-status-list', 'You have not posted any loads yet.', 'fa-file-signature');
         }
@@ -352,7 +370,7 @@
     }
         
     async function load_vendor_open_loads_view() {
-        const result = await apiCall('/api/requirements/assigned');
+        const result = await apiCall('/requirements/assigned');
         const container = $('#vendor-loads-container').empty();
         if (!result.success || result.data.length === 0) {
             return renderEmptyState('#vendor-loads-empty-state', 'No open loads assigned for bidding.', 'fa-clipboard-list');
@@ -395,7 +413,7 @@
 
     async function load_admin_pending_loads_view() {
          const container = $('#pending-loads-container').html('<div class="text-center p-4">Loading...</div>');
-         const result = await apiCall('/api/requirements/pending');
+         const result = await apiCall('/requirements/pending');
          if (!result.success || result.data.groupedReqs.length === 0) {
             return renderEmptyState('#pending-loads-container', 'No loads are pending approval.', 'fa-inbox');
          }
@@ -431,7 +449,7 @@
             truck_type_id: card.find('.truck-type-select').val(),
             requirement_date: card.find('.req-date').val(),
         };
-        const result = await apiCall('/api/requisitions', 'POST', { items: JSON.stringify([payload]) });
+        const result = await apiCall('/requisitions', 'POST', { items: JSON.stringify([payload]) });
         if (result.success) {
             showToast(result.message, 'success');
             navigateTo('user-create-load-view');
@@ -439,8 +457,6 @@
     }
     
     async function handleBulkBidSubmit() {
-        // This function is for a different UI, but we can adapt it if needed.
-        // For now, we use handleSingleBid.
         showToast("Please submit bids one by one using the 'Submit Bid' button.", "info");
     }
 
@@ -454,10 +470,10 @@
             return showToast('Please enter a bid amount.', 'error');
         }
         const bidData = {
-            itemId: loadId, // Backend expects itemId for compatibility
+            itemId: loadId,
             bid_amount: parseFloat(bidInput.val())
         };
-        const result = await apiCall('/api/bids/bulk', 'POST', { bids: [bidData] });
+        const result = await apiCall('/bids/bulk', 'POST', { bids: [bidData] });
         if (result.success) {
             showToast(result.message, 'success');
             load_vendor_open_loads_view();
@@ -471,7 +487,7 @@
         if (approvedLoadIds.length === 0) return alert("Please select at least one load to approve.");
         if (truckerAssignments.length === 0) return alert("Please assign at least one trucker.");
         
-        const result = await apiCall('/api/requisitions/approve', 'POST', { approvedItemIds: approvedLoadIds, vendorAssignments: truckerAssignments, requisitionId: reqId });
+        const result = await apiCall('/requisitions/approve', 'POST', { approvedItemIds: approvedLoadIds, vendorAssignments: truckerAssignments, requisitionId: reqId });
         if (result.success) {
             showToast(result.message, 'success');
             load_admin_pending_loads_view();
