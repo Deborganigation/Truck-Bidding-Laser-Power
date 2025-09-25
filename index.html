@@ -22,17 +22,21 @@
             --text-dark: #32325D; --text-muted: #8898AA; --border-color: #E9ECEF;
         }
         body { font-family: 'Poppins', sans-serif; background-color: var(--content-bg); }
-        .hidden { display: none !important; }
+        
+        /* === FIX STARTS HERE === */
+        #app-container { display: none; } /* App screen ko default roop se hide karein */
+        /* === FIX ENDS HERE === */
+
         .view { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        #loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); z-index: 10002; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        #loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); z-index: 10002; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); display: none; /* Initially hidden */ }
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 10003; }
         .toast-notification { padding: 15px 20px; color: white; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 7px 14px rgba(50,50,93,.1), 0 3px 6px rgba(0,0,0,.08); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; }
         .toast-notification.success { background: linear-gradient(87deg, #2dce89 0, #2dcecc 100%) !important; }
         .toast-notification.error { background: linear-gradient(87deg, #f5365c 0, #f56036 100%) !important; }
         .toast-notification.info { background: linear-gradient(87deg, #11cdef 0, #1171ef 100%) !important; }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        #login-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #172B4D; }
+        #login-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #172B4D; z-index: 2000; }
         #login-video-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; filter: brightness(0.4); }
         #login-container { width: 100%; max-width: 420px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.2); color: white; }
         #login-container .form-control { background-color: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; }
@@ -59,7 +63,7 @@
 </head>
 <body>
 
-    <div id="loader-overlay" class="hidden"><div class="spinner-border text-primary" role="status"></div></div>
+    <div id="loader-overlay"><div class="spinner-border text-primary" role="status"></div></div>
     <div id="toast-container"></div>
 
         <div id="login-wrapper">
@@ -80,7 +84,7 @@
         </div>
     </div>
 
-        <div id="app-container" class="wrapper hidden">
+        <div id="app-container" class="wrapper">
                 <nav class="sidebar" id="sidebar">
             <div class="logo"> <i class="fas fa-truck"></i> <span>DEB'S LOGISTICS</span> </div>
             <div id="nav-links" class="flex-grow-1">
@@ -123,8 +127,8 @@
                         <div class="mb-2"><input type="email" id="reg-email" class="form-control" placeholder="Email" required></div>
                         <div class="mb-2"><input type="password" id="reg-password" class="form-control" placeholder="Password" required></div>
                         <div class="mb-2"><input type="text" id="reg-contact" class="form-control" placeholder="Contact Number" required></div>
-                        <div class="mb-2 hidden" id="reg-company-wrapper"><input type="text" id="reg-company" class="form-control" placeholder="Company Name"></div>
-                        <div class="mb-3 hidden" id="reg-gstin-wrapper"><input type="text" id="reg-gstin" class="form-control" placeholder="GSTIN (Optional)"></div>
+                        <div class="mb-2" id="reg-company-wrapper" style="display: none;"><input type="text" id="reg-company" class="form-control" placeholder="Company Name"></div>
+                        <div class="mb-3" id="reg-gstin-wrapper" style="display: none;"><input type="text" id="reg-gstin" class="form-control" placeholder="GSTIN (Optional)"></div>
                         <button type="submit" class="btn btn-success w-100 fw-bold">Register</button>
                     </form>
                 </div>
@@ -169,8 +173,13 @@
         $(document).ready(() => {
             loginWrapper = $('#login-wrapper'); appContainer = $('#app-container'); mainView = $('#main-view'); headerTitle = $('#header-title');
             try { registerModal = new bootstrap.Modal('#registerModal'); } catch (e) { console.error("Error initializing modals:", e); }
-            const user = sessionStorage.getItem('loggedInUser');
-            if (user && sessionStorage.getItem('authToken')) { setupUIForRole(JSON.parse(user)); } else { loginWrapper.removeClass('hidden'); appContainer.addClass('hidden'); }
+            
+            const user = sessionStorage.getItem('loggedInUser');
+            if (user && sessionStorage.getItem('authToken')) {
+                setupUIForRole(JSON.parse(user));
+            } else {
+                // By default, loginWrapper is visible and appContainer is hidden by CSS
+            }
             
             $('#login-form').on('submit', handleLogin);
             $('#register-form').on('submit', handleRegistration);
@@ -254,8 +263,9 @@
 
         function handleRoleChange() {
             const isVendor = $('#reg-role').val() === 'Vendor';
-            $('#reg-company-wrapper').toggleClass('hidden', !isVendor);
-            $('#reg-gstin-wrapper').toggleClass('hidden', !isVendor);
+            // === FIX: Using .css() for more direct control over visibility ===
+            $('#reg-company-wrapper').css('display', isVendor ? 'block' : 'none');
+            $('#reg-gstin-wrapper').css('display', isVendor ? 'block' : 'none');
             $('#reg-company').prop('required', isVendor);
         }
 
@@ -271,8 +281,10 @@
         }
         
         async function setupUIForRole(user) {
-            loginWrapper.addClass('hidden');
-            appContainer.removeClass('hidden');
+            // === FIX: Using jQuery's show/hide for robust visibility control ===
+            loginWrapper.hide();
+            appContainer.show();
+
             $('#user-name-sidebar').text(user.full_name);
             $('#user-email-sidebar').text(user.email);
             $('#nav-links .nav-link').hide();
@@ -497,8 +509,8 @@
         // =========================================================
         function renderEmptyState(containerSelector, message, iconClass = 'fa-folder-open') { $(containerSelector).html(`<div class="empty-state"><i class="fas ${iconClass}"></i><p>${message}</p></div>`); }
         function showToast(m,t='info'){const c=$('#toast-container'),e=$(`<div><i class="fas ${t === 'success' ? 'fa-check-circle' : 'fa-times-circle'} me-2"></i><span>${m}</span></div>`).addClass(`toast-notification ${t}`);c.append(e);setTimeout(()=>e.remove(),5000)}
-        function showLoader(){$('#loader-overlay').removeClass('hidden')}
-        function hideLoader(){$('#loader-overlay').addClass('hidden')}
+        function showLoader(){$('#loader-overlay').css('display', 'flex')}
+        function hideLoader(){$('#loader-overlay').css('display', 'none')}
         function formatCurrency(v){const n=parseFloat(v);return isNaN(n)?'₹0.00':`₹${n.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}`}
         function getBadgeColor(s){return {'Awarded':'primary','Active':'success','Pending Approval':'warning','Submitted':'info','Rejected':'danger','Processed': 'secondary'}[s]||'dark'}
         function formatDate(dateString) { if (!dateString) return 'N/A'; const date = new Date(dateString); return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }); }
