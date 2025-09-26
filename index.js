@@ -4,6 +4,8 @@ const mysql = require('mysql2/promise');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const xlsx = require('xlsx');
 require('dotenv').config();
 const path = require('path');
 
@@ -11,6 +13,9 @@ const path = require('path');
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+
+// File upload setup (for bulk upload)
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Serve static files (like index.html)
 app.use(express.static(path.join(__dirname)));
@@ -23,7 +28,7 @@ const dbConfig = {
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE || 'logistics_db', // Ensure DB is set in .env
+    database: process.env.DB_DATABASE || 'logistics_db',
     port: process.env.DB_PORT,
     waitForConnections: true,
     connectionLimit: 10,
@@ -88,6 +93,10 @@ app.post('/api/login', async (req, res, next) => {
         const match = await bcrypt.compare(password, user.password_hash);
         if (!match) return res.status(401).json({ success: false, message: 'Invalid credentials.' });
         
+        // **FIX:** Translate DB roles to Frontend roles before sending
+        if (user.role === 'User') user.role = 'Shipper';
+        if (user.role === 'Vendor') user.role = 'Trucker';
+
         const payload = { userId: user.user_id, role: user.role, fullName: user.full_name, email: user.email };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '8h' });
         
@@ -100,8 +109,7 @@ app.post('/api/register', async (req, res, next) => {
     try {
         const { FullName, Email, Password, Role, CompanyName, ContactNumber, GSTIN } = req.body;
         const hashedPassword = await bcrypt.hash(Password, 10);
-        // Corrected Role mapping from frontend to DB
-        const dbRole = (Role === 'Trucker') ? 'Vendor' : 'User';
+        const dbRole = (Role === 'Trucker') ? 'Vendor' : 'User'; // Translate Frontend role to DB role
         await dbPool.query('INSERT INTO pending_users (full_name, email, password, role, company_name, contact_number, gstin) VALUES (?, ?, ?, ?, ?, ?, ?)', [FullName, Email, hashedPassword, dbRole, CompanyName, ContactNumber, GSTIN]);
         res.status(201).json({ success: true, message: 'Registration successful! Awaiting admin approval.' });
     } catch (error) {
@@ -115,7 +123,7 @@ app.post('/api/loads', authenticateToken, async (req, res, next) => {
     let connection;
     try {
         connection = await dbPool.getConnection();
-        const { items } = req.body; // Expects a JSON string of an array of loads
+        const { items } = req.body;
         if (!items) return res.status(400).json({ success: false, message: 'No load details provided.' });
         
         await connection.beginTransaction();
@@ -186,11 +194,11 @@ app.post('/api/bids', authenticateToken, async (req, res, next) => {
         await connection.beginTransaction();
         let submittedCount = 0;
         for (const bid of bids) {
-            const { loadId, bid_amount, comments } = bid;
+            const { loadId, bid_amount } = bid;
             const vendorId = req.user.userId;
 
             await connection.query('DELETE FROM bids WHERE load_id = ? AND vendor_id = ?', [loadId, vendorId]);
-            const [result] = await connection.query("INSERT INTO bids (load_id, vendor_id, bid_amount, comments, submitted_at) VALUES (?, ?, ?, ?, ?)", [loadId, vendorId, bid_amount, comments, new Date()]);
+            const [result] = await connection.query("INSERT INTO bids (load_id, vendor_id, bid_amount, submitted_at) VALUES (?, ?, ?, ?)", [loadId, vendorId, bid_amount, new Date()]);
             await connection.query("INSERT INTO bidding_history_log (bid_id, load_id, vendor_id, bid_amount, submitted_at) VALUES (?, ?, ?, ?, ?)", [result.insertId, loadId, vendorId, bid_amount, new Date()]);
             submittedCount++;
         }
@@ -227,6 +235,18 @@ app.get('/api/trucker/dashboard-stats', authenticateToken, async (req, res, next
         }});
     } catch (error) { next(error); }
 });
+
+app.get('/api/trucker/awarded-contracts', authenticateToken, async (req, res, next) => {
+    try {
+        const [contracts] = await dbPool.query(`
+            SELECT ac.load_id, ac.awarded_amount, ac.awarded_date, tl.loading_point_address, tl.unloading_point_address
+            FROM awarded_contracts ac
+            JOIN truck_loads tl ON ac.load_id = tl.load_id
+            WHERE ac.vendor_id = ? ORDER BY ac.awarded_date DESC`, [req.user.userId]);
+        res.json({ success: true, data: contracts });
+    } catch (error) { next(error); }
+});
+
 
 // --- 5. ADMIN APIs ---
 app.get('/api/loads/pending', authenticateToken, isAdmin, async (req, res, next) => {
@@ -301,11 +321,77 @@ app.get('/api/admin/awarded-contracts', authenticateToken, isAdmin, async (req, 
     } catch (error) { next(error); }
 });
 
+// **NEW:** BULK UPLOAD AND REPORTING APIS
+app.post('/api/loads/bulk-upload', authenticateToken, isAdmin, upload.single('bulkFile'), async (req, res, next) => {
+    if (!req.file) return res.status(400).json({ success: false, message: 'No Excel file uploaded.' });
+    let connection;
+    try {
+        connection = await dbPool.getConnection();
+        const workbook = xlsx.read(req.file.buffer, { type: 'buffer', cellDates: true });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = xlsx.utils.sheet_to_json(sheet);
+        if (jsonData.length === 0) return res.status(400).json({ success: false, message: 'Excel file is empty.' });
+
+        // Fetch master data for mapping names to IDs
+        const [itemRows] = await connection.query('SELECT item_id, item_name FROM item_master');
+        const [truckRows] = await connection.query('SELECT truck_type_id, truck_name FROM truck_type_master');
+        const itemMap = new Map(itemRows.map(i => [i.item_name.toLowerCase(), i.item_id]));
+        const truckMap = new Map(truckRows.map(t => [t.truck_name.toLowerCase(), t.truck_type_id]));
+
+        await connection.beginTransaction();
+        const [reqResult] = await connection.query("INSERT INTO requisitions (created_by, status, created_at) VALUES (?, 'Pending Approval', ?)", [req.user.userId, new Date()]);
+        const reqId = reqResult.insertId;
+
+        for (const row of jsonData) {
+            const itemId = itemMap.get(String(row.MaterialName).toLowerCase());
+            const truckTypeId = truckMap.get(String(row.TruckName).toLowerCase());
+            if (!itemId || !truckTypeId) {
+                // Skip row if master data not found
+                console.warn(`Skipping row, master data not found for: ${row.MaterialName} or ${row.TruckName}`);
+                continue;
+            }
+            await connection.query(
+                `INSERT INTO truck_loads (requisition_id, created_by, loading_point_address, unloading_point_address, item_id, approx_weight_tonnes, truck_type_id, requirement_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending Approval')`,
+                [reqId, req.user.userId, row.LoadingPoint, row.UnloadingPoint, itemId, row.WeightInTonnes, truckTypeId, row.RequirementDate]
+            );
+        }
+        await connection.commit();
+        res.status(201).json({ success: true, message: 'Bulk upload processed successfully.' });
+    } catch (error) {
+        if (connection) await connection.rollback();
+        next(error);
+    } finally {
+        if (connection) connection.release();
+    }
+});
+
+app.post('/api/admin/reports-data', authenticateToken, isAdmin, async (req, res, next) => {
+    try {
+        const { startDate, endDate } = req.body;
+        const params = [];
+        let whereClause = '';
+        if (startDate && endDate) {
+            whereClause = ' WHERE ac.awarded_date BETWEEN ? AND ?';
+            params.push(startDate, `${endDate} 23:59:59`);
+        }
+        
+        const detailedReportQuery = `SELECT ac.load_id, tl.loading_point_address, tl.unloading_point_address, im.item_name, tl.approx_weight_tonnes, ttm.truck_name, u.full_name as trucker_name, ac.awarded_amount, ac.awarded_date FROM awarded_contracts ac JOIN truck_loads tl ON ac.load_id = tl.load_id JOIN users u ON ac.vendor_id = u.user_id JOIN item_master im ON tl.item_id = im.item_id JOIN truck_type_master ttm ON tl.truck_type_id = ttm.truck_type_id ${whereClause.replace('ac.','ac.')} ORDER BY ac.awarded_date DESC`;
+        const kpiQuery = `SELECT COALESCE(SUM(ac.awarded_amount), 0) AS totalSpend, COUNT(ac.load_id) as awardedLoads FROM awarded_contracts ac ${whereClause}`;
+
+        const [ [kpis], [detailedReport] ] = await Promise.all([
+            dbPool.query(kpiQuery, params),
+            dbPool.query(detailedReportQuery, params)
+        ]);
+
+        res.json({ success: true, data: { kpis: kpis[0], detailedReport }});
+    } catch (error) { next(error); }
+});
+
+
 // --- 6. USER MANAGEMENT (Admin) ---
 app.get('/api/users/pending', authenticateToken, isAdmin, async (req, res, next) => {
     try {
-        const [rows] = await dbPool.query(`SELECT * FROM pending_users ORDER BY temp_id DESC`);
-        // Map DB roles to frontend roles
+        const [rows] = await dbPool.query(`SELECT temp_id, full_name, email, role, company_name, contact_number FROM pending_users ORDER BY temp_id DESC`);
         const data = rows.map(u => ({...u, role: u.role === 'Vendor' ? 'Trucker' : 'Shipper'}));
         res.json({ success: true, data });
     } catch (error) { next(error); }
