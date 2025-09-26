@@ -36,6 +36,14 @@
         .password-container .toggle-password { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); cursor: pointer; color: rgba(255,255,255,0.7); background: transparent; border: none; padding: 5px; }
         .wrapper { display: flex; }
         .sidebar { width: 260px; background: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 1001; transition: all 0.3s ease-in-out; box-shadow: 0 0 2rem 0 rgba(136,152,170,.15); }
+        .sidebar .logo { font-size: 1.2rem; font-weight: 600; text-align: center; color: white; padding: 22px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .sidebar .logo i { color: var(--info-color); }
+        .sidebar .nav-link { color: var(--sidebar-text); padding: 12px 25px; border-radius: .375rem; margin: 0 1rem 5px; transition: all 0.2s ease; white-space: nowrap; cursor: pointer; display: flex; align-items: center; justify-content: space-between;}
+        .sidebar .nav-link:hover { background-color: var(--sidebar-hover-bg); color: var(--sidebar-active-text); }
+        .sidebar .nav-link.active { background: linear-gradient(87deg, #5e72e4 0, #825ee4 100%) !important; color: var(--sidebar-active-text); font-weight: 500; box-shadow: 0 7px 14px rgba(50,50,93,.1), 0 3px 6px rgba(0,0,0,.08); }
+        .sidebar .nav-link .nav-link-text { display: flex; align-items: center; }
+        .sidebar .nav-link .nav-link-text i { margin-right: 15px; width: 20px; text-align: center; font-size: .95rem; }
+        .sidebar .user-profile { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding: 15px 10px; text-align: center; }
         .main-content { width: 100%; padding: 30px; margin-left: 260px; transition: margin-left 0.3s ease-in-out; }
         .card { border: none; border-radius: .5rem; box-shadow: 0 1px 3px rgba(50,50,93,.15), 0 1px 0 rgba(0,0,0,.02); }
         .card-header { background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); font-weight: 600; padding: 1.25rem 1.5rem; }
@@ -214,7 +222,7 @@
 
     const views = {
         'admin-dashboard-view': `<div class="card"><div class="card-body">Admin Dashboard</div></div>`,
-        'admin-pending-loads-view': `<div class="card"><div class="card-header"><h5 class="mb-0">Pending Load Approvals</h5></div><div class="card-body"><div id="pending-loads-container"></div></div></div>`,
+        'admin-pending-loads-view': `<div class="card"><div class="card-header"><h5 class="mb-0">Pending Load Approvals</h5></div><div class="card-body" id="pending-loads-container"></div></div>`,
         'admin-active-loads-view': `<div class="card"><div class="card-body">All Active Loads</div></div>`,
         'admin-bidding-history-view': `<div class="card"><div class="card-body">Bidding History</div></div>`,
         'admin-awarded-loads-view': `<div class="card"><div class="card-body">Awarded Loads</div></div>`,
@@ -329,11 +337,7 @@
         }
     }
 
-    // =========================================================
-    // ================= VIEW LOADER FUNCTIONS =================
-    // =========================================================
-
-    // --- SHIPPER (USER) ---
+    // --- VIEW LOADER FUNCTIONS ---
     async function load_user_create_load_view() {
         try {
             await fetchMasterData();
@@ -344,27 +348,6 @@
         }
     }
     
-    async function load_user_status_view() {
-        const listDiv = $('#user-req-status-list').html('<div class="text-center p-4">Loading...</div>'); 
-        const result = await apiCall('/requisitions/my-status');
-        if (!result.success || result.data.length === 0) {
-            return renderEmptyState('#user-req-status-list', 'You have not posted any loads yet.', 'fa-file-signature');
-        }
-        listDiv.html('');
-        result.data.forEach(req => {
-            const loadsHTML = req.loads.map(load => `
-                <li class="list-group-item">
-                    <div class="d-flex w-100 justify-content-between">
-                        <small><strong>${load.item_name}</strong> to ${load.unloading_point_address.substring(0,30)}...</small>
-                        <span class="badge bg-${getBadgeColor(load.status)}">${load.status}</span>
-                    </div>
-                    ${load.status === 'Awarded' ? `<small class="d-block text-success">Awarded to: ${load.awarded_vendor || 'N/A'} (Amount: ${formatCurrency(load.awarded_amount)})</small>` : ''}
-                </li>`).join('');
-            listDiv.append(`<div class="card mb-3"><div class="card-header d-flex justify-content-between"><strong>Req ID: REQ-${req.requisition_id}</strong><span class="badge bg-${getBadgeColor(req.status)}">${req.status}</span></div><ul class="list-group list-group-flush">${loadsHTML}</ul></div>`);
-        });
-    }
-
-    // --- TRUCKER (VENDOR) ---
     async function load_vendor_open_loads_view() {
         const result = await apiCall('/requirements/assigned');
         const container = $('#vendor-loads-container').empty();
@@ -382,11 +365,10 @@
                 ? `<div class="text-center text-danger small p-3 bg-light rounded mt-3"><i class="fas fa-exclamation-circle me-1"></i> Max 3 bids reached.</div>` 
                 : `<div class="input-group mt-3" data-load-id="${load.load_id}"><input type="number" class="form-control bid-amount" placeholder="Enter Your Bid Amount (₹)"><button class="btn btn-success" onclick="handleSingleBid(this)">Submit Bid</button></div>`;
 
-            const loadCardHtml = `
+            container.append(`
             <div class="bidding-card">
                 <div class="bidding-card-header d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0">${load.item_name}</h6>
-                    <small class="text-muted">REQ-${load.requisition_id}</small>
+                    <h6 class="mb-0">${load.item_name}</h6><small class="text-muted">REQ-${load.requisition_id}</small>
                 </div>
                 <div class="bidding-card-body">
                     <div class="row">
@@ -397,20 +379,16 @@
                             <p class="mb-0"><strong>My Current Rank:</strong> ${load.my_rank ? `<span class="badge bg-primary fs-6">L${load.my_rank}</span>` : '<span class="text-muted">Not Bid Yet</span>'}</p>
                         </div>
                         <div class="col-md-4">
-                            <h6>My Bid History</h6>
-                            <ul class="list-group">${historyHtml}</ul>
+                            <h6>My Bid History</h6><ul class="list-group">${historyHtml}</ul>
                         </div>
                     </div>
                     ${bidInputHtml}
                 </div>
-            </div>`;
-            container.append(loadCardHtml);
+            </div>`);
         });
     }
 
-    // =========================================================
-    // =============== ACTION HANDLERS =======================
-    // =========================================================
+    // --- ACTION HANDLER FUNCTIONS ---
     function getLoadItemHtml() {
         const truckOptions = MASTER_DATA.truckTypes.map(p => `<option value='${p.truck_type_id}'>${p.truck_name} (${p.dala_length_feet} ft)</option>`).join('');
         const itemOptions = MASTER_DATA.items.map(p => `<option value='${p.item_id}'>${p.item_name}</option>`).join('');
@@ -434,33 +412,22 @@
                 showToast(result.message, 'success');
                 navigateTo('user-create-load-view');
             }
-        } catch(error) {
-            console.error("Load submission failed:", error);
-        }
+        } catch(error) {}
     }
     
     async function handleSingleBid(button) {
-        const btn = $(button);
-        const inputGroup = btn.closest('.input-group');
+        const inputGroup = $(button).closest('.input-group');
         const bidInput = inputGroup.find('.bid-amount');
         const loadId = inputGroup.data('load-id');
-
-        if (!bidInput.val() || parseFloat(bidInput.val()) <= 0) {
-            return showToast('Please enter a valid bid amount.', 'error');
-        }
-        const bidData = {
-            itemId: loadId, // Backend expects itemId for compatibility
-            bid_amount: parseFloat(bidInput.val())
-        };
+        if (!bidInput.val() || parseFloat(bidInput.val()) <= 0) return showToast('Please enter a valid bid amount.', 'error');
+        
         try {
-            const result = await apiCall('/bids/bulk', 'POST', { bids: [bidData] });
+            const result = await apiCall('/bids/bulk', 'POST', { bids: [{ itemId: loadId, bid_amount: parseFloat(bidInput.val()) }] });
             if (result.success) {
                 showToast(result.message, 'success');
                 load_vendor_open_loads_view();
             }
-        } catch (error) {
-            console.error("Bid submission failed:", error);
-        }
+        } catch (error) {}
     }
     
     // UTILITY FUNCTIONS
@@ -474,7 +441,8 @@
     function formatCurrency(v){ const n=parseFloat(v); return isNaN(n)?'₹0.00':`₹${n.toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:0})}` }
     function formatDate(dateString) { if (!dateString) return 'N/A'; const date = new Date(dateString); return date.toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }); }
     function getBadgeColor(s){return {'Awarded':'primary','Active':'success','Pending Approval':'warning','Submitted':'info','Rejected':'danger','Processed': 'secondary'}[s]||'dark'}
-
+    function renderEmptyState(containerSelector, message, iconClass = 'fa-folder-open') { $(containerSelector).html(`<div class="empty-state"><i class="fas ${iconClass}"></i><p>${message}</p></div>`); }
+    
     </script>
 </body>
 </html>
