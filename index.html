@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DEB'S PROCUREMENT</title>
-    <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/48/purchase-order.png">
+    <title>DEB'S LOGISTICS</title>
+    <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/48/truck.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -20,6 +20,7 @@
         }
         body { font-family: 'Poppins', sans-serif; background-color: var(--content-bg); }
         .hidden { display: none !important; }
+        #app-container { display: none; }
         #loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); z-index: 10002; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 10003; }
         .toast-notification { padding: 15px 20px; color: white; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 7px 14px rgba(50,50,93,.1), 0 3px 6px rgba(0,0,0,.08); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; }
@@ -27,39 +28,52 @@
         .toast-notification.error { background: linear-gradient(87deg, #f5365c 0, #f56036 100%) !important; }
         .toast-notification.info { background: linear-gradient(87deg, #11cdef 0, #1171ef 100%) !important; }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        #login-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #172B4D; }
+        #login-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #172B4D; z-index: 2000; }
         #login-video-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; filter: brightness(0.4); }
         #login-container { width: 100%; max-width: 420px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.2); color: white; }
         #login-container .form-control { background-color: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; }
         #login-container .form-control::placeholder { color: rgba(255,255,255,0.7); }
-        #login-container a { color: var(--info-color); }
         .password-container { position: relative; }
         .password-container .toggle-password { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); cursor: pointer; color: rgba(255,255,255,0.7); background: transparent; border: none; padding: 5px; }
         .wrapper { display: flex; }
         .sidebar { width: 260px; background: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 1001; transition: all 0.3s ease-in-out; box-shadow: 0 0 2rem 0 rgba(136,152,170,.15); }
+        .sidebar .logo { font-size: 1.2rem; font-weight: 600; text-align: center; color: white; padding: 22px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .sidebar .logo i { color: var(--info-color); }
+        .sidebar .nav-link { color: var(--sidebar-text); padding: 12px 25px; border-radius: .375rem; margin: 0 1rem 5px; transition: all 0.2s ease; white-space: nowrap; cursor: pointer; display: flex; align-items: center; justify-content: space-between;}
+        .sidebar .nav-link:hover { background-color: var(--sidebar-hover-bg); color: var(--sidebar-active-text); }
+        .sidebar .nav-link.active { background: linear-gradient(87deg, #5e72e4 0, #825ee4 100%) !important; color: var(--sidebar-active-text); font-weight: 500; box-shadow: 0 7px 14px rgba(50,50,93,.1), 0 3px 6px rgba(0,0,0,.08); }
+        .sidebar .nav-link .nav-link-text { display: flex; align-items: center; }
+        .sidebar .nav-link .nav-link-text i { margin-right: 15px; width: 20px; text-align: center; font-size: .95rem; }
+        .sidebar .user-profile { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding: 15px 10px; text-align: center; }
         .main-content { width: 100%; padding: 30px; margin-left: 260px; transition: margin-left 0.3s ease-in-out; }
+        .card { border: none; border-radius: .5rem; box-shadow: 0 1px 3px rgba(50,50,93,.15), 0 1px 0 rgba(0,0,0,.02); }
+        .card-header { background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); font-weight: 600; padding: 1.25rem 1.5rem; }
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 2.5rem; margin-bottom: 1rem; }
+        .bidding-card { background-color: #fff; border-radius: .5rem; box-shadow: 0 1px 3px rgba(50,50,93,.15), 0 1px 0 rgba(0,0,0,.02); margin-bottom: 1.5rem; transition: all 0.3s ease; }
+        .bidding-card:hover { box-shadow: 0 7px 14px rgba(50,50,93,.1), 0 3px 6px rgba(0,0,0,.08); transform: translateY(-3px); }
+        .bidding-card-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); background-color: #f6f9fc; }
+        .bidding-card-body { padding: 1.5rem; }
     </style>
 </head>
 <body>
-
     <div id="loader-overlay" class="hidden"><div class="spinner-border text-primary" role="status"></div></div>
     <div id="toast-container"></div>
 
     <div id="login-wrapper">
         <video autoplay muted loop id="login-video-bg"> <source src="https://laserpowerinfra.com/frontassets/img/slider/Banner_v04_HD_L.mp4" type="video/mp4"> </video>
         <div id="login-container" class="p-4 p-md-5">
-            <h2 class="text-center mb-1 fw-bold"><i class="fas fa-tasks text-info"></i> DEB'S PROCUREMENT</h2>
+            <h2 class="text-center mb-1 fw-bold"><i class="fas fa-truck text-info"></i> DEB'S LOGISTICS</h2>
             <p class="text-center mb-4">Login to your account</p>
             <form id="login-form">
                 <div class="mb-3"><input type="email" id="email" class="form-control" placeholder="Email" required></div>
                 <div class="mb-3 password-container">
                     <input type="password" id="password" class="form-control" placeholder="Password" required>
-                    <button type="button" class="toggle-password" id="togglePassword" aria-label="Toggle password visibility">
-                        <i class="fas fa-eye"></i>
-                    </button>
+                    <button type="button" class="toggle-password" id="togglePassword"><i class="fas fa-eye"></i></button>
                 </div>
                 <button type="submit" class="btn btn-primary w-100 fw-bold">Log In</button>
             </form>
+            <div id="login-error-msg" class="text-danger text-center small mt-2 fw-bold" style="display: none;"></div>
             <p class="text-center mt-3 small">Don't have an account? <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Register Now</a></p>
         </div>
     </div>
@@ -76,7 +90,7 @@
                 </div>
                 <div class="modal-body">
                     <form id="register-form">
-                        <div class="mb-3"><select id="reg-role" class="form-select" required><option value="">Register as...</option><option value="User">User</option><option value="Vendor">Vendor</option></select></div>
+                        <div class="mb-3"><select id="reg-role" class="form-select" required><option value="">Register as...</option><option value="User">Shipper (I have loads)</option><option value="Vendor">Trucker (I have trucks)</option></select></div>
                         <div class="mb-2"><input type="text" id="reg-fullname" class="form-control" placeholder="Full Name" required></div>
                         <div class="mb-2"><input type="email" id="reg-email" class="form-control" placeholder="Email" required></div>
                         <div class="mb-2"><input type="password" id="reg-password" class="form-control" placeholder="Password" required></div>
@@ -89,203 +103,200 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="adminActionModal" tabindex="-1"></div>
-    <div class="modal fade" id="editUserModal" tabindex="-1"></div>
-    <div class="modal fade" id="addUserModal" tabindex="-1"></div>
-    <div class="modal fade" id="reopenBiddingModal" tabindex="-1"></div>
-    <div class="modal fade" id="bulkUploadModal" tabindex="-1"></div>
-    <div class="modal fade" id="advancedBulkAwardModal" tabindex="-1"></div>
-    <div class="modal fade" id="forcePasswordResetModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"></div>
-    <div class="modal fade" id="assignVendorsModal" tabindex="-1"></div>
-    <div class="modal fade" id="bulkBidErrorModal" tabindex="-1"></div>
-
-
+    
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     
     <script>
-        // =========================================================
-        // ================ CONFIG & STATE =========================
-        // =========================================================
-        const API_BASE_URL = '/api';
-        let loginWrapper, appContainer, mainView, headerTitle;
-        let registerModal, adminActionModal, editUserModal, bulkUploadModal, advancedBulkAwardModal, reopenBiddingModal, bulkBidErrorModal;
-        let addUserModal, forcePasswordResetModal, assignVendorsModal;
+    // =========================================================
+    // ================ CONFIG & STATE =========================
+    // =========================================================
+    const API_BASE_URL = '/api';
+    let MASTER_DATA = { truckTypes: [], items: [] };
+    let loginWrapper, appContainer;
+    let registerModal;
+
+    // =========================================================
+    // ================ CORE APP LOGIC =========================
+    // =========================================================
+    $(document).ready(() => {
+        loginWrapper = $('#login-wrapper');
+        appContainer = $('#app-container');
         
-        // =========================================================
-        // ================ CORE APP LOGIC =========================
-        // =========================================================
-        $(document).ready(() => {
-            // --- Initialize variables ---
-            loginWrapper = $('#login-wrapper'); 
-            appContainer = $('#app-container'); 
-            mainView = $('#main-view'); 
-            headerTitle = $('#header-title');
-            
-            // --- CRITICAL FIX: Initialize all modals correctly ---
-            try { 
-                registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
-                adminActionModal = new bootstrap.Modal(document.getElementById('adminActionModal'));
-                editUserModal = new bootstrap.Modal(document.getElementById('editUserModal'));
-                addUserModal = new bootstrap.Modal(document.getElementById('addUserModal'));
-                // Add all other modals here using the same pattern
-            } catch (e) { 
-                console.error("Error initializing Bootstrap modals. Make sure all modal HTML elements exist.", e); 
-            }
-            
-            // --- Check for existing session ---
-            const user = sessionStorage.getItem('loggedInUser');
-            if (user && sessionStorage.getItem('authToken')) { 
-                setupUIForRole(JSON.parse(user)); 
-            } else { 
-                loginWrapper.removeClass('hidden'); 
-                appContainer.addClass('hidden'); 
-            }
-            
-            // --- Attach Event Listeners ---
-            $('#login-form').on('submit', handleLogin);
-            $('#register-form').on('submit', handleRegistration);
-            $('#reg-role').on('change', handleRoleChange);
-            
-            // --- EYE BUTTON FIX ---
-            $('#togglePassword').on('click', function() { 
-                const passwordInput = $('#password'); 
-                const type = passwordInput.attr('type') === 'password' ? 'text' : 'password'; 
-                passwordInput.attr('type', type); 
-                $(this).find('i').toggleClass('fa-eye-slash fa-eye'); 
-            });
+        try {
+            registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
+        } catch (e) {
+            console.error("Error initializing Bootstrap modals:", e);
+        }
+
+        const user = sessionStorage.getItem('loggedInUser');
+        if (user && sessionStorage.getItem('authToken')) {
+            setupUIForRole(JSON.parse(user));
+        } else {
+            loginWrapper.removeClass('hidden');
+            appContainer.addClass('hidden');
+        }
+        
+        $('#login-form').on('submit', handleLogin);
+        $('#register-form').on('submit', handleRegistration);
+        $('#reg-role').on('change', handleRoleChange);
+        
+        $('#togglePassword').on('click', function() {
+            const passwordInput = $('#password');
+            const type = passwordInput.attr('type') === 'password' ? 'text' : 'password';
+            passwordInput.attr('type', type);
+            $(this).find('i').toggleClass('fa-eye-slash fa-eye');
         });
+    });
 
-        async function apiCall(endpoint, method = 'GET', body = null, isFormData = false) {
-            showLoader();
-            try {
-                const headers = {};
-                const token = sessionStorage.getItem('authToken');
-                if (token) headers['Authorization'] = `Bearer ${token}`;
-                if (!isFormData) headers['Content-Type'] = 'application/json';
-                
-                const options = { method, headers };
-                if (body) options.body = isFormData ? body : JSON.stringify(body);
-                
-                const finalUrl = API_BASE_URL + endpoint;
-                const response = await fetch(finalUrl, options);
-                
-                let result;
-                try {
-                    result = await response.json();
-                } catch (e) {
-                    throw new Error("Invalid response from server.");
-                }
+    async function apiCall(endpoint, method = 'GET', body = null) {
+        showLoader();
+        try {
+            const headers = { 'Content-Type': 'application/json' };
+            const token = sessionStorage.getItem('authToken');
+            if (token) headers['Authorization'] = `Bearer ${token}`;
 
-                if (!response.ok) {
-                    // --- AUTO-REFRESH FIX ---
-                    // Only triggers logout/reload for session errors (401) on authenticated pages, NOT for login failures.
-                    if (response.status === 401 && !endpoint.includes('/login')) {
-                        showToast('Session expired. Please log in again.', 'error');
-                        setTimeout(handleLogout, 2000); // Give user time to see toast
-                    }
-                    const error = new Error(result.message || `Server error: ${response.status}`);
-                    throw error;
-                }
-                return result;
-            } catch (error) {
-                console.error(`API Call Failed for endpoint: ${endpoint}`, error);
-                showToast(error.message || 'An unexpected error occurred.', 'error');
-                throw error; // Re-throw the error for the calling function to handle
-            } finally {
-                hideLoader();
-            }
-        }
-
-        async function handleLogin(e) {
-            e.preventDefault();
-            const email = $('#email').val();
-            const password = $('#password').val();
-            try {
-                const result = await apiCall('/login', 'POST', { email, password });
-                
-                sessionStorage.setItem('loggedInUser', JSON.stringify(result.user));
-                sessionStorage.setItem('authToken', result.token);
-                
-                // You can add logic here for `result.forceReset` if needed
-                await setupUIForRole(result.user);
-                
-            } catch (error) {
-                console.error("Login attempt failed:", error.message);
-                // The toast notification is already shown by the apiCall function's catch block.
-            }
-        }
-        
-        async function handleRegistration(e) {
-            e.preventDefault();
-            const data = { 
-                FullName: $('#reg-fullname').val(), 
-                Email: $('#reg-email').val(), 
-                Password: $('#reg-password').val(), 
-                Role: $('#reg-role').val(), 
-                CompanyName: $('#reg-company').val(), 
-                ContactNumber: $('#reg-contact').val(), 
-                GSTIN: $('#reg-gstin').val() 
-            };
-            try {
-                const result = await apiCall('/register', 'POST', data);
-                if (result.success) {
-                    showToast(result.message, 'success');
-                    registerModal.hide();
-                    $(e.target)[0].reset();
-                }
-            } catch (error) {
-                console.error("Registration attempt failed:", error.message);
-            }
-        }
-
-        function handleRoleChange() {
-            const isVendor = $('#reg-role').val() === 'Vendor';
-            $('#reg-company-wrapper').toggleClass('hidden', !isVendor);
-            $('#reg-gstin-wrapper').toggleClass('hidden', !isVendor);
-            $('#reg-company').prop('required', isVendor);
-        }
-
-        function handleLogout() {
-            sessionStorage.clear();
-            window.location.reload();
-        }
-
-        function setupUIForRole(user) {
-            loginWrapper.addClass('hidden');
-            appContainer.removeClass('hidden');
+            const options = { method, headers };
+            if (body) options.body = JSON.stringify(body);
             
-            // NOTE: You will need to add your full `setupUIForRole` logic and all
-            // other application functions (`MapsTo`, `load_..._view`, etc.) here.
-            // This is just the basic setup to fix the login/register part.
-            
-            // For example:
-            appContainer.html(`
-                <div class="d-flex justify-content-center align-items-center vh-100">
-                    <div>
-                        <h1>Welcome, ${user.full_name}!</h1>
-                        <p>Your role is: ${user.role}</p>
-                        <button onclick="handleLogout()" class="btn btn-danger">Logout</button>
+            const response = await fetch(API_BASE_URL + endpoint, options);
+            const result = await response.json();
+
+            if (!response.ok) {
+                if (response.status === 401 && !endpoint.includes('/login')) {
+                    setTimeout(handleLogout, 1500);
+                }
+                throw new Error(result.message || `HTTP Error`);
+            }
+            return result;
+        } catch (error) {
+            showToast(error.message, 'error');
+            throw error;
+        } finally {
+            hideLoader();
+        }
+    }
+
+    async function handleLogin(e) {
+        e.preventDefault();
+        $('#login-error-msg').hide();
+        const email = $('#email').val(), password = $('#password').val();
+        try {
+            const result = await apiCall('/login', 'POST', { email, password });
+            sessionStorage.setItem('loggedInUser', JSON.stringify(result.user));
+            sessionStorage.setItem('authToken', result.token);
+            await setupUIForRole(result.user);
+        } catch (error) {
+            $('#login-error-msg').text(error.message || 'Invalid credentials.').show();
+        }
+    }
+
+    async function handleRegistration(e) {
+        e.preventDefault();
+        const data = { 
+            FullName: $('#reg-fullname').val(), Email: $('#reg-email').val(), 
+            Password: $('#reg-password').val(), Role: $('#reg-role').val(), 
+            CompanyName: $('#reg-company').val(), ContactNumber: $('#reg-contact').val(), 
+            GSTIN: $('#reg-gstin').val() 
+        };
+        try {
+            const result = await apiCall('/register', 'POST', data);
+            if (result.success) {
+                showToast(result.message, 'success');
+                registerModal.hide();
+                $(e.target)[0].reset();
+            }
+        } catch (error) {
+            console.error("Registration failed:", error);
+        }
+    }
+
+    function handleRoleChange() {
+        const isVendor = $('#reg-role').val() === 'Vendor';
+        $('#reg-company-wrapper').toggleClass('hidden', !isVendor);
+        $('#reg-gstin-wrapper').toggleClass('hidden', !isVendor);
+        $('#reg-company').prop('required', isVendor);
+    }
+
+    function handleLogout() {
+        sessionStorage.clear();
+        window.location.reload();
+    }
+
+    function setupUIForRole(user) {
+        loginWrapper.addClass('hidden');
+        appContainer.removeClass('hidden');
+
+        // Main App HTML Structure
+        const appHtml = `
+            <nav class="sidebar" id="sidebar">
+                <div class="logo"> <i class="fas fa-truck"></i> <span>DEB'S LOGISTICS</span> </div>
+                <div id="nav-links" class="flex-grow-1">
                     </div>
+                <div class="user-profile">
+                    <div><h6 id="user-name-sidebar" class="mb-0 text-white">${user.fullName}</h6><small id="user-email-sidebar" class="text-muted">${user.email}</small></div>
+                    <button onclick="handleLogout()" class="btn btn-sm btn-outline-danger w-100 mt-2"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></button>
                 </div>
-            `);
-        }
+            </nav>
+            <main class="main-content" id="main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 id="header-title" class="h4 mb-0 fw-bold text-dark"></h1>
+                    <button class="btn btn-sm btn-outline-primary" onclick="handleManualRefresh()"><i class="fas fa-sync-alt me-2"></i>Refresh Data</button>
+                </div>
+                <div id="main-view"></div>
+            </main>
+        `;
+        appContainer.html(appHtml);
+
+        const navLinksContainer = $('#nav-links');
         
-        // =========================================================
-        // ================ UTILITY FUNCTIONS ======================
-        // =========================================================
-        function showToast(m, t='info') {
-            const c = $('#toast-container'),
-                  e = $(`<div><i class="fas ${t === 'success' ? 'fa-check-circle' : 'fa-times-circle'} me-2"></i><span>${m}</span></div>`).addClass(`toast-notification ${t}`);
-            c.append(e);
-            setTimeout(() => e.remove(), 5000);
+        // Define all possible links
+        const allLinks = {
+            adminDashboard: `<a class="nav-link admin-nav-item" data-view="admin-dashboard-view" onclick="navigateTo('admin-dashboard-view')"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a>`,
+            adminPendingLoads: `<a class="nav-link admin-nav-item" data-view="admin-pending-loads-view" onclick="navigateTo('admin-pending-loads-view')"><div class="nav-link-text"><i class="fas fa-inbox"></i> <span>Requisition Approvals</span></div></a>`,
+            adminActiveLoads: `<a class="nav-link admin-nav-item" data-view="admin-active-loads-view" onclick="navigateTo('admin-active-loads-view')"><div class="nav-link-text"><i class="fas fa-truck-loading"></i> <span>All Requirements</span></div></a>`,
+            adminBiddingHistory: `<a class="nav-link admin-nav-item" data-view="admin-bidding-history-view" onclick="navigateTo('admin-bidding-history-view')"><div class="nav-link-text"><i class="fas fa-history"></i> <span>Bidding History</span></div></a>`,
+            adminAwardedLoads: `<a class="nav-link admin-nav-item" data-view="admin-awarded-loads-view" onclick="navigateTo('admin-awarded-loads-view')"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>Awarded Contracts</span></div></a>`,
+            adminReports: `<a class="nav-link admin-nav-item" data-view="admin-reports-view" onclick="navigateTo('admin-reports-view')"><div class="nav-link-text"><i class="fas fa-chart-line"></i> <span>Reports & Analytics</span></div></a>`,
+            adminPendingUsers: `<a class="nav-link admin-nav-item" data-view="admin-pending-users-view" onclick="navigateTo('admin-pending-users-view')"><div class="nav-link-text"><i class="fas fa-user-check"></i> <span>User Approvals</span></div></a>`,
+            adminUserControl: `<a class="nav-link admin-nav-item" data-view="admin-user-control-view" onclick="navigateTo('admin-user-control-view')"><div class="nav-link-text"><i class="fas fa-users-cog"></i> <span>User Control</span></div></a>`,
+            
+            vendorDashboard: `<a class="nav-link vendor-nav-item" data-view="vendor-dashboard-view" onclick="navigateTo('vendor-dashboard-view')"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a>`,
+            vendorOpenLoads: `<a class="nav-link vendor-nav-item" data-view="vendor-open-loads-view" onclick="navigateTo('vendor-open-loads-view')"><div class="nav-link-text"><i class="fas fa-clipboard-list"></i> <span>My Open Requirements</span></div></a>`,
+            vendorMyBids: `<a class="nav-link vendor-nav-item" data-view="vendor-my-bids-view" onclick="navigateTo('vendor-my-bids-view')"><div class="nav-link-text"><i class="fas fa-gavel"></i> <span>My Bidding History</span></div></a>`,
+            vendorAwardedLoads: `<a class="nav-link vendor-nav-item" data-view="vendor-awarded-loads-view" onclick="navigateTo('vendor-awarded-loads-view')"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>My Awarded Contracts</span></div></a>`,
+
+            userCreateLoad: `<a class="nav-link user-nav-item" data-view="user-create-load-view" onclick="navigateTo('user-create-load-view')"><div class="nav-link-text"><i class="fas fa-plus-circle"></i> <span>Create Requisition</span></div></a>`,
+            userStatus: `<a class="nav-link user-nav-item" data-view="user-status-view" onclick="navigateTo('user-status-view')"><div class="nav-link-text"><i class="fas fa-history"></i> <span>My Requisition Status</span></div></a>`,
+            
+            messaging: `<a class="nav-link" data-view="messaging-view" onclick="navigateTo('messaging-view')"><div class="nav-link-text"><i class="fas fa-comments"></i> <span>Messages</span></div></a>`
+        };
+
+        // Build navigation based on role
+        if (user.role === 'Admin' || user.role === 'Super Admin') {
+            navLinksContainer.append(allLinks.adminDashboard, allLinks.adminPendingLoads, allLinks.adminActiveLoads, allLinks.adminBiddingHistory, allLinks.adminAwardedLoads, allLinks.adminReports, allLinks.adminPendingUsers, allLinks.adminUserControl, allLinks.messaging);
         }
-        function showLoader() { $('#loader-overlay').removeClass('hidden'); }
-        function hideLoader() { $('#loader-overlay').addClass('hidden'); }
+        if (user.role === 'Vendor') {
+            navLinksContainer.append(allLinks.vendorDashboard, allLinks.vendorOpenLoads, allLinks.vendorMyBids, allLinks.vendorAwardedLoads, allLinks.messaging);
+        }
+        if (user.role === 'User') {
+            navLinksContainer.append(allLinks.userCreateLoad, allLinks.userStatus, allLinks.messaging);
+        }
+
+        const defaultViewMap = { 'Super Admin': 'admin-dashboard-view', 'Admin': 'admin-dashboard-view', 'Vendor': 'vendor-dashboard-view', 'User': 'user-create-load-view' };
+        navigateTo(defaultViewMap[user.role]);
+    }
+    
+    // UTILITY FUNCTIONS
+    function showToast(m, t='info') {
+        const c = $('#toast-container'),
+              e = $(`<div><i class="fas ${t === 'success' ? 'fa-check-circle' : 'fa-times-circle'} me-2"></i><span>${m}</span></div>`).addClass(`toast-notification ${t}`);
+        c.append(e);
+        setTimeout(() => e.remove(), 5000);
+    }
+    function showLoader() { $('#loader-overlay').removeClass('hidden'); }
+    function hideLoader() { $('#loader-overlay').addClass('hidden'); }
     </script>
 </body>
 </html>
