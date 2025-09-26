@@ -118,7 +118,7 @@
         const API_BASE_URL = '/api';
         let loginWrapper, appContainer;
         let registerModal, editUserModal, addUserModal, bulkUploadModal, masterDataModal;
-        let charts = {}; // To hold chart instances
+        let charts = {};
 
         const views = {
             'shipper-create-load-view': `
@@ -300,32 +300,10 @@
             }
         }
         
-        async function handleLogin(e) {
-            e.preventDefault();
-            try {
-                const result = await apiCall('/login', 'POST', { email: $('#email').val(), password: $('#password').val() });
-                sessionStorage.setItem('loggedInUser', JSON.stringify(result.user));
-                sessionStorage.setItem('authToken', result.token);
-                await setupUIForRole(result.user);
-            } catch (error) { /* Handled */ }
-        }
-
-        function handleLogout() {
-            sessionStorage.clear();
-            window.location.reload();
-        }
-
-        function handleRoleChange() {
-            const isTrucker = $('#reg-role').val() === 'Trucker';
-            $('#reg-company-wrapper, #reg-gstin-wrapper').toggleClass('hidden', !isTrucker);
-            $('#reg-company').prop('required', isTrucker);
-        }
-        
-        async function handleRegistration(e) {
-            e.preventDefault();
-            const data = { FullName: $('#reg-fullname').val(), Email: $('#reg-email').val(), Password: $('#reg-password').val(), Role: $('#reg-role').val(), CompanyName: $('#reg-company').val(), ContactNumber: $('#reg-contact').val(), GSTIN: $('#reg-gstin').val() };
-            try { await apiCall('/register', 'POST', data); showToast('Registration successful! Awaiting admin approval.', 'success'); registerModal.hide(); $(e.target)[0].reset(); } catch (e) { /* Handled */ }
-        }
+        async function handleLogin(e) { e.preventDefault(); try { const result = await apiCall('/login', 'POST', { email: $('#email').val(), password: $('#password').val() }); sessionStorage.setItem('loggedInUser', JSON.stringify(result.user)); sessionStorage.setItem('authToken', result.token); await setupUIForRole(result.user); } catch (error) {} }
+        function handleLogout() { sessionStorage.clear(); window.location.reload(); }
+        function handleRoleChange() { const isTrucker = $('#reg-role').val() === 'Trucker'; $('#reg-company-wrapper, #reg-gstin-wrapper').toggleClass('hidden', !isTrucker); $('#reg-company').prop('required', isTrucker); }
+        async function handleRegistration(e) { e.preventDefault(); const data = { FullName: $('#reg-fullname').val(), Email: $('#reg-email').val(), Password: $('#reg-password').val(), Role: $('#reg-role').val(), CompanyName: $('#reg-company').val(), ContactNumber: $('#reg-contact').val(), GSTIN: $('#reg-gstin').val() }; try { await apiCall('/register', 'POST', data); showToast('Registration successful! Awaiting admin approval.', 'success'); registerModal.hide(); $(e.target)[0].reset(); } catch (e) {} }
 
         function setupUIForRole(user) {
             loginWrapper.addClass('hidden');
@@ -357,7 +335,7 @@
             const appHTML = `
                 <nav class="sidebar" id="sidebar">
                     <div class="logo"><i class="fas fa-truck"></i> <span>DEB'S LOGISTICS</span></div>
-                    <div id="nav-links" class="flex-grow-1"></div>
+                    <div id="nav-links" class="flex-grow-1">${roleNavs[user.role] || ''}</div>
                     <div class="user-profile">
                         <div><h6 class="mb-0 text-white">${user.full_name}</h6><small class="text-muted">${user.email}</small></div>
                         <button onclick="handleLogout()" class="btn btn-sm btn-outline-danger w-100 mt-2"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></button>
@@ -372,43 +350,23 @@
                 </main>`;
             
             appContainer.html(appHTML);
-            $('#nav-links').html(roleNavs[user.role] || '');
-            
             const defaultViewMap = { 'Shipper': 'shipper-create-load-view', 'Trucker': 'trucker-dashboard-view', 'Admin': 'admin-dashboard-view', 'Super Admin': 'admin-dashboard-view' };
             navigateTo(defaultViewMap[user.role] || 'shipper-create-load-view');
         }
         
-        async function handleManualRefresh() {
-            const currentViewLink = $('#nav-links .nav-link.active');
-            if (currentViewLink.length > 0) {
-                showToast('Refreshing data...', 'info');
-                navigateTo(currentViewLink.data('view'));
-            }
-        }
+        async function handleManualRefresh() { const currentViewLink = $('#nav-links .nav-link.active'); if (currentViewLink.length > 0) { showToast('Refreshing data...', 'info'); navigateTo(currentViewLink.data('view')); } }
         
         // =========================================================
         // ================ SHIPPER FUNCTIONS ======================
         // =========================================================
-        async function load_shipper_create_load_view() {
-            try {
-                const [trucks, items] = await Promise.all([apiCall('/master-data/truck-types'), apiCall('/master-data/items')]);
-                $('#truck_type_id').html('<option value="">Select Truck Type...</option>' + trucks.data.filter(t=>t.is_active).map(t => `<option value="${t.truck_type_id}">${t.truck_name}</option>`).join('')).select2({ theme: 'bootstrap-5', placeholder: 'Select Truck Type...' });
-                $('#item_id').html('<option value="">Select Material...</option>' + items.data.filter(i=>i.is_active).map(i => `<option value="${i.item_id}">${i.item_name}</option>`).join('')).select2({ theme: 'bootstrap-5', placeholder: 'Select Material...' });
-                const today = new Date().toISOString().split('T')[0];
-                $('#requirement_date').attr('min', today).val(today);
-            } catch (error) { $('#load-request-form').html('<div class="alert alert-danger">Could not load required data. Please refresh the page.</div>'); }
-        }
-
+        async function load_shipper_create_load_view() { try { const [trucks, items] = await Promise.all([apiCall('/master-data/truck-types'), apiCall('/master-data/items')]); $('#truck_type_id').html('<option value="">Select...</option>' + trucks.data.filter(t=>t.is_active).map(t => `<option value="${t.truck_type_id}">${t.truck_name}</option>`).join('')).select2({ theme: 'bootstrap-5', placeholder: 'Select Truck Type...' }); $('#item_id').html('<option value="">Select...</option>' + items.data.filter(i=>i.is_active).map(i => `<option value="${i.item_id}">${i.item_name}</option>`).join('')).select2({ theme: 'bootstrap-5', placeholder: 'Select Material...' }); const today = new Date().toISOString().split('T')[0]; $('#requirement_date').attr('min', today).val(today); } catch (e) { $('#load-request-form').html('<div class="alert alert-danger">Could not load required data. Please refresh.</div>'); } }
         async function handleLoadSubmit(e) { e.preventDefault(); try { await apiCall('/loads', 'POST', { items: JSON.stringify([{ loading_point_address: $('#loading_point_address').val(), unloading_point_address: $('#unloading_point_address').val(), item_id: $('#item_id').val(), truck_type_id: $('#truck_type_id').val(), approx_weight_tonnes: $('#approx_weight_tonnes').val(), requirement_date: $('#requirement_date').val() }]) }); showToast('Load request submitted!', 'success'); navigateTo('shipper-create-load-view'); } catch(e){} }
-        async function load_shipper_status_view() {
-            const listDiv = $('#shipper-req-status-list');
-            try { renderEmptyState(listDiv, 'Loading...', 'fa-spinner fa-spin'); const result = await apiCall('/shipper/status'); if (result.data.length === 0) return renderEmptyState(listDiv, 'You have not posted any loads yet.', 'fa-file-signature'); listDiv.html(result.data.map(req => `<div class="card mb-3 view"><div class="card-header d-flex justify-content-between"><strong>Req ID: REQ-${req.requisition_id}</strong><small>${formatDate(req.created_at)}</small></div><ul class="list-group list-group-flush">${req.loads.map(load => `<li class="list-group-item"><div class="d-flex w-100 justify-content-between"><div class="me-3"><h6 class="mb-0">${load.item_name}</h6><small>${load.loading_point_address} <i class="fas fa-long-arrow-alt-right"></i> ${load.unloading_point_address}</small></div><span class="badge bg-${getBadgeColor(load.status)} align-self-center">${load.status}</span></div>${load.status === 'Awarded' ? `<small class="d-block text-success mt-1"><i class="fas fa-trophy me-1"></i>Awarded to: ${load.awarded_vendor || 'N/A'} for <strong>${formatCurrency(load.awarded_amount)}</strong></small>` : ''}</li>`).join('')}</ul></div>`).join('')); } catch (e) { /* Handled */ }
-        }
+        async function load_shipper_status_view() { const listDiv = $('#shipper-req-status-list'); try { renderEmptyState(listDiv, 'Loading...', 'fa-spinner fa-spin'); const result = await apiCall('/shipper/status'); if (result.data.length === 0) return renderEmptyState(listDiv, 'You have not posted any loads yet.', 'fa-file-signature'); listDiv.html(result.data.map(req => `<div class="card mb-3 view"><div class="card-header d-flex justify-content-between"><strong>Req ID: REQ-${req.requisition_id}</strong><small>${formatDate(req.created_at)}</small></div><ul class="list-group list-group-flush">${req.loads.map(load => `<li class="list-group-item"><div class="d-flex w-100 justify-content-between"><div class="me-3"><h6 class="mb-0">${load.item_name}</h6><small>${load.loading_point_address} <i class="fas fa-long-arrow-alt-right"></i> ${load.unloading_point_address}</small></div><span class="badge bg-${getBadgeColor(load.status)} align-self-center">${load.status}</span></div>${load.status === 'Awarded' ? `<small class="d-block text-success mt-1"><i class="fas fa-trophy me-1"></i>Awarded to: ${load.awarded_vendor || 'N/A'} for <strong>${formatCurrency(load.awarded_amount)}</strong></small>` : ''}</li>`).join('')}</ul></div>`).join('')); } catch (e) { /* Handled */ } }
 
         // =========================================================
         // ================ TRUCKER FUNCTIONS ======================
         // =========================================================
-        async function load_trucker_dashboard_view() { try { const result = await apiCall('/trucker/dashboard-stats'); const data = result.data; $('#trucker-stats-open').text(data.assignedLoads||'0'); $('#trucker-stats-submitted').text(data.submittedBids||'0'); $('#trucker-stats-won').text(data.contractsWon||'0'); $('#trucker-stats-needs-bid').text(data.needsBid||'0'); $('#trucker-kpi-container').html(data.kpis.map(kpi => `<li class="list-group-item d-flex justify-content-between align-items-center"><span><i class="fas ${kpi.icon} text-${kpi.color} me-3"></i>${kpi.title}</span><span class="fw-bold h5 mb-0">${kpi.value}</span></li>`).join('') || '<li class="list-group-item text-center text-muted">No performance data yet.</li>'); $('#trucker-recent-bids').html(data.recentBids.map(bid => `<a href="#" class="list-group-item list-group-item-action"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1 small">Load #${bid.load_id}</h6><span class="badge bg-${getBadgeColor(bid.bid_status)}">${bid.bid_status || 'N/A'}</span></div><p class="mb-1 small text-muted">My Bid: ${formatCurrency(bid.bid_amount)}</p></a>`).join('') || '<div class="list-group-item text-center text-muted small">No recent bids.</div>'); } catch(e){} }
+        async function load_trucker_dashboard_view() { try { const result = await apiCall('/trucker/dashboard-stats'); const data = result.data; $('#trucker-stats-open').text(data.assignedLoads||'0'); $('#trucker-stats-submitted').text(data.submittedBids||'0'); $('#trucker-stats-won').text(data.contractsWon||'0'); $('#trucker-stats-needs-bid').text(data.needsBid||'0'); $('#trucker-kpi-container').html(data.kpis.map(kpi => `<li class="list-group-item d-flex justify-content-between align-items-center"><span><i class="fas ${kpi.icon} text-${kpi.color} me-3"></i>${kpi.title}</span><span class="fw-bold h5 mb-0">${kpi.value}</span></li>`).join('') || '<li class="list-group-item text-center text-muted">No data.</li>'); $('#trucker-recent-bids').html(data.recentBids.map(bid => `<a href="#" class="list-group-item list-group-item-action"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1 small">Load #${bid.load_id}</h6><span class="badge bg-${getBadgeColor(bid.bid_status)}">${bid.bid_status || 'N/A'}</span></div><p class="mb-1 small text-muted">My Bid: ${formatCurrency(bid.bid_amount)}</p></a>`).join('') || '<div class="list-group-item text-center text-muted small">No recent bids.</div>'); } catch(e){} }
         async function load_trucker_open_loads_view() {
             const container = $('#trucker-bidding-container');
             try { renderEmptyState(container, 'Loading...', 'fa-spinner fa-spin'); const result = await apiCall('/loads/assigned'); if (result.data.length === 0) return renderEmptyState(container, 'No loads assigned for bidding.', 'fa-truck-loading');
@@ -448,8 +406,8 @@
         async function load_admin_master_data_view() {
             try {
                 const [items, trucks] = await Promise.all([apiCall('/master-data/items'), apiCall('/master-data/truck-types')]);
-                $('#item-master-tbody').html(items.data.map(i => `<tr><td>${i.item_name}</td><td class="text-end"><button class="btn btn-sm btn-outline-primary" onclick='openMasterDataModal("item", ${JSON.stringify(i)})'><i class="fas fa-edit"></i></button></td></tr>`).join(''));
-                $('#truck-master-tbody').html(trucks.data.map(t => `<tr><td>${t.truck_name}</td><td class="text-end"><button class="btn btn-sm btn-outline-primary" onclick='openMasterDataModal("truck", ${JSON.stringify(t)})'><i class="fas fa-edit"></i></button></td></tr>`).join(''));
+                $('#item-master-tbody').html(items.data.map(i => `<tr><td>${i.item_name}</td><td><span class="badge bg-${i.is_active ? 'success' : 'danger'}">${i.is_active ? 'Active' : 'Inactive'}</span></td><td class="text-end"><button class="btn btn-sm btn-outline-primary" onclick='openMasterDataModal("item", ${JSON.stringify(i)})'><i class="fas fa-edit"></i></button></td></tr>`).join(''));
+                $('#truck-master-tbody').html(trucks.data.map(t => `<tr><td>${t.truck_name}</td><td><span class="badge bg-${t.is_active ? 'success' : 'danger'}">${t.is_active ? 'Active' : 'Inactive'}</span></td><td class="text-end"><button class="btn btn-sm btn-outline-primary" onclick='openMasterDataModal("truck", ${JSON.stringify(t)})'><i class="fas fa-edit"></i></button></td></tr>`).join(''));
             } catch(e) {}
         }
         function openMasterDataModal(type, data = null) {
@@ -463,7 +421,7 @@
         }
         async function handleMasterDataSubmit(e) {
             e.preventDefault();
-            const form = $(this);
+            const form = $(e.currentTarget); // Correctly reference the form
             const type = form.data('type');
             const id = form.data('id');
             const isEdit = id !== '';
@@ -477,41 +435,30 @@
 
         // --- REPORTS & BULK UPLOAD ---
         function openBulkUploadModal() { bulkUploadModal.show(); }
-        async function handleBulkUpload(e) { e.preventDefault(); const file = $('#bulk-upload-file')[0].files[0]; if (!file) return showToast('Please select a file.', 'error'); const formData = new FormData(); formData.append('bulkFile', file); try { await apiCall('/loads/bulk-upload', 'POST', formData, true); showToast('File uploaded and processed.', 'success'); bulkUploadModal.hide(); } catch(e){} }
+        async function handleBulkUpload(e) { e.preventDefault(); const file = $('#bulk-upload-file')[0].files[0]; if (!file) return showToast('Please select a file.', 'error'); const formData = new FormData(); formData.append('bulkFile', file); try { await apiCall('/loads/bulk-upload', 'POST', formData, true); showToast('File uploaded and is being processed.', 'success'); bulkUploadModal.hide(); } catch(e){} }
         function downloadBulkTemplate() { const data = [{"LoadingPoint":"City A", "UnloadingPoint":"City B", "MaterialName":"STEEL ITEMS", "TruckName":"10 Wheeler Truck", "WeightInTonnes":15, "RequirementDate":"2025-10-25"}]; const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Loads"); XLSX.writeFile(wb, "Bulk_Load_Template.xlsx"); }
-        async function load_admin_reports_view() { const kpiContainer = $('#report-kpis'), tableBody = $('#detailed-report-table tbody'); try { kpiContainer.html(renderEmptyState(null,'Loading...','fa-spinner fa-spin')); tableBody.empty(); const result = await apiCall('/admin/reports-data', 'POST', { startDate: $('#report-start-date').val(), endDate: $('#report-end-date').val() }); const { kpis, detailedReport } = result.data; kpiContainer.html(`<div class="col-md-6"><div class="card card-body"><h6>Total Spend</h6><h3 class="fw-bold">${formatCurrency(kpis.totalSpend)}</h3></div></div><div class="col-md-6"><div class="card card-body"><h6>Total Loads Awarded</h6><h3 class="fw-bold">${kpis.awardedLoads}</h3></div></div>`); if(detailedReport.length === 0) { tableBody.html(`<tr><td colspan="6" class="text-center text-muted">No data found for this period.</td></tr>`); } else { tableBody.html(detailedReport.map(r => `<tr><td>${r.load_id}</td><td><small>${r.loading_point_address} <i class="fas fa-arrow-right"></i> ${r.unloading_point_address}</small></td><td>${r.item_name}</td><td>${r.trucker_name}</td><td>${formatCurrency(r.awarded_amount)}</td><td>${formatDate(r.awarded_date)}</td></tr>`).join('')); } } catch(e){} }
+        async function load_admin_reports_view() {
+            const kpiContainer = $('#report-kpis'), tableBody = $('#detailed-report-table tbody');
+            try { kpiContainer.html(renderEmptyState(null,'Loading...','fa-spinner fa-spin')); tableBody.empty(); const result = await apiCall('/admin/reports-data', 'POST', { startDate: $('#report-start-date').val(), endDate: $('#report-end-date').val() }); const { kpis, detailedReport } = result.data; kpiContainer.html(`<div class="col-md-6"><div class="card card-body"><h6>Total Spend</h6><h3 class="fw-bold">${formatCurrency(kpis.totalSpend)}</h3></div></div><div class="col-md-6"><div class="card card-body"><h6>Total Loads Awarded</h6><h3 class="fw-bold">${kpis.awardedLoads}</h3></div></div>`); if(detailedReport.length === 0) { tableBody.html(`<tr><td colspan="6" class="text-center text-muted">No data for this period.</td></tr>`); } else { tableBody.html(detailedReport.map(r => `<tr><td>${r.load_id}</td><td><small>${r.loading_point_address} <i class="fas fa-arrow-right"></i> ${r.unloading_point_address}</small></td><td>${r.item_name}</td><td>${r.trucker_name}</td><td>${formatCurrency(r.awarded_amount)}</td><td>${formatDate(r.awarded_date)}</td></tr>`).join('')); }
+            } catch(e){}
+        }
         function downloadReport() { const table = document.getElementById("detailed-report-table"); if(!table || $(table).find('tbody tr').length === 0 || $(table).find('tbody td').length <= 1) return showToast('No data to download.', 'warning'); const wb = XLSX.utils.table_to_book(table, {sheet: "Report"}); XLSX.writeFile(wb, "Awarded_Loads_Report.xlsx"); }
         
         // --- MESSAGING ---
         async function load_messaging_view() {
             const chatList = $('#chat-list');
-            try {
-                renderEmptyState(chatList, 'Loading...', 'fa-spinner fa-spin');
-                const result = await apiCall('/conversations');
-                if (result.data.length === 0) return renderEmptyState(chatList, 'No users to chat with.');
-                chatList.html(result.data.map(u => `<a href="#" class="list-group-item list-group-item-action" onclick="openChat(${u.user_id}, '${u.full_name}')">${u.full_name} <small class="text-muted">(${u.role === 'User' ? 'Shipper' : (u.role === 'Vendor' ? 'Trucker' : u.role)})</small></a>`).join(''));
-            } catch(e){}
+            try { renderEmptyState(chatList, 'Loading...', 'fa-spinner fa-spin'); const result = await apiCall('/conversations'); if (result.data.length === 0) return renderEmptyState(chatList, 'No users to chat with.'); chatList.html(result.data.map(u => `<a href="#" class="list-group-item list-group-item-action" onclick="openChat(${u.user_id}, '${u.full_name}')">${u.full_name} <small class="text-muted">(${u.role})</small></a>`).join('')); } catch(e){}
         }
         async function openChat(id, name) {
-            $('#chat-welcome').addClass('d-none');
-            $('#chat-window').removeClass('d-none');
-            $('#chat-with-name').text(name);
+            $('#chat-welcome').addClass('d-none'); $('#chat-window').removeClass('d-none'); $('#chat-with-name').text(name);
             $('#message-form').off('submit').on('submit', (e) => { e.preventDefault(); handleSendMessage(id); });
             const messagesDiv = $('#chat-messages').empty();
             const currentUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
             const result = await apiCall(`/messages/${id}`);
-            result.data.forEach(msg => {
-                messagesDiv.append(`<div class="message-bubble ${msg.sender_id == currentUser.userId ? 'sent' : 'received'}"><div>${msg.message_body}</div><div class="timestamp">${formatDate(msg.timestamp, true)}</div></div>`);
-            });
+            result.data.forEach(msg => { messagesDiv.append(`<div class="message-bubble ${msg.sender_id == currentUser.userId ? 'sent' : 'received'}"><div>${msg.message_body}</div><div class="timestamp">${formatDate(msg.timestamp, true)}</div></div>`); });
             messagesDiv.scrollTop(messagesDiv[0].scrollHeight);
         }
-        async function handleSendMessage(id) {
-            const input = $('#message-input');
-            if (!input.val()) return;
-            await apiCall('/messages', 'POST', { recipientId: id, messageBody: input.val() });
-            input.val('');
-            openChat(id, $('#chat-with-name').text());
-        }
+        async function handleSendMessage(id) { const input = $('#message-input'); if (!input.val()) return; await apiCall('/messages', 'POST', { recipientId: id, messageBody: input.val() }); input.val(''); openChat(id, $('#chat-with-name').text()); }
 
         // =========================================================
         // ================ UTILITY FUNCTIONS ======================
