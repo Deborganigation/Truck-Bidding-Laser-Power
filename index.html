@@ -68,6 +68,10 @@
         .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
         .empty-state i { font-size: 2.5rem; margin-bottom: 1rem; }
         .chart-container { position: relative; height: 300px; width: 100%; }
+        .message-bubble { padding: 8px 12px; border-radius: 18px; margin-bottom: 10px; max-width: 75%; display: inline-block; word-wrap: break-word; }
+        .message-bubble.sent { background-color: #dcf8c6; float: right; clear: both; }
+        .message-bubble.received { background-color: #f1f0f0; float: left; clear: both; }
+        .timestamp { font-size: 0.75rem; color: #999; margin-top: 5px; text-align: right; }
     </style>
 </head>
 <body>
@@ -97,9 +101,9 @@
 
     <div class="modal fade" id="registerModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Create Account</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="register-form"><div class="mb-3"><select id="reg-role" class="form-select" required><option value="">Register as...</option><option value="Shipper">Shipper (I have loads to transport)</option><option value="Trucker">Trucker (I have trucks)</option></select></div><div class="mb-2"><input type="text" id="reg-fullname" class="form-control" placeholder="Full Name" required></div><div class="mb-2"><input type="email" id="reg-email" class="form-control" placeholder="Email" required></div><div class="mb-2"><input type="password" id="reg-password" class="form-control" placeholder="Password" required></div><div class="mb-2"><input type="text" id="reg-contact" class="form-control" placeholder="Contact Number" required></div><div class="mb-2 hidden" id="reg-company-wrapper"><input type="text" id="reg-company" class="form-control" placeholder="Company / Transporter Name"></div><div class="mb-3 hidden" id="reg-gstin-wrapper"><input type="text" id="reg-gstin" class="form-control" placeholder="GSTIN (Optional)"></div><button type="submit" class="btn btn-success w-100 fw-bold">Register</button></form></div></div></div></div>
     <div class="modal fade" id="bulkUploadModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Bulk Upload Loads</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Please upload an Excel file (.xlsx) with the required columns. <a href="#" onclick="downloadBulkTemplate()">Download Template</a></p><hr><form id="bulk-upload-form"><div class="mb-3"><label for="bulk-upload-file" class="form-label">Select Excel File</label><input class="form-control" type="file" id="bulk-upload-file" accept=".xlsx, .xls" required></div><button type="submit" class="btn btn-success w-100">Upload and Submit</button></form></div></div></div></div>
-    <div class="modal fade" id="adminActionModal" tabindex="-1"></div>
-    <div class="modal fade" id="editUserModal" tabindex="-1"></div>
-    <div class="modal fade" id="addUserModal" tabindex="-1"></div>
+    <div class="modal fade" id="addUserModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Add New User</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="add-user-form"><div class="mb-3"><label class="form-label">Role</label><select id="add-role" class="form-select" required><option value="">Select...</option><option value="Shipper">Shipper</option><option value="Trucker">Trucker</option><option value="Admin">Admin</option></select></div><div class="mb-2"><input type="text" id="add-fullname" class="form-control" placeholder="Full Name" required></div><div class="mb-2"><input type="email" id="add-email" class="form-control" placeholder="Email" required></div><div class="mb-2"><input type="password" id="add-password" class="form-control" placeholder="Password" required></div><div class="mb-2"><input type="text" id="add-contact" class="form-control" placeholder="Contact"></div><div class="mb-2"><input type="text" id="add-company" class="form-control" placeholder="Company Name"></div><div class="mb-3"><input type="text" id="add-gstin" class="form-control" placeholder="GSTIN"></div><button type="submit" class="btn btn-success w-100 fw-bold">Create User</button></form></div></div></div></div>
+    <div class="modal fade" id="editUserModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Edit User</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="edit-user-form"><input type="hidden" id="edit-userid"><div class="mb-2"><label>Name</label><input type="text" id="edit-fullname" class="form-control" required></div><div class="mb-2"><label>Email</label><input type="email" id="edit-email" class="form-control" required></div><div class="mb-2"><label>Role</label><select id="edit-role" class="form-select" required><option value="Shipper">Shipper</option><option value="Trucker">Trucker</option><option value="Admin">Admin</option></select></div><div class="mb-2"><label>Company</label><input type="text" id="edit-company" class="form-control"></div><div class="mb-2"><label>Contact</label><input type="text" id="edit-contact" class="form-control"></div><div class="mb-2"><label>GSTIN</label><input type="text" id="edit-gstin" class="form-control"></div><div class="mb-2"><label>New Password</label><input type="password" id="edit-password" class="form-control" placeholder="Leave blank to keep unchanged"></div><button type="submit" class="btn btn-success w-100">Save Changes</button></form></div></div></div></div>
+    <div class="modal fade" id="masterDataModal" tabindex="-1"></div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -113,7 +117,7 @@
         // =========================================================
         const API_BASE_URL = '/api';
         let loginWrapper, appContainer;
-        let registerModal, adminActionModal, editUserModal, addUserModal, bulkUploadModal;
+        let registerModal, editUserModal, addUserModal, bulkUploadModal, masterDataModal;
         let charts = {}; // To hold chart instances
 
         const views = {
@@ -180,8 +184,42 @@
                         <div class="mt-4"><h5 class="text-center text-muted">Detailed Report</h5><div class="table-responsive"><table class="table table-sm table-striped" id="detailed-report-table"><thead><tr><th>Load ID</th><th>Route</th><th>Material</th><th>Trucker</th><th>Awarded Amount</th><th>Award Date</th></tr></thead><tbody></tbody></table></div></div>
                     </div>
                 </div>`,
+            'admin-master-data-view': `
+                <div class="row view">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between"><span>Material / Item Types</span><button class="btn btn-success btn-sm" onclick="openMasterDataModal('item')"><i class="fas fa-plus"></i> Add</button></div>
+                            <div class="card-body table-responsive p-0"><table class="table table-hover"><tbody id="item-master-tbody"></tbody></table></div>
+                        </div>
+                    </div>
+                     <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between"><span>Truck Types</span><button class="btn btn-success btn-sm" onclick="openMasterDataModal('truck')"><i class="fas fa-plus"></i> Add</button></div>
+                            <div class="card-body table-responsive p-0"><table class="table table-hover"><tbody id="truck-master-tbody"></tbody></table></div>
+                        </div>
+                    </div>
+                </div>`,
             'admin-user-approvals-view': `<div class="card view"><div class="card-header"><h5 class="mb-0">Pending User Approvals</h5></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Name</th><th>Email</th><th>Role</th><th>Company</th><th>Contact</th><th>Action</th></tr></thead><tbody id="admin-pending-users-tbody"></tbody></table><div id="admin-pending-users-empty-state"></div></div></div>`,
             'admin-user-control-view': `<div class="card view"><div class="card-header d-flex justify-content-between align-items-center"><h5 class="mb-0">User Control Center</h5><button class="btn btn-success btn-sm" onclick="openAddUserModal()"><i class="fas fa-plus me-2"></i>Add User</button></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Name</th><th>Email</th><th>Role</th><th>Company</th><th>Contact</th><th>GSTIN</th><th>Action</th></tr></thead><tbody id="admin-users-tbody"></tbody></table><div id="admin-users-empty-state"></div></div></div>`,
+            'messaging-view': `
+                <div class="card view" style="height: calc(100vh - 125px);">
+                    <div class="row g-0 h-100">
+                        <div class="col-lg-4 col-12 border-end d-flex flex-column">
+                            <div class="card-header"><h5 class="mb-0">Conversations</h5></div>
+                            <div id="chat-list" class="list-group list-group-flush" style="overflow-y: auto; flex-grow: 1;"></div>
+                        </div>
+                        <div class="col-lg-8 col-12 d-flex flex-column">
+                            <div id="chat-main" class="h-100">
+                                <div id="chat-welcome" class="d-flex align-items-center justify-content-center h-100"><div class="text-center text-muted"><i class="fas fa-comments fa-3x mb-3"></i><p>Select a conversation to start messaging.</p></div></div>
+                                <div id="chat-window" class="d-none h-100 d-flex flex-column">
+                                    <div class="card-header d-flex align-items-center border-bottom"><h5 id="chat-with-name" class="mb-0"></h5></div>
+                                    <div id="chat-messages" class="card-body p-4" style="overflow-y: auto; flex-grow: 1;"></div>
+                                    <div class="card-footer bg-light p-3 border-top"><form id="message-form" class="d-flex"><input type="text" id="message-input" class="form-control" placeholder="Type a message..." autocomplete="off" required><button type="submit" class="btn btn-primary ms-2"><i class="fas fa-paper-plane"></i></button></form></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`
         };
         
         // =========================================================
@@ -192,9 +230,9 @@
             try {
                 registerModal = new bootstrap.Modal('#registerModal');
                 bulkUploadModal = new bootstrap.Modal('#bulkUploadModal');
-                adminActionModal = new bootstrap.Modal('#adminActionModal');
-                editUserModal = new bootstrap.Modal('#editUserModal');
                 addUserModal = new bootstrap.Modal('#addUserModal');
+                editUserModal = new bootstrap.Modal('#editUserModal');
+                masterDataModal = new bootstrap.Modal('#masterDataModal');
             } catch (e) { console.error("Error initializing modals:", e); }
 
             const user = sessionStorage.getItem('loggedInUser');
@@ -214,6 +252,7 @@
             $(document).on('submit', '#edit-user-form', handleUserUpdateSubmit);
             $(document).on('submit', '#bulk-upload-form', handleBulkUpload);
             $(document).on('click', '#report-apply-filter', load_admin_reports_view);
+            $(document).on('submit', '#master-data-form', handleMasterDataSubmit);
         });
 
         async function apiCall(endpoint, method = 'GET', body = null, isFormData = false) {
@@ -285,12 +324,7 @@
         async function handleRegistration(e) {
             e.preventDefault();
             const data = { FullName: $('#reg-fullname').val(), Email: $('#reg-email').val(), Password: $('#reg-password').val(), Role: $('#reg-role').val(), CompanyName: $('#reg-company').val(), ContactNumber: $('#reg-contact').val(), GSTIN: $('#reg-gstin').val() };
-            try {
-                await apiCall('/register', 'POST', data);
-                showToast('Registration successful! Awaiting admin approval.', 'success');
-                registerModal.hide();
-                $(e.target)[0].reset();
-            } catch (error) { /* Handled */ }
+            try { await apiCall('/register', 'POST', data); showToast('Registration successful! Awaiting admin approval.', 'success'); registerModal.hide(); $(e.target)[0].reset(); } catch (e) { /* Handled */ }
         }
 
         function setupUIForRole(user) {
@@ -300,19 +334,23 @@
             const roleNavs = {
                 'Shipper': `
                     <a class="nav-link" data-view="shipper-create-load-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-plus-circle"></i> <span>Post a New Load</span></div></a>
-                    <a class="nav-link" data-view="shipper-status-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-history"></i> <span>My Load Status</span></div></a>`,
+                    <a class="nav-link" data-view="shipper-status-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-history"></i> <span>My Load Status</span></div></a>
+                    <a class="nav-link" data-view="messaging-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-comments"></i> <span>Messages</span></div></a>`,
                 'Trucker': `
                     <a class="nav-link" data-view="trucker-dashboard-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a>
                     <a class="nav-link" data-view="trucker-open-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-truck-loading"></i> <span>Open Loads</span></div></a>
                      <a class="nav-link" data-view="trucker-bidding-history-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-gavel"></i> <span>Bidding History</span></div></a>
-                    <a class="nav-link" data-view="trucker-awarded-contracts-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>My Contracts</span></div></a>`,
+                    <a class="nav-link" data-view="trucker-awarded-contracts-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>My Contracts</span></div></a>
+                    <a class="nav-link" data-view="messaging-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-comments"></i> <span>Messages</span></div></a>`,
                 'Admin': `
                     <a class="nav-link" data-view="admin-dashboard-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a>
                     <a class="nav-link" data-view="admin-pending-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-inbox"></i> <span>Load Approvals</span></div></a>
                     <a class="nav-link" data-view="admin-awarded-contracts-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>Awarded Contracts</span></div></a>
                     <a class="nav-link" data-view="admin-reports-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-chart-line"></i> <span>Reports</span></div></a>
+                    <a class="nav-link" data-view="admin-master-data-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-database"></i> <span>Master Data</span></div></a>
                     <a class="nav-link" data-view="admin-user-approvals-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-user-check"></i> <span>User Approvals</span></div></a>
-                    <a class="nav-link" data-view="admin-user-control-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-users-cog"></i> <span>User Control</span></div></a>`,
+                    <a class="nav-link" data-view="admin-user-control-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-users-cog"></i> <span>User Control</span></div></a>
+                    <a class="nav-link" data-view="messaging-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-comments"></i> <span>Messages</span></div></a>`,
             };
             roleNavs['Super Admin'] = roleNavs['Admin'];
 
@@ -354,189 +392,125 @@
         async function load_shipper_create_load_view() {
             try {
                 const [trucks, items] = await Promise.all([apiCall('/master-data/truck-types'), apiCall('/master-data/items')]);
-                $('#truck_type_id').html('<option value="">Select Truck Type...</option>' + trucks.data.map(t => `<option value="${t.truck_type_id}">${t.truck_name}</option>`).join('')).select2({ theme: 'bootstrap-5', placeholder: 'Select Truck Type...' });
-                $('#item_id').html('<option value="">Select Material...</option>' + items.data.map(i => `<option value="${i.item_id}">${i.item_name}</option>`).join('')).select2({ theme: 'bootstrap-5', placeholder: 'Select Material...' });
+                $('#truck_type_id').html('<option value="">Select Truck Type...</option>' + trucks.data.filter(t=>t.is_active).map(t => `<option value="${t.truck_type_id}">${t.truck_name}</option>`).join('')).select2({ theme: 'bootstrap-5', placeholder: 'Select Truck Type...' });
+                $('#item_id').html('<option value="">Select Material...</option>' + items.data.filter(i=>i.is_active).map(i => `<option value="${i.item_id}">${i.item_name}</option>`).join('')).select2({ theme: 'bootstrap-5', placeholder: 'Select Material...' });
                 const today = new Date().toISOString().split('T')[0];
                 $('#requirement_date').attr('min', today).val(today);
             } catch (error) { $('#load-request-form').html('<div class="alert alert-danger">Could not load required data. Please refresh the page.</div>'); }
         }
 
-        async function handleLoadSubmit(e) {
-            e.preventDefault();
-            const loadData = { loading_point_address: $('#loading_point_address').val(), unloading_point_address: $('#unloading_point_address').val(), item_id: $('#item_id').val(), truck_type_id: $('#truck_type_id').val(), approx_weight_tonnes: $('#approx_weight_tonnes').val(), requirement_date: $('#requirement_date').val() };
-            try { await apiCall('/loads', 'POST', { items: JSON.stringify([loadData]) }); showToast('Load request submitted!', 'success'); navigateTo('shipper-create-load-view'); } catch(e){}
-        }
-
+        async function handleLoadSubmit(e) { e.preventDefault(); try { await apiCall('/loads', 'POST', { items: JSON.stringify([{ loading_point_address: $('#loading_point_address').val(), unloading_point_address: $('#unloading_point_address').val(), item_id: $('#item_id').val(), truck_type_id: $('#truck_type_id').val(), approx_weight_tonnes: $('#approx_weight_tonnes').val(), requirement_date: $('#requirement_date').val() }]) }); showToast('Load request submitted!', 'success'); navigateTo('shipper-create-load-view'); } catch(e){} }
         async function load_shipper_status_view() {
             const listDiv = $('#shipper-req-status-list');
-            try {
-                renderEmptyState(listDiv, 'Loading requests...', 'fa-spinner fa-spin');
-                const result = await apiCall('/requisitions/my-status');
-                if (result.data.length === 0) return renderEmptyState(listDiv, 'You have not posted any loads yet.', 'fa-file-signature');
-                listDiv.html('');
-                result.data.forEach(req => {
-                    const loadsHTML = req.loads.map(load => `<li class="list-group-item"><div class="d-flex w-100 justify-content-between"><div class="me-3"><h6 class="mb-0">${load.item_name}</h6><small>${load.loading_point_address} <i class="fas fa-long-arrow-alt-right"></i> ${load.unloading_point_address}</small></div><span class="badge bg-${getBadgeColor(load.status)} align-self-center">${load.status}</span></div>${load.status === 'Awarded' ? `<small class="d-block text-success mt-1"><i class="fas fa-trophy me-1"></i>Awarded to: ${load.awarded_vendor || 'N/A'} for <strong>${formatCurrency(load.awarded_amount)}</strong></small>` : ''}</li>`).join('');
-                    listDiv.append(`<div class="card mb-3 view"><div class="card-header d-flex justify-content-between"><strong>Req ID: REQ-${req.requisition_id}</strong><small>${formatDate(req.created_at)}</small></div><ul class="list-group list-group-flush">${loadsHTML}</ul></div>`);
-                });
-            } catch (e) { /* Handled */ }
+            try { renderEmptyState(listDiv, 'Loading...', 'fa-spinner fa-spin'); const result = await apiCall('/shipper/status'); if (result.data.length === 0) return renderEmptyState(listDiv, 'You have not posted any loads yet.', 'fa-file-signature'); listDiv.html(result.data.map(req => `<div class="card mb-3 view"><div class="card-header d-flex justify-content-between"><strong>Req ID: REQ-${req.requisition_id}</strong><small>${formatDate(req.created_at)}</small></div><ul class="list-group list-group-flush">${req.loads.map(load => `<li class="list-group-item"><div class="d-flex w-100 justify-content-between"><div class="me-3"><h6 class="mb-0">${load.item_name}</h6><small>${load.loading_point_address} <i class="fas fa-long-arrow-alt-right"></i> ${load.unloading_point_address}</small></div><span class="badge bg-${getBadgeColor(load.status)} align-self-center">${load.status}</span></div>${load.status === 'Awarded' ? `<small class="d-block text-success mt-1"><i class="fas fa-trophy me-1"></i>Awarded to: ${load.awarded_vendor || 'N/A'} for <strong>${formatCurrency(load.awarded_amount)}</strong></small>` : ''}</li>`).join('')}</ul></div>`).join('')); } catch (e) { /* Handled */ }
         }
 
         // =========================================================
         // ================ TRUCKER FUNCTIONS ======================
         // =========================================================
-        async function load_trucker_dashboard_view() {
-            try {
-                const result = await apiCall('/trucker/dashboard-stats');
-                const data = result.data;
-                $('#trucker-stats-open').text(data.assignedLoads||'0');
-                $('#trucker-stats-submitted').text(data.submittedBids||'0');
-                $('#trucker-stats-won').text(data.contractsWon||'0');
-                $('#trucker-stats-needs-bid').text(data.needsBid||'0');
-
-                const kpiContainer = $('#trucker-kpi-container').empty();
-                if (data.kpis) {
-                    data.kpis.forEach(kpi => kpiContainer.append(`<li class="list-group-item d-flex justify-content-between align-items-center"><span><i class="fas ${kpi.icon} text-${kpi.color} me-3"></i>${kpi.title}</span><span class="fw-bold h5 mb-0">${kpi.value}</span></li>`));
-                }
-                const recentBidsList = $('#trucker-recent-bids').empty();
-                if (data.recentBids && data.recentBids.length > 0) {
-                    data.recentBids.forEach(bid => recentBidsList.append(`<a href="#" class="list-group-item list-group-item-action"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1 small">Load #${bid.load_id}</h6><span class="badge bg-${getBadgeColor(bid.bid_status)}">${bid.bid_status || 'N/A'}</span></div><p class="mb-1 small text-muted">My Bid: ${formatCurrency(bid.bid_amount)}</p></a>`));
-                } else { recentBidsList.html('<div class="list-group-item text-center text-muted small">No recent bids.</div>'); }
-            } catch(e){}
-        }
-
+        async function load_trucker_dashboard_view() { try { const result = await apiCall('/trucker/dashboard-stats'); const data = result.data; $('#trucker-stats-open').text(data.assignedLoads||'0'); $('#trucker-stats-submitted').text(data.submittedBids||'0'); $('#trucker-stats-won').text(data.contractsWon||'0'); $('#trucker-stats-needs-bid').text(data.needsBid||'0'); $('#trucker-kpi-container').html(data.kpis.map(kpi => `<li class="list-group-item d-flex justify-content-between align-items-center"><span><i class="fas ${kpi.icon} text-${kpi.color} me-3"></i>${kpi.title}</span><span class="fw-bold h5 mb-0">${kpi.value}</span></li>`).join('') || '<li class="list-group-item text-center text-muted">No performance data yet.</li>'); $('#trucker-recent-bids').html(data.recentBids.map(bid => `<a href="#" class="list-group-item list-group-item-action"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1 small">Load #${bid.load_id}</h6><span class="badge bg-${getBadgeColor(bid.bid_status)}">${bid.bid_status || 'N/A'}</span></div><p class="mb-1 small text-muted">My Bid: ${formatCurrency(bid.bid_amount)}</p></a>`).join('') || '<div class="list-group-item text-center text-muted small">No recent bids.</div>'); } catch(e){} }
         async function load_trucker_open_loads_view() {
             const container = $('#trucker-bidding-container');
-            try {
-                renderEmptyState(container, 'Loading open loads...', 'fa-spinner fa-spin');
-                const result = await apiCall('/loads/assigned');
-                if (result.data.length === 0) return renderEmptyState(container, 'No loads are currently assigned for bidding.', 'fa-truck-loading');
-                container.html(result.data.map(load => {
-                    let historyHtml = '<small class="text-muted">No past bids for this load.</small>';
-                    if (load.my_bid_history && load.my_bid_history.length > 0) {
-                        historyHtml = '<ul class="list-unstyled mb-0 small">' + load.my_bid_history.map((bid, i) => `<li>Bid ${i+1}: <strong>${formatCurrency(bid.bid_amount)}</strong> (Rank: L${bid.rank || 'N/A'})</li>`).join('') + '</ul>';
-                    }
-                    return `<div class="card bidding-card" data-load-id="${load.load_id}">
-                        <div class="card-header bg-light d-flex justify-content-between flex-wrap gap-2">
-                            <h6 class="mb-0">Load ID: ${load.load_id}</h6>
-                            <div>
-                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="popover" data-bs-html="true" title="My Bidding History" data-bs-content="${historyHtml.replace(/"/g, '&quot;')}"><i class="fas fa-history"></i></button>
-                                <span class="badge bg-${load.my_rank ? 'primary' : 'secondary'} ms-2">My Rank: ${load.my_rank ? `L${load.my_rank}` : 'Not Bid'}</span>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div><small class="text-muted d-block">Route</small><strong>${load.loading_point_address} <i class="fas fa-arrow-right"></i> ${load.unloading_point_address}</strong></div>
-                            <div><small class="text-muted d-block">Material</small><strong>${load.item_name}</strong></div>
-                            <div><small class="text-muted d-block">Weight</small><strong>${load.approx_weight_tonnes} T</strong></div>
-                            <div><small class="text-muted d-block">Vehicle</small><strong>${load.truck_name}</strong></div>
-                            <div><small class="text-muted d-block">Date</small><strong>${formatDate(load.requirement_date)}</strong></div>
-                        </div>
-                        <div class="bid-input-area p-3">${(load.bid_attempts || 0) >= 3 ? `<div class="text-center text-danger small p-3"><i class="fas fa-exclamation-circle me-1"></i> Max 3 bids reached.</div>` : `<div class="input-group"><span class="input-group-text">₹</span><input type="number" step="100" class="form-control bid-amount-input" placeholder="Your Total Bid (Attempt ${ (load.bid_attempts || 0) + 1})"></div>`}</div>
-                    </div>`;
-                }).join(''));
+            try { renderEmptyState(container, 'Loading...', 'fa-spinner fa-spin'); const result = await apiCall('/loads/assigned'); if (result.data.length === 0) return renderEmptyState(container, 'No loads assigned for bidding.', 'fa-truck-loading');
+                container.html(result.data.map(load => { const history = (load.my_bid_history || []).map((b,i)=>`<li>Bid ${i+1}: <strong>${formatCurrency(b.bid_amount)}</strong> (Rank: L${b.rank||'N/A'})</li>`).join(''); return `<div class="card bidding-card" data-load-id="${load.load_id}"><div class="card-header bg-light d-flex justify-content-between flex-wrap gap-2"><h6 class="mb-0">Load ID: ${load.load_id}</h6><div><button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="popover" data-bs-html="true" title="My Bidding History" data-bs-content="${history||'No past bids.'}"><i class="fas fa-history"></i></button><span class="badge bg-${load.my_rank?'primary':'secondary'} ms-2">My Rank: ${load.my_rank ? `L${load.my_rank}`:'N/A'}</span></div></div><div class="card-body"><div><small class="text-muted d-block">Route</small><strong>${load.loading_point_address} <i class="fas fa-arrow-right"></i> ${load.unloading_point_address}</strong></div><div><small class="text-muted d-block">Material</small><strong>${load.item_name}</strong></div><div><small class="text-muted d-block">Weight</small><strong>${load.approx_weight_tonnes} T</strong></div><div><small class="text-muted d-block">Vehicle</small><strong>${load.truck_name}</strong></div><div><small class="text-muted d-block">Date</small><strong>${formatDate(load.requirement_date)}</strong></div></div><div class="bid-input-area p-3">${(load.bid_attempts||0)>=3?`<div class="text-center text-danger small p-3"><i class="fas fa-exclamation-circle me-1"></i> Max 3 bids reached.</div>`:`<div class="input-group"><span class="input-group-text">₹</span><input type="number" step="100" class="form-control bid-amount-input" placeholder="Your Total Bid (Attempt ${(load.bid_attempts||0)+1})"></div>`}</div></div>`}).join(''));
                 $('[data-bs-toggle="popover"]').popover({ trigger: 'hover focus' });
             } catch(e) { /* Handled */ }
         }
-        
-        async function handleBulkBidSubmit() {
-            const bids = $('.bidding-card').map(function() { const input = $(this).find('.bid-amount-input'); if (input.length && input.val()) return { loadId: $(this).data('load-id'), bid_amount: parseFloat(input.val()) }; }).get();
-            if (bids.length === 0) return showToast('No new valid bids were entered.', 'info');
-            try { await apiCall('/bids', 'POST', { bids }); showToast('Bids submitted successfully!', 'success'); load_trucker_open_loads_view(); } catch(e) { /* Handled */ }
-        }
-
-        async function load_trucker_bidding_history_view() {
-            const tbody = $('#trucker-bids-tbody'), empty = $('#trucker-bids-empty-state');
-            try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().hide(); const result = await apiCall('/trucker/bidding-history'); if (result.data.length === 0) return renderEmptyState(empty, 'No bidding history found.', 'fa-gavel'); tbody.html(result.data.map(b => `<tr><td>${b.load_id}</td><td><small>${b.loading_point_address} <i class="fas fa-arrow-right"></i> ${b.unloading_point_address}</small></td><td><strong>${formatCurrency(b.bid_amount)}</strong></td><td><span class="badge bg-info">L${b.rank || 'N/A'}</span></td><td>${b.l1_bid ? formatCurrency(b.l1_bid) : '-'}</td><td><span class="badge bg-${getBadgeColor(b.bid_status)}">${b.bid_status}</span></td><td>${formatDate(b.submitted_at, true)}</td></tr>`).join('')); tbody.parent().show(); empty.empty(); } catch(e){}
-        }
-
-        async function load_trucker_awarded_contracts_view() {
-            const tbody = $('#trucker-awarded-tbody'), empty = $('#trucker-awarded-empty-state');
-            try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().hide(); const result = await apiCall('/trucker/awarded-contracts'); if (result.data.length === 0) return renderEmptyState(empty, 'No contracts awarded yet.', 'fa-trophy'); tbody.html(result.data.map(c => `<tr><td>${c.load_id}</td><td><small>${c.loading_point_address} <i class="fas fa-arrow-right"></i> ${c.unloading_point_address}</small></td><td><strong>${formatCurrency(c.awarded_amount)}</strong></td><td>${formatDate(c.awarded_date)}</td></tr>`).join('')); tbody.parent().show(); empty.empty(); } catch(e){}
-        }
+        async function handleBulkBidSubmit() { const bids = $('.bidding-card').map(function() { const input=$(this).find('.bid-amount-input'); if(input.length&&input.val()) return { loadId:$(this).data('load-id'), bid_amount:parseFloat(input.val())};}).get(); if(bids.length===0) return showToast('No new bids entered.', 'info'); try { await apiCall('/bids', 'POST', {bids}); showToast('Bids submitted!', 'success'); load_trucker_open_loads_view(); } catch(e){} }
+        async function load_trucker_bidding_history_view() { const tbody = $('#trucker-bids-tbody'), empty = $('#trucker-bids-empty-state'); try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().hide(); const result = await apiCall('/trucker/bidding-history'); if (result.data.length === 0) return renderEmptyState(empty, 'No bidding history found.', 'fa-gavel'); tbody.html(result.data.map(b => `<tr><td>${b.load_id}</td><td><small>${b.loading_point_address} <i class="fas fa-arrow-right"></i> ${b.unloading_point_address}</small></td><td><strong>${formatCurrency(b.bid_amount)}</strong></td><td><span class="badge bg-info">L${b.rank || 'N/A'}</span></td><td>${b.l1_bid ? formatCurrency(b.l1_bid) : '-'}</td><td><span class="badge bg-${getBadgeColor(b.bid_status)}">${b.bid_status}</span></td><td>${formatDate(b.submitted_at, true)}</td></tr>`).join('')); tbody.parent().show(); empty.empty(); } catch(e){} }
+        async function load_trucker_awarded_contracts_view() { const tbody = $('#trucker-awarded-tbody'), empty = $('#trucker-awarded-empty-state'); try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().hide(); const result = await apiCall('/trucker/awarded-contracts'); if (result.data.length === 0) return renderEmptyState(empty, 'No contracts awarded yet.', 'fa-trophy'); tbody.html(result.data.map(c => `<tr><td>${c.load_id}</td><td><small>${c.loading_point_address} <i class="fas fa-arrow-right"></i> ${c.unloading_point_address}</small></td><td><strong>${formatCurrency(c.awarded_amount)}</strong></td><td>${formatDate(c.awarded_date)}</td></tr>`).join('')); tbody.parent().show(); empty.empty(); } catch(e){} }
 
         // =========================================================
         // ================== ADMIN FUNCTIONS ======================
         // =========================================================
-        async function load_admin_dashboard_view() {
-            try {
-                const result = await apiCall('/admin/dashboard-stats');
-                const data = result.data;
-                $('#stats-active-loads').text(data.activeLoads||'0');
-                $('#stats-pending-users').text(data.pendingUsers||'0');
-                $('#stats-pending-loads').text(data.pendingLoads||'0');
-                $('#stats-awarded-contracts').text(data.awardedContracts||'0');
-                createChart('adminLoadChart', 'bar', { labels: data.charts.loadTrends.labels, datasets: [{ label: 'Loads Created', data: data.charts.loadTrends.data, backgroundColor: '#5E72E4' }] });
-                createChart('adminTruckerBiddingChart', 'doughnut', { labels: data.charts.biddingActivity.labels, datasets: [{ data: data.charts.biddingActivity.data, backgroundColor: ['#5E72E4', '#2DCE89', '#FB6340', '#11CDEF', '#F5365C'] }] });
-            } catch(e){}
-        }
-        
+        async function load_admin_dashboard_view() { try { const result = await apiCall('/admin/dashboard-stats'); const data = result.data; $('#stats-active-loads').text(data.activeLoads||'0'); $('#stats-pending-users').text(data.pendingUsers||'0'); $('#stats-pending-loads').text(data.pendingLoads||'0'); $('#stats-awarded-contracts').text(data.awardedContracts||'0'); createChart('adminLoadChart', 'bar', { labels: data.charts.loadTrends.labels, datasets: [{ label: 'Loads Created', data: data.charts.loadTrends.data, backgroundColor: '#5E72E4' }] }); createChart('adminTruckerBiddingChart', 'doughnut', { labels: data.charts.biddingActivity.labels, datasets: [{ data: data.charts.biddingActivity.data, backgroundColor: ['#5E72E4', '#2DCE89', '#FB6340', '#11CDEF', '#F5365C'] }] }); } catch(e){} }
         async function load_admin_pending_loads_view() {
             const container = $('#pending-loads-accordion-container');
-            try {
-                renderEmptyState(container, 'Loading pending approvals...', 'fa-spinner fa-spin');
-                const result = await apiCall('/loads/pending');
-                if (result.data.groupedReqs.length === 0) return renderEmptyState(container, 'No loads are pending approval.', 'fa-inbox');
-                const { groupedReqs, pendingLoads, allTruckers } = result.data;
-                const accordion = $('<div class="accordion"></div>');
-                groupedReqs.forEach(req => {
-                    const reqLoads = pendingLoads.filter(load => load.requisition_id == req.requisition_id);
-                    if(reqLoads.length === 0) return;
-                    const loadsHTML = reqLoads.map(load => `<li class="list-group-item"><input class="form-check-input me-2 load-check-box" type="checkbox" value="${load.load_id}" checked><label class="form-check-label"><strong>${load.item_name}</strong> from ${load.loading_point_address} to ${load.unloading_point_address}<small class="text-muted d-block">Vehicle: ${load.truck_name} | Weight: ${load.approx_weight_tonnes}T | Date: ${formatDate(load.requirement_date)}</small></label></li>`).join('');
-                    const truckersHTML = allTruckers.map(v => `<div class="form-check form-check-inline col-md-3"><input class="form-check-input trucker-assign-check" type="checkbox" value="${v.user_id}" id="v-${req.requisition_id}-${v.user_id}"><label class="form-check-label" for="v-${req.requisition_id}-${v.user_id}">${v.full_name}</label></div>`).join('');
-                    accordion.append(`<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${req.requisition_id}">Req ID: REQ-${req.requisition_id} (By: ${req.creator}) - ${reqLoads.length} Load(s)</button></h2><div id="collapse-${req.requisition_id}" class="accordion-collapse collapse"><div class="accordion-body"><h6>Select loads to approve:</h6><ul class="list-group mb-3">${loadsHTML}</ul><h6 class="d-flex justify-content-between"><span>Assign Truckers:</span><div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" onchange="$(this).closest('.accordion-body').find('.trucker-assign-check').prop('checked', this.checked);"><label>Select All</label></div></h6><div class="border rounded p-3 row">${truckersHTML}</div><div class="mt-3"><button class="btn btn-success" onclick="handleBulkApproval('${req.requisition_id}')">Process Selected Loads</button></div></div></div></div>`);
-                });
-                container.html(accordion);
+            try { renderEmptyState(container, 'Loading...', 'fa-spinner fa-spin'); const result = await apiCall('/loads/pending'); if (result.data.groupedReqs.length === 0) return renderEmptyState(container, 'No loads are pending approval.', 'fa-inbox'); const { groupedReqs, pendingLoads, allTruckers } = result.data; const accordion = $('<div class="accordion"></div>');
+                groupedReqs.forEach(req => { const reqLoads = pendingLoads.filter(load => load.requisition_id == req.requisition_id); if(reqLoads.length === 0) return; const loadsHTML = reqLoads.map(load => `<li class="list-group-item"><input class="form-check-input me-2 load-check-box" type="checkbox" value="${load.load_id}" checked><label class="form-check-label"><strong>${load.item_name}</strong> from ${load.loading_point_address} to ${load.unloading_point_address}<small class="text-muted d-block">Vehicle: ${load.truck_name} | Weight: ${load.approx_weight_tonnes}T | Date: ${formatDate(load.requirement_date)}</small></label></li>`).join(''); const truckersHTML = allTruckers.map(v => `<div class="form-check form-check-inline col-md-3"><input class="form-check-input trucker-assign-check" type="checkbox" value="${v.user_id}" id="v-${req.requisition_id}-${v.user_id}"><label class="form-check-label" for="v-${req.requisition_id}-${v.user_id}">${v.full_name}</label></div>`).join(''); accordion.append(`<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${req.requisition_id}">Req ID: REQ-${req.requisition_id} (By: ${req.creator}) - ${reqLoads.length} Load(s)</button></h2><div id="collapse-${req.requisition_id}" class="accordion-collapse collapse"><div class="accordion-body"><h6>Select loads to approve:</h6><ul class="list-group mb-3">${loadsHTML}</ul><h6 class="d-flex justify-content-between"><span>Assign Truckers:</span><div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" onchange="$(this).closest('.accordion-body').find('.trucker-assign-check').prop('checked', this.checked);"><label>Select All</label></div></h6><div class="border rounded p-3 row">${truckersHTML}</div><div class="mt-3"><button class="btn btn-success" onclick="handleBulkApproval('${req.requisition_id}')">Process Selected Loads</button></div></div></div></div>`); }); container.html(accordion);
             } catch(e) { /* Handled */ }
         }
-
-        async function handleBulkApproval(reqId) {
-            const c = $(`#collapse-${reqId}`), loads = c.find('.load-check-box:checked').map((i, el)=>$(el).val()).get(), truckers = c.find('.trucker-assign-check:checked').map((i, el)=>$(el).val()).get();
-            if(loads.length===0) return showToast('Select at least one load.', 'error'); if(truckers.length===0) return showToast('Assign at least one trucker.', 'error');
-            try { await apiCall('/loads/approve', 'POST', { approvedLoadIds: loads, truckerAssignments: truckers, requisitionId: reqId }); showToast('Loads processed!', 'success'); load_admin_pending_loads_view(); } catch(e){}
-        }
-
-        async function load_admin_awarded_contracts_view() {
-            const tbody = $('#admin-awarded-tbody'), empty = $('#admin-awarded-empty-state');
-            try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().hide(); const result = await apiCall('/admin/awarded-contracts'); if (result.data.length === 0) return renderEmptyState(empty, 'No contracts awarded yet.', 'fa-trophy'); tbody.html(result.data.map(c => `<tr><td>${c.load_id}</td><td><small>${c.loading_point_address} <i class="fas fa-arrow-right"></i> ${c.unloading_point_address}</small></td><td>${c.trucker_name}</td><td><strong>${formatCurrency(c.awarded_amount)}</strong></td><td>${formatDate(c.awarded_date)}</td></tr>`).join('')); tbody.parent().show(); empty.empty(); } catch(e){}
-        }
+        async function handleBulkApproval(reqId) { const c=$(`#collapse-${reqId}`), loads=c.find('.load-check-box:checked').map((i,el)=>$(el).val()).get(), truckers=c.find('.trucker-assign-check:checked').map((i,el)=>$(el).val()).get(); if(loads.length===0) return showToast('Select at least one load.', 'error'); if(truckers.length===0) return showToast('Assign at least one trucker.', 'error'); try { await apiCall('/loads/approve', 'POST', { approvedLoadIds: loads, truckerAssignments: truckers, requisitionId: reqId }); showToast('Loads processed!', 'success'); load_admin_pending_loads_view(); } catch(e){} }
+        async function load_admin_awarded_contracts_view() { const tbody = $('#admin-awarded-tbody'), empty = $('#admin-awarded-empty-state'); try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().hide(); const result = await apiCall('/admin/awarded-contracts'); if (result.data.length === 0) return renderEmptyState(empty, 'No contracts awarded yet.', 'fa-trophy'); tbody.html(result.data.map(c => `<tr><td>${c.load_id}</td><td><small>${c.loading_point_address} <i class="fas fa-arrow-right"></i> ${c.unloading_point_address}</small></td><td>${c.trucker_name}</td><td><strong>${formatCurrency(c.awarded_amount)}</strong></td><td>${formatDate(c.awarded_date)}</td></tr>`).join('')); tbody.parent().show(); empty.empty(); } catch(e){} }
         
         // --- USER MGMT ---
-        async function load_admin_user_approvals_view() {
-            const tbody = $('#admin-pending-users-tbody'), empty = $('#admin-pending-users-empty-state');
-            try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); const result = await apiCall('/users/pending'); if(result.data.length === 0) return renderEmptyState(empty, 'No users are pending approval.', 'fa-user-check'); empty.empty(); tbody.html(result.data.map(u => `<tr><td>${u.full_name}</td><td>${u.email}</td><td>${u.role}</td><td>${u.company_name||'-'}</td><td>${u.contact_number||'-'}</td><td><div class="btn-group btn-group-sm"><button class="btn btn-success" onclick="approveUser(${u.temp_id})">Approve</button> <button class="btn btn-danger" onclick="rejectUser(${u.temp_id})">Reject</button></div></td></tr>`).join('')); } catch(e){}
-        }
+        async function load_admin_user_approvals_view() { const tbody = $('#admin-pending-users-tbody'), empty = $('#admin-pending-users-empty-state'); try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); const result = await apiCall('/users/pending'); if(result.data.length === 0) return renderEmptyState(empty, 'No users are pending approval.', 'fa-user-check'); empty.empty(); tbody.html(result.data.map(u => `<tr><td>${u.full_name}</td><td>${u.email}</td><td>${u.role}</td><td>${u.company_name||'-'}</td><td>${u.contact_number||'-'}</td><td><div class="btn-group btn-group-sm"><button class="btn btn-success" onclick="approveUser(${u.temp_id})">Approve</button> <button class="btn btn-danger" onclick="rejectUser(${u.temp_id})">Reject</button></div></td></tr>`).join('')); } catch(e){} }
         async function approveUser(id) { if (confirm('Approve user?')) { try { await apiCall('/users/approve', 'POST', { temp_id:id}); showToast('User Approved!', 'success'); load_admin_user_approvals_view(); } catch(e){} } }
         async function rejectUser(id) { if (confirm('Reject user?')) { try { await apiCall(`/pending-users/${id}`, 'DELETE'); showToast('User Rejected.', 'success'); load_admin_user_approvals_view(); } catch(e){} } }
-        async function load_admin_user_control_view() {
-            const tbody = $('#admin-users-tbody'), empty = $('#admin-users-empty-state');
-            try { renderEmptyState(empty, 'Loading users...', 'fa-spinner fa-spin'); const result = await apiCall('/users'); if(result.data.length === 0) return renderEmptyState(empty, 'No users found.', 'fa-users'); empty.empty(); tbody.html(result.data.map(u => `<tr><td>${u.full_name}</td><td>${u.email}</td><td><span class="badge bg-${getBadgeColor(u.role)}">${u.role}</span></td><td>${u.company_name||'-'}</td><td>${u.contact_number||'-'}</td><td>${u.gstin||'-'}</td><td><div class="btn-group btn-group-sm"><button class="btn btn-primary" onclick='openEditUserModal(${JSON.stringify(u)})'>Edit</button><button class="btn btn-danger" onclick="handleDeleteUser(${u.user_id})">Delete</button></div></td></tr>`).join('')); } catch (e) {}
-        }
-        function openAddUserModal() { $('#addUserModal').html(`<div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Add User</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="add-user-form"><div class="mb-3"><label class="form-label">Role</label><select id="add-role" class="form-select" required><option value="">Select...</option><option value="Shipper">Shipper</option><option value="Trucker">Trucker</option><option value="Admin">Admin</option></select></div><div class="mb-2"><input type="text" id="add-fullname" class="form-control" placeholder="Full Name" required></div><div class="mb-2"><input type="email" id="add-email" class="form-control" placeholder="Email" required></div><div class="mb-2"><input type="password" id="add-password" class="form-control" placeholder="Password" required></div><div class="mb-2"><input type="text" id="add-contact" class="form-control" placeholder="Contact"></div><div class="mb-2"><input type="text" id="add-company" class="form-control" placeholder="Company Name"></div><div class="mb-3"><input type="text" id="add-gstin" class="form-control" placeholder="GSTIN"></div><button type="submit" class="btn btn-success w-100 fw-bold">Create User</button></form></div></div></div>`); addUserModal.show(); }
-        async function handleAddUserSubmit(e) { e.preventDefault(); const data={full_name:$('#add-fullname').val(),email:$('#add-email').val(),password:$('#add-password').val(),role:$('#add-role').val(),company_name:$('#add-company').val(),contact_number:$('#add-contact').val(),gstin:$('#add-gstin').val()}; try { await apiCall('/users', 'POST', data); showToast('User created!', 'success'); addUserModal.hide(); load_admin_user_control_view(); } catch(e){} }
-        function openEditUserModal(u) { $('#editUserModal').html(`<div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Edit User</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="edit-user-form"><input type="hidden" id="edit-userid" value="${u.user_id}"><div class="mb-2"><label>Name</label><input type="text" id="edit-fullname" class="form-control" value="${u.full_name}" required></div><div class="mb-2"><label>Email</label><input type="email" id="edit-email" class="form-control" value="${u.email}" required></div><div class="mb-2"><label>Role</label><select id="edit-role" class="form-select" required><option value="Shipper">Shipper</option><option value="Trucker">Trucker</option><option value="Admin">Admin</option></select></div><div class="mb-2"><label>Company</label><input type="text" id="edit-company" class="form-control" value="${u.company_name||''}"></div><div class="mb-2"><label>Contact</label><input type="text" id="edit-contact" class="form-control" value="${u.contact_number||''}"></div><div class="mb-2"><label>GSTIN</label><input type="text" id="edit-gstin" class="form-control" value="${u.gstin||''}"></div><div class="mb-2"><label>New Password</label><input type="password" id="edit-password" class="form-control" placeholder="Leave blank to keep unchanged"></div><button type="submit" class="btn btn-success w-100">Save Changes</button></form></div></div></div>`); $('#edit-role').val(u.role); editUserModal.show(); }
+        async function load_admin_user_control_view() { const tbody = $('#admin-users-tbody'), empty = $('#admin-users-empty-state'); try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); const result = await apiCall('/users'); if(result.data.length === 0) return renderEmptyState(empty, 'No users found.', 'fa-users'); empty.empty(); tbody.html(result.data.map(u => `<tr><td>${u.full_name}</td><td>${u.email}</td><td><span class="badge bg-${getBadgeColor(u.role)}">${u.role}</span></td><td>${u.company_name||'-'}</td><td>${u.contact_number||'-'}</td><td>${u.gstin||'-'}</td><td><div class="btn-group btn-group-sm"><button class="btn btn-primary" onclick='openEditUserModal(${JSON.stringify(u)})'>Edit</button><button class="btn btn-danger" onclick="handleDeleteUser(${u.user_id})">Delete</button></div></td></tr>`).join('')); } catch (e) {} }
+        function openAddUserModal() { addUserModal.show(); }
+        async function handleAddUserSubmit(e) { e.preventDefault(); const data={full_name:$('#add-fullname').val(),email:$('#add-email').val(),password:$('#add-password').val(),role:$('#add-role').val(),company_name:$('#add-company').val(),contact_number:$('#add-contact').val(),gstin:$('#add-gstin').val()}; try { await apiCall('/users', 'POST', data); showToast('User created!', 'success'); addUserModal.hide(); $('#add-user-form')[0].reset(); load_admin_user_control_view(); } catch(e){} }
+        function openEditUserModal(u) { $('#edit-userid').val(u.user_id); $('#edit-fullname').val(u.full_name); $('#edit-email').val(u.email); $('#edit-role').val(u.role); $('#edit-company').val(u.company_name||''); $('#edit-contact').val(u.contact_number||''); $('#edit-gstin').val(u.gstin||''); $('#edit-password').val(''); editUserModal.show(); }
         async function handleUserUpdateSubmit(e) { e.preventDefault(); const id=$('#edit-userid').val(), data={full_name:$('#edit-fullname').val(),email:$('#edit-email').val(),role:$('#edit-role').val(),company_name:$('#edit-company').val(),contact_number:$('#edit-contact').val(),gstin:$('#edit-gstin').val(),password:$('#edit-password').val()}; try { await apiCall(`/users/${id}`, 'PUT', data); showToast('User updated!', 'success'); editUserModal.hide(); load_admin_user_control_view(); } catch(e){} }
         async function handleDeleteUser(id) { if (confirm('Delete user?')) { try { await apiCall(`/users/${id}`, 'DELETE'); showToast('User deleted.', 'success'); load_admin_user_control_view(); } catch(e){} } }
 
+        // --- MASTER DATA MGMT ---
+        async function load_admin_master_data_view() {
+            try {
+                const [items, trucks] = await Promise.all([apiCall('/master-data/items'), apiCall('/master-data/truck-types')]);
+                $('#item-master-tbody').html(items.data.map(i => `<tr><td>${i.item_name}</td><td class="text-end"><button class="btn btn-sm btn-outline-primary" onclick='openMasterDataModal("item", ${JSON.stringify(i)})'><i class="fas fa-edit"></i></button></td></tr>`).join(''));
+                $('#truck-master-tbody').html(trucks.data.map(t => `<tr><td>${t.truck_name}</td><td class="text-end"><button class="btn btn-sm btn-outline-primary" onclick='openMasterDataModal("truck", ${JSON.stringify(t)})'><i class="fas fa-edit"></i></button></td></tr>`).join(''));
+            } catch(e) {}
+        }
+        function openMasterDataModal(type, data = null) {
+            const isEdit = data !== null;
+            const title = `${isEdit ? 'Edit' : 'Add'} ${type === 'item' ? 'Material' : 'Truck Type'}`;
+            const name = isEdit ? (data.item_name || data.truck_name) : '';
+            const activeChecked = isEdit ? (data.is_active ? 'checked' : '') : 'checked';
+            const modalHTML = `<div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">${title}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="master-data-form" data-type="${type}" data-id="${isEdit ? (data.item_id || data.truck_type_id) : ''}"><div class="mb-3"><label>Name</label><input type="text" id="master-name" class="form-control" value="${name}" required></div>${isEdit ? `<div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="master-active" ${activeChecked}><label class="form-check-label" for="master-active">Is Active</label></div>` : ''}<button type="submit" class="btn btn-success w-100 mt-3">Save</button></form></div></div></div>`;
+            $('#masterDataModal').html(modalHTML);
+            masterDataModal.show();
+        }
+        async function handleMasterDataSubmit(e) {
+            e.preventDefault();
+            const form = $(this);
+            const type = form.data('type');
+            const id = form.data('id');
+            const isEdit = id !== '';
+            const name = $('#master-name').val();
+            const isActive = $('#master-active').is(':checked');
+            const endpoint = isEdit ? `/master/${type}s/${id}` : `/master/${type}s`;
+            const method = isEdit ? 'PUT' : 'POST';
+            const body = isEdit ? { [`${type}_name`]: name, is_active: isActive } : { [`${type}_name`]: name };
+            try { await apiCall(endpoint, method, body); showToast(`${type} data saved!`, 'success'); masterDataModal.hide(); load_admin_master_data_view(); } catch(e){}
+        }
+
         // --- REPORTS & BULK UPLOAD ---
         function openBulkUploadModal() { bulkUploadModal.show(); }
-        async function handleBulkUpload(e) { e.preventDefault(); const file = $('#bulk-upload-file')[0].files[0]; if (!file) return showToast('Please select a file.', 'error'); const formData = new FormData(); formData.append('bulkFile', file); try { await apiCall('/loads/bulk-upload', 'POST', formData, true); showToast('File uploaded and is being processed.', 'success'); bulkUploadModal.hide(); } catch(e){} }
+        async function handleBulkUpload(e) { e.preventDefault(); const file = $('#bulk-upload-file')[0].files[0]; if (!file) return showToast('Please select a file.', 'error'); const formData = new FormData(); formData.append('bulkFile', file); try { await apiCall('/loads/bulk-upload', 'POST', formData, true); showToast('File uploaded and processed.', 'success'); bulkUploadModal.hide(); } catch(e){} }
         function downloadBulkTemplate() { const data = [{"LoadingPoint":"City A", "UnloadingPoint":"City B", "MaterialName":"STEEL ITEMS", "TruckName":"10 Wheeler Truck", "WeightInTonnes":15, "RequirementDate":"2025-10-25"}]; const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Loads"); XLSX.writeFile(wb, "Bulk_Load_Template.xlsx"); }
-        async function load_admin_reports_view() {
-            const kpiContainer = $('#report-kpis'), tableBody = $('#detailed-report-table tbody');
+        async function load_admin_reports_view() { const kpiContainer = $('#report-kpis'), tableBody = $('#detailed-report-table tbody'); try { kpiContainer.html(renderEmptyState(null,'Loading...','fa-spinner fa-spin')); tableBody.empty(); const result = await apiCall('/admin/reports-data', 'POST', { startDate: $('#report-start-date').val(), endDate: $('#report-end-date').val() }); const { kpis, detailedReport } = result.data; kpiContainer.html(`<div class="col-md-6"><div class="card card-body"><h6>Total Spend</h6><h3 class="fw-bold">${formatCurrency(kpis.totalSpend)}</h3></div></div><div class="col-md-6"><div class="card card-body"><h6>Total Loads Awarded</h6><h3 class="fw-bold">${kpis.awardedLoads}</h3></div></div>`); if(detailedReport.length === 0) { tableBody.html(`<tr><td colspan="6" class="text-center text-muted">No data found for this period.</td></tr>`); } else { tableBody.html(detailedReport.map(r => `<tr><td>${r.load_id}</td><td><small>${r.loading_point_address} <i class="fas fa-arrow-right"></i> ${r.unloading_point_address}</small></td><td>${r.item_name}</td><td>${r.trucker_name}</td><td>${formatCurrency(r.awarded_amount)}</td><td>${formatDate(r.awarded_date)}</td></tr>`).join('')); } } catch(e){} }
+        function downloadReport() { const table = document.getElementById("detailed-report-table"); if(!table || $(table).find('tbody tr').length === 0 || $(table).find('tbody td').length <= 1) return showToast('No data to download.', 'warning'); const wb = XLSX.utils.table_to_book(table, {sheet: "Report"}); XLSX.writeFile(wb, "Awarded_Loads_Report.xlsx"); }
+        
+        // --- MESSAGING ---
+        async function load_messaging_view() {
+            const chatList = $('#chat-list');
             try {
-                kpiContainer.html(renderEmptyState(null, 'Loading report data...', 'fa-spinner fa-spin'));
-                tableBody.empty();
-                const result = await apiCall('/admin/reports-data', 'POST', { startDate: $('#report-start-date').val(), endDate: $('#report-end-date').val() });
-                const { kpis, detailedReport } = result.data;
-                kpiContainer.html(`<div class="col-md-6"><div class="card card-body"><h6>Total Spend</h6><h3 class="fw-bold">${formatCurrency(kpis.totalSpend)}</h3></div></div><div class="col-md-6"><div class="card card-body"><h6>Total Loads Awarded</h6><h3 class="fw-bold">${kpis.awardedLoads}</h3></div></div>`);
-                if(detailedReport.length === 0) { tableBody.html(`<tr><td colspan="6" class="text-center text-muted">No contracts found for this period.</td></tr>`); } 
-                else { tableBody.html(detailedReport.map(r => `<tr><td>${r.load_id}</td><td><small>${r.loading_point_address} <i class="fas fa-arrow-right"></i> ${r.unloading_point_address}</small></td><td>${r.item_name}</td><td>${r.trucker_name}</td><td>${formatCurrency(r.awarded_amount)}</td><td>${formatDate(r.awarded_date)}</td></tr>`).join('')); }
+                renderEmptyState(chatList, 'Loading...', 'fa-spinner fa-spin');
+                const result = await apiCall('/conversations');
+                if (result.data.length === 0) return renderEmptyState(chatList, 'No users to chat with.');
+                chatList.html(result.data.map(u => `<a href="#" class="list-group-item list-group-item-action" onclick="openChat(${u.user_id}, '${u.full_name}')">${u.full_name} <small class="text-muted">(${u.role === 'User' ? 'Shipper' : (u.role === 'Vendor' ? 'Trucker' : u.role)})</small></a>`).join(''));
             } catch(e){}
         }
-        function downloadReport() {
-            const table = document.getElementById("detailed-report-table");
-            if(!table || $(table).find('tbody tr').length === 0 || $(table).find('tbody td').length <= 1) return showToast('No data to download.', 'warning');
-            const wb = XLSX.utils.table_to_book(table, {sheet: "Report"});
-            XLSX.writeFile(wb, "Awarded_Loads_Report.xlsx");
+        async function openChat(id, name) {
+            $('#chat-welcome').addClass('d-none');
+            $('#chat-window').removeClass('d-none');
+            $('#chat-with-name').text(name);
+            $('#message-form').off('submit').on('submit', (e) => { e.preventDefault(); handleSendMessage(id); });
+            const messagesDiv = $('#chat-messages').empty();
+            const currentUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
+            const result = await apiCall(`/messages/${id}`);
+            result.data.forEach(msg => {
+                messagesDiv.append(`<div class="message-bubble ${msg.sender_id == currentUser.userId ? 'sent' : 'received'}"><div>${msg.message_body}</div><div class="timestamp">${formatDate(msg.timestamp, true)}</div></div>`);
+            });
+            messagesDiv.scrollTop(messagesDiv[0].scrollHeight);
+        }
+        async function handleSendMessage(id) {
+            const input = $('#message-input');
+            if (!input.val()) return;
+            await apiCall('/messages', 'POST', { recipientId: id, messageBody: input.val() });
+            input.val('');
+            openChat(id, $('#chat-with-name').text());
         }
 
         // =========================================================
@@ -547,7 +521,7 @@
         function hideLoader() { $('#loader-overlay').addClass('hidden'); }
         function renderEmptyState(container, message, iconClass = 'fa-folder-open') { const html = `<div class="empty-state w-100"><i class="fas ${iconClass}"></i><p>${message}</p></div>`; if(container) $(container).html(html); return html;}
         function formatCurrency(v) { const n = parseFloat(v); return isNaN(n) ? '₹0' : `₹${n.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`; }
-        function formatDate(d, includeTime = false) { if (!d) return 'N/A'; const date = new Date(d); const options = { day: 'numeric', month: 'short', year: 'numeric' }; if(includeTime) { options.hour = 'numeric'; options.minute = '2-digit'; } return date.toLocaleDateString('en-GB', options); }
+        function formatDate(d, includeTime = false) { if (!d) return 'N/A'; const date = new Date(d); const options = { day: 'numeric', month: 'short', year: 'numeric' }; if(includeTime) { options.hour = 'numeric'; options.minute = '2-digit'; options.hour12 = true; } return date.toLocaleDateString('en-GB', options); }
         function getBadgeColor(s) { return {'Awarded':'primary','Active':'success','Pending Approval':'warning','Submitted':'info','Rejected':'danger', 'Processed': 'secondary', 'Admin': 'info', 'Super Admin': 'danger', 'Trucker': 'success', 'Shipper': 'secondary'}[s]||'dark'; }
         function createChart(chartId, type, data, options = {}) { if (charts[chartId]) charts[chartId].destroy(); const ctx = document.getElementById(chartId)?.getContext('2d'); if (!ctx) return; charts[chartId] = new Chart(ctx, { type, data, options: { responsive: true, maintainAspectRatio: false, ...options } }); }
     </script>
