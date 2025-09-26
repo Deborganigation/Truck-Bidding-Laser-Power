@@ -67,6 +67,7 @@
         .bidding-card .bid-input-area { background-color: #f8f9fe; border-top: 1px solid var(--border-color); }
         .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
         .empty-state i { font-size: 2.5rem; margin-bottom: 1rem; }
+        .chart-container { position: relative; height: 300px; width: 100%; }
     </style>
 </head>
 <body>
@@ -95,6 +96,7 @@
         </div>
 
     <div class="modal fade" id="registerModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Create Account</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="register-form"><div class="mb-3"><select id="reg-role" class="form-select" required><option value="">Register as...</option><option value="Shipper">Shipper (I have loads to transport)</option><option value="Trucker">Trucker (I have trucks)</option></select></div><div class="mb-2"><input type="text" id="reg-fullname" class="form-control" placeholder="Full Name" required></div><div class="mb-2"><input type="email" id="reg-email" class="form-control" placeholder="Email" required></div><div class="mb-2"><input type="password" id="reg-password" class="form-control" placeholder="Password" required></div><div class="mb-2"><input type="text" id="reg-contact" class="form-control" placeholder="Contact Number" required></div><div class="mb-2 hidden" id="reg-company-wrapper"><input type="text" id="reg-company" class="form-control" placeholder="Company / Transporter Name"></div><div class="mb-3 hidden" id="reg-gstin-wrapper"><input type="text" id="reg-gstin" class="form-control" placeholder="GSTIN (Optional)"></div><button type="submit" class="btn btn-success w-100 fw-bold">Register</button></form></div></div></div></div>
+    <div class="modal fade" id="bulkUploadModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Bulk Upload Loads</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Please upload an Excel file (.xlsx) with the required columns. <a href="#" onclick="downloadBulkTemplate()">Download Template</a></p><hr><form id="bulk-upload-form"><div class="mb-3"><label for="bulk-upload-file" class="form-label">Select Excel File</label><input class="form-control" type="file" id="bulk-upload-file" accept=".xlsx, .xls" required></div><button type="submit" class="btn btn-success w-100">Upload and Submit</button></form></div></div></div></div>
     <div class="modal fade" id="adminActionModal" tabindex="-1"></div>
     <div class="modal fade" id="editUserModal" tabindex="-1"></div>
     <div class="modal fade" id="addUserModal" tabindex="-1"></div>
@@ -103,6 +105,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <script>
         // =========================================================
@@ -110,7 +113,8 @@
         // =========================================================
         const API_BASE_URL = '/api';
         let loginWrapper, appContainer;
-        let registerModal, adminActionModal, editUserModal, addUserModal;
+        let registerModal, adminActionModal, editUserModal, addUserModal, bulkUploadModal;
+        let charts = {}; // To hold chart instances
 
         const views = {
             'shipper-create-load-view': `
@@ -119,44 +123,23 @@
                     <div class="card-body">
                         <form id="load-request-form">
                             <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Loading Point (Origin)</label>
-                                    <input type="text" id="loading_point_address" class="form-control" required placeholder="e.g., Kolkata Port, Gate 5">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Unloading Point (Destination)</label>
-                                    <input type="text" id="unloading_point_address" class="form-control" required placeholder="e.g., Delhi Warehouse, Okhla">
-                                </div>
+                                <div class="col-md-6 mb-3"><label class="form-label fw-bold">Loading Point (Origin)</label><input type="text" id="loading_point_address" class="form-control" required placeholder="e.g., Kolkata Port, Gate 5"></div>
+                                <div class="col-md-6 mb-3"><label class="form-label fw-bold">Unloading Point (Destination)</label><input type="text" id="unloading_point_address" class="form-control" required placeholder="e.g., Delhi Warehouse, Okhla"></div>
                             </div>
                             <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Material/Item Type</label>
-                                    <select id="item_id" class="form-select" required></select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Required Truck Type</label>
-                                    <select id="truck_type_id" class="form-select" required></select>
-                                </div>
+                                <div class="col-md-6 mb-3"><label class="form-label fw-bold">Material/Item Type</label><select id="item_id" class="form-select" required></select></div>
+                                <div class="col-md-6 mb-3"><label class="form-label fw-bold">Required Truck Type</label><select id="truck_type_id" class="form-select" required></select></div>
                             </div>
                             <div class="row">
-                               <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Approximate Weight (in Tonnes)</label>
-                                    <input type="number" id="approx_weight_tonnes" class="form-control" step="0.1" required placeholder="e.g., 16.5">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Requirement Date</label>
-                                    <input type="date" id="requirement_date" class="form-control" required>
-                                </div>
+                               <div class="col-md-6 mb-3"><label class="form-label fw-bold">Approximate Weight (in Tonnes)</label><input type="number" id="approx_weight_tonnes" class="form-control" step="0.1" required placeholder="e.g., 16.5"></div>
+                                <div class="col-md-6 mb-3"><label class="form-label fw-bold">Requirement Date</label><input type="date" id="requirement_date" class="form-control" required></div>
                             </div>
                             <button type="submit" class="btn btn-primary w-100 fw-bold py-2">Submit Load Request for Approval</button>
                         </form>
                     </div>
                 </div>`,
             'shipper-status-view': `
-                <div class="card view">
-                    <div class="card-header"><h5 class="mb-0"><i class="fas fa-history me-2"></i>My Load Request Status</h5></div>
-                    <div class="card-body" id="shipper-req-status-list"></div>
-                </div>`,
+                <div class="card view"><div class="card-header"><h5 class="mb-0"><i class="fas fa-history me-2"></i>My Load Request Status</h5></div><div class="card-body" id="shipper-req-status-list"></div></div>`,
             'trucker-dashboard-view': `
                 <div class="row g-4 mb-4 view">
                     <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-info" onclick="navigateTo('trucker-open-loads-view')"><div><h5 class="mb-0">Open for Bidding</h5><p class="display-4" id="trucker-stats-open">--</p></div><i class="fas fa-file-signature stat-icon"></i></div></div>
@@ -165,13 +148,7 @@
                     <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-warning" onclick="navigateTo('trucker-open-loads-view')"><div><h5 class="mb-0">Needs My Bid</h5><p class="display-4" id="trucker-stats-needs-bid">--</p></div><i class="fas fa-edit stat-icon"></i></div></div>
                 </div>`,
             'trucker-open-loads-view': `
-                <div class="view">
-                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                        <h5 class="mb-0">Open Loads for Bidding</h5>
-                        <button class="btn btn-success" onclick="handleBulkBidSubmit()"><i class="fas fa-check-double me-2"></i>Submit All Entered Bids</button>
-                    </div>
-                    <div id="trucker-bidding-container" class="d-grid gap-4"></div>
-                </div>`,
+                <div class="view"><div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2"><h5 class="mb-0">Open Loads for Bidding</h5><button class="btn btn-success" onclick="handleBulkBidSubmit()"><i class="fas fa-check-double me-2"></i>Submit All Entered Bids</button></div><div id="trucker-bidding-container" class="d-grid gap-4"></div></div>`,
             'trucker-awarded-contracts-view': `<div class="card view"><div class="card-header"><h5 class="mb-0">My Awarded Contracts</h5></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Load ID</th><th>Route</th><th>Awarded Amount</th><th>Date</th></tr></thead><tbody id="trucker-awarded-tbody"></tbody></table><div id="trucker-awarded-empty-state"></div></div></div>`,
             'admin-dashboard-view': `
                 <div class="row g-4 mb-4 view">
@@ -179,13 +156,27 @@
                     <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-success" onclick="navigateTo('admin-user-approvals-view')"><div><h5 class="mb-0">Pending Users</h5><p class="display-4" id="stats-pending-users">--</p></div><i class="fas fa-user-check stat-icon"></i></div></div>
                     <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-warning" onclick="navigateTo('admin-pending-loads-view')"><div><h5 class="mb-0">Pending Loads</h5><p class="display-4" id="stats-pending-loads">--</p></div><i class="fas fa-inbox stat-icon"></i></div></div>
                     <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-info" onclick="navigateTo('admin-awarded-contracts-view')"><div><h5 class="mb-0">Loads Awarded</h5><p class="display-4" id="stats-awarded-contracts">--</p></div><i class="fas fa-trophy stat-icon"></i></div></div>
-                </div>`,
+                </div>
+                <div class="text-end mb-3"><button class="btn btn-primary" onclick="openBulkUploadModal()"><i class="fas fa-upload me-2"></i>Bulk Upload Loads</button></div>`,
             'admin-pending-loads-view': `
-                <div class="card view">
-                    <div class="card-header"><h5 class="mb-0">Pending Load Approvals</h5></div>
-                    <div class="card-body"><div id="pending-loads-accordion-container"></div></div>
-                </div>`,
+                <div class="card view"><div class="card-header"><h5 class="mb-0">Pending Load Approvals</h5></div><div class="card-body"><div id="pending-loads-accordion-container"></div></div></div>`,
             'admin-awarded-contracts-view': `<div class="card view"><div class="card-header"><h5 class="mb-0">All Awarded Contracts</h5></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Load ID</th><th>Route</th><th>Trucker</th><th>Awarded Amount</th><th>Date</th></tr></thead><tbody id="admin-awarded-tbody"></tbody></table><div id="admin-awarded-empty-state"></div></div></div>`,
+            'admin-reports-view': `
+                <div class="card view">
+                    <div class="card-header d-flex justify-content-between">
+                        <h5 class="mb-0">Reports & Analytics</h5>
+                        <button class="btn btn-sm btn-success" onclick="downloadReport()"><i class="fas fa-download me-2"></i>Download Report</button>
+                    </div>
+                    <div class="card-body">
+                         <div class="row g-3 align-items-center border p-3 rounded mb-4">
+                            <div class="col-md-5"><label class="form-label-sm">Start Date</label><input type="date" id="report-start-date" class="form-control form-control-sm"></div>
+                            <div class="col-md-5"><label class="form-label-sm">End Date</label><input type="date" id="report-end-date" class="form-control form-control-sm"></div>
+                            <div class="col-md-2 d-grid"><button id="report-apply-filter" class="btn btn-primary btn-sm mt-md-3">Apply</button></div>
+                        </div>
+                        <div class="row g-4" id="report-kpis"></div>
+                        <div class="mt-4"><h5 class="text-center text-muted">Detailed Report</h5><div class="table-responsive"><table class="table table-sm table-striped" id="detailed-report-table"><thead><tr><th>Load ID</th><th>Route</th><th>Material</th><th>Trucker</th><th>Awarded Amount</th><th>Award Date</th></tr></thead><tbody></tbody></table></div></div>
+                    </div>
+                </div>`,
             'admin-user-approvals-view': `<div class="card view"><div class="card-header"><h5 class="mb-0">Pending User Approvals</h5></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Name</th><th>Email</th><th>Role</th><th>Company</th><th>Contact</th><th>Action</th></tr></thead><tbody id="admin-pending-users-tbody"></tbody></table><div id="admin-pending-users-empty-state"></div></div></div>`,
             'admin-user-control-view': `<div class="card view"><div class="card-header d-flex justify-content-between align-items-center"><h5 class="mb-0">User Control Center</h5><button class="btn btn-success btn-sm" onclick="openAddUserModal()"><i class="fas fa-plus me-2"></i>Add User</button></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Name</th><th>Email</th><th>Role</th><th>Company</th><th>Contact</th><th>GSTIN</th><th>Action</th></tr></thead><tbody id="admin-users-tbody"></tbody></table><div id="admin-users-empty-state"></div></div></div>`,
         };
@@ -197,6 +188,7 @@
             loginWrapper = $('#login-wrapper'); appContainer = $('#app-container');
             try {
                 registerModal = new bootstrap.Modal('#registerModal');
+                bulkUploadModal = new bootstrap.Modal('#bulkUploadModal');
                 adminActionModal = new bootstrap.Modal('#adminActionModal');
                 editUserModal = new bootstrap.Modal('#editUserModal');
                 addUserModal = new bootstrap.Modal('#addUserModal');
@@ -217,6 +209,8 @@
             $(document).on('submit', '#load-request-form', handleLoadSubmit);
             $(document).on('submit', '#add-user-form', handleAddUserSubmit);
             $(document).on('submit', '#edit-user-form', handleUserUpdateSubmit);
+            $(document).on('submit', '#bulk-upload-form', handleBulkUpload);
+            $(document).on('click', '#report-apply-filter', load_admin_reports_view);
         });
 
         async function apiCall(endpoint, method = 'GET', body = null, isFormData = false) {
@@ -248,6 +242,10 @@
 
         function navigateTo(viewId) {
             if (!views[viewId]) return console.error("View not found:", viewId);
+            // Destroy any existing charts before loading a new view
+            Object.values(charts).forEach(chart => chart.destroy());
+            charts = {};
+            
             $('#main-view').html(views[viewId]);
             $('#nav-links .nav-link').removeClass('active');
             const navLink = $(`[data-view="${viewId}"]`);
@@ -260,7 +258,7 @@
                 window[loadFunctionName]();
             }
         }
-
+        
         async function handleLogin(e) {
             e.preventDefault();
             try {
@@ -303,21 +301,22 @@
                     <a class="nav-link" data-view="shipper-status-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-history"></i> <span>My Load Status</span></div></a>`,
                 'Trucker': `
                     <a class="nav-link" data-view="trucker-dashboard-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a>
-                    <a class="nav-link" data-view="trucker-open-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-truck-loading"></i> <span>Open Loads for Bidding</span></div></a>
-                    <a class="nav-link" data-view="trucker-awarded-contracts-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>My Awarded Contracts</span></div></a>`,
+                    <a class="nav-link" data-view="trucker-open-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-truck-loading"></i> <span>Open Loads</span></div></a>
+                    <a class="nav-link" data-view="trucker-awarded-contracts-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>My Contracts</span></div></a>`,
                 'Admin': `
                     <a class="nav-link" data-view="admin-dashboard-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a>
                     <a class="nav-link" data-view="admin-pending-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-inbox"></i> <span>Load Approvals</span></div></a>
                     <a class="nav-link" data-view="admin-awarded-contracts-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>Awarded Contracts</span></div></a>
+                    <a class="nav-link" data-view="admin-reports-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-chart-line"></i> <span>Reports</span></div></a>
                     <a class="nav-link" data-view="admin-user-approvals-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-user-check"></i> <span>User Approvals</span></div></a>
                     <a class="nav-link" data-view="admin-user-control-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-users-cog"></i> <span>User Control</span></div></a>`,
             };
-            roleNavs['Super Admin'] = roleNavs['Admin']; // Super Admin has same nav as Admin
+            roleNavs['Super Admin'] = roleNavs['Admin'];
 
             const appHTML = `
                 <nav class="sidebar" id="sidebar">
                     <div class="logo"><i class="fas fa-truck"></i> <span>DEB'S LOGISTICS</span></div>
-                    <div id="nav-links" class="flex-grow-1">${roleNavs[user.role] || ''}</div>
+                    <div id="nav-links" class="flex-grow-1"></div>
                     <div class="user-profile">
                         <div><h6 id="user-name-sidebar" class="mb-0 text-white">${user.full_name}</h6><small id="user-email-sidebar" class="text-muted">${user.email}</small></div>
                         <button onclick="handleLogout()" class="btn btn-sm btn-outline-danger w-100 mt-2"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></button>
@@ -326,13 +325,24 @@
                 <main class="main-content" id="main-content">
                     <div class="top-header">
                         <h1 id="header-title" class="h4 mb-0 fw-bold text-dark"></h1>
+                        <button class="btn btn-sm btn-outline-primary" onclick="handleManualRefresh()"><i class="fas fa-sync-alt me-1"></i>Refresh</button>
                     </div>
                     <div id="main-view"></div>
                 </main>`;
+            
             appContainer.html(appHTML);
-
+            $('#nav-links').html(roleNavs[user.role] || '');
+            
             const defaultViewMap = { 'Shipper': 'shipper-create-load-view', 'Trucker': 'trucker-dashboard-view', 'Admin': 'admin-dashboard-view', 'Super Admin': 'admin-dashboard-view' };
             navigateTo(defaultViewMap[user.role]);
+        }
+        
+        async function handleManualRefresh() {
+            const currentViewLink = $('#nav-links .nav-link.active');
+            if (currentViewLink.length > 0) {
+                showToast('Refreshing data...', 'info');
+                navigateTo(currentViewLink.data('view'));
+            }
         }
         
         // =========================================================
@@ -340,40 +350,22 @@
         // =========================================================
         async function load_shipper_create_load_view() {
             try {
-                const [trucks, items] = await Promise.all([
-                    apiCall('/master-data/truck-types'),
-                    apiCall('/master-data/items')
-                ]);
-                
-                const truckOptions = trucks.data.map(t => `<option value="${t.truck_type_id}">${t.truck_name}</option>`).join('');
-                $('#truck_type_id').html('<option value="">Select Truck Type...</option>' + truckOptions).select2({ theme: 'bootstrap-5', placeholder: 'Select Truck Type...' });
-
-                const itemOptions = items.data.map(i => `<option value="${i.item_id}">${i.item_name}</option>`).join('');
-                $('#item_id').html('<option value="">Select Material...</option>' + itemOptions).select2({ theme: 'bootstrap-5', placeholder: 'Select Material...' });
-                
+                const [trucks, items] = await Promise.all([apiCall('/master-data/truck-types'), apiCall('/master-data/items')]);
+                $('#truck_type_id').html('<option value="">Select Truck Type...</option>' + trucks.data.map(t => `<option value="${t.truck_type_id}">${t.truck_name}</option>`).join('')).select2({ theme: 'bootstrap-5', placeholder: 'Select Truck Type...' });
+                $('#item_id').html('<option value="">Select Material...</option>' + items.data.map(i => `<option value="${i.item_id}">${i.item_name}</option>`).join('')).select2({ theme: 'bootstrap-5', placeholder: 'Select Material...' });
                 const today = new Date().toISOString().split('T')[0];
                 $('#requirement_date').attr('min', today).val(today);
-            } catch (error) {
-                $('#load-request-form').html('<div class="alert alert-danger">Could not load required data. Please refresh the page.</div>');
-            }
+            } catch (error) { $('#load-request-form').html('<div class="alert alert-danger">Could not load required data. Please refresh the page.</div>'); }
         }
 
         async function handleLoadSubmit(e) {
             e.preventDefault();
-            const loadData = {
-                loading_point_address: $('#loading_point_address').val(),
-                unloading_point_address: $('#unloading_point_address').val(),
-                item_id: $('#item_id').val(),
-                truck_type_id: $('#truck_type_id').val(),
-                approx_weight_tonnes: $('#approx_weight_tonnes').val(),
-                requirement_date: $('#requirement_date').val()
-            };
-            
+            const loadData = { loading_point_address: $('#loading_point_address').val(), unloading_point_address: $('#unloading_point_address').val(), item_id: $('#item_id').val(), truck_type_id: $('#truck_type_id').val(), approx_weight_tonnes: $('#approx_weight_tonnes').val(), requirement_date: $('#requirement_date').val() };
             try {
-                const result = await apiCall('/loads', 'POST', { items: JSON.stringify([loadData]) });
-                showToast(result.message, 'success');
+                await apiCall('/loads', 'POST', { items: JSON.stringify([loadData]) });
+                showToast('Load request submitted successfully!', 'success');
                 navigateTo('shipper-create-load-view');
-            } catch(error) { /* Toast shown in apiCall */ }
+            } catch(error) { /* Handled */ }
         }
 
         async function load_shipper_status_view() {
@@ -382,133 +374,44 @@
                 renderEmptyState(listDiv, 'Loading your requests...', 'fa-spinner fa-spin');
                 const result = await apiCall('/requisitions/my-status');
                 if (result.data.length === 0) return renderEmptyState(listDiv, 'You have not posted any loads yet.', 'fa-file-signature');
-
                 listDiv.html('');
                 result.data.forEach(req => {
-                    const loadsHTML = req.loads.map(load => {
-                        const awardedHtml = load.status === 'Awarded' ? `<small class="d-block text-success mt-1"><i class="fas fa-trophy me-1"></i>Awarded to: ${load.awarded_vendor || 'N/A'} for <strong>${formatCurrency(load.awarded_amount)}</strong></small>` : '';
-                        return `<li class="list-group-item">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <div class="me-3">
-                                            <h6 class="mb-0">${load.item_name}</h6>
-                                            <small>${load.loading_point_address} <i class="fas fa-long-arrow-alt-right"></i> ${load.unloading_point_address}</small>
-                                        </div>
-                                        <span class="badge bg-${getBadgeColor(load.status)} align-self-center">${load.status}</span>
-                                    </div>
-                                    ${awardedHtml}
-                                </li>`;
-                    }).join('');
+                    const loadsHTML = req.loads.map(load => `<li class="list-group-item"><div class="d-flex w-100 justify-content-between"><div class="me-3"><h6 class="mb-0">${load.item_name}</h6><small>${load.loading_point_address} <i class="fas fa-long-arrow-alt-right"></i> ${load.unloading_point_address}</small></div><span class="badge bg-${getBadgeColor(load.status)} align-self-center">${load.status}</span></div>${load.status === 'Awarded' ? `<small class="d-block text-success mt-1"><i class="fas fa-trophy me-1"></i>Awarded to: ${load.awarded_vendor || 'N/A'} for <strong>${formatCurrency(load.awarded_amount)}</strong></small>` : ''}</li>`).join('');
                     listDiv.append(`<div class="card mb-3 view"><div class="card-header d-flex justify-content-between"><strong>Req ID: REQ-${req.requisition_id}</strong><small>${formatDate(req.created_at)}</small></div><ul class="list-group list-group-flush">${loadsHTML}</ul></div>`);
                 });
-            } catch (error) { /* Handled in apiCall */ }
+            } catch (error) { /* Handled */ }
         }
 
         // =========================================================
         // ================ TRUCKER FUNCTIONS ======================
         // =========================================================
-        async function load_trucker_dashboard_view() {
-            try {
-                const result = await apiCall('/trucker/dashboard-stats');
-                const data = result.data;
-                $('#trucker-stats-open').text(data.assignedLoads || '0');
-                $('#trucker-stats-submitted').text(data.submittedBids || '0');
-                $('#trucker-stats-won').text(data.contractsWon || '0');
-                $('#trucker-stats-needs-bid').text(data.needsBid || '0');
-            } catch (error) { /* Handled in apiCall */ }
-        }
+        async function load_trucker_dashboard_view() { try { const result = await apiCall('/trucker/dashboard-stats'); $('#trucker-stats-open').text(result.data.assignedLoads||'0'); $('#trucker-stats-submitted').text(result.data.submittedBids||'0'); $('#trucker-stats-won').text(result.data.contractsWon||'0'); $('#trucker-stats-needs-bid').text(result.data.needsBid||'0'); } catch(e){} }
 
         async function load_trucker_open_loads_view() {
             const container = $('#trucker-bidding-container');
             try {
                 renderEmptyState(container, 'Loading open loads...', 'fa-spinner fa-spin');
                 const result = await apiCall('/loads/assigned');
-                if (result.data.length === 0) return renderEmptyState(container, 'No loads are currently assigned to you for bidding.', 'fa-truck-loading');
-
-                const cardsHTML = result.data.map(load => {
-                     const attempts = load.bid_attempts || 0;
-                     const bidInputHtml = (attempts >= 3) 
-                         ? `<div class="text-center text-danger small p-3"><i class="fas fa-exclamation-circle me-1"></i> Max 3 bids reached.</div>`
-                         : `<div class="input-group">
-                                <span class="input-group-text">₹</span>
-                                <input type="number" step="100" class="form-control bid-amount-input" placeholder="Your Total Bid (Attempt ${attempts + 1})">
-                            </div>`;
-                    
-                    return `
-                        <div class="card bidding-card" data-load-id="${load.load_id}">
-                            <div class="card-header bg-light d-flex justify-content-between flex-wrap gap-2">
-                                <h6 class="mb-0">Load ID: ${load.load_id}</h6>
-                                <span class="badge bg-${load.my_rank ? 'primary' : 'secondary'}">My Rank: ${load.my_rank ? `L${load.my_rank}` : 'Not Bid'}</span>
-                            </div>
-                            <div class="card-body">
-                                <div><small class="text-muted d-block">Route</small><strong>${load.loading_point_address} <i class="fas fa-arrow-right"></i> ${load.unloading_point_address}</strong></div>
-                                <div><small class="text-muted d-block">Material</small><strong>${load.item_name}</strong></div>
-                                <div><small class="text-muted d-block">Weight</small><strong>${load.approx_weight_tonnes} Tonnes</strong></div>
-                                <div><small class="text-muted d-block">Vehicle</small><strong>${load.truck_name}</strong></div>
-                                <div><small class="text-muted d-block">Date</small><strong>${formatDate(load.requirement_date)}</strong></div>
-                            </div>
-                            <div class="bid-input-area p-3">
-                                ${bidInputHtml}
-                            </div>
-                        </div>`;
-                }).join('');
-                container.html(cardsHTML);
+                if (result.data.length === 0) return renderEmptyState(container, 'No loads are currently assigned for bidding.', 'fa-truck-loading');
+                container.html(result.data.map(load => `<div class="card bidding-card" data-load-id="${load.load_id}"><div class="card-header bg-light d-flex justify-content-between flex-wrap gap-2"><h6 class="mb-0">Load ID: ${load.load_id}</h6><span class="badge bg-${load.my_rank ? 'primary' : 'secondary'}">My Rank: ${load.my_rank ? `L${load.my_rank}` : 'Not Bid'}</span></div><div class="card-body"><div><small class="text-muted d-block">Route</small><strong>${load.loading_point_address} <i class="fas fa-arrow-right"></i> ${load.unloading_point_address}</strong></div><div><small class="text-muted d-block">Material</small><strong>${load.item_name}</strong></div><div><small class="text-muted d-block">Weight</small><strong>${load.approx_weight_tonnes} T</strong></div><div><small class="text-muted d-block">Vehicle</small><strong>${load.truck_name}</strong></div><div><small class="text-muted d-block">Date</small><strong>${formatDate(load.requirement_date)}</strong></div></div><div class="bid-input-area p-3">${(load.bid_attempts || 0) >= 3 ? `<div class="text-center text-danger small p-3"><i class="fas fa-exclamation-circle me-1"></i> Max 3 bids reached.</div>` : `<div class="input-group"><span class="input-group-text">₹</span><input type="number" step="100" class="form-control bid-amount-input" placeholder="Your Total Bid (Attempt ${ (load.bid_attempts || 0) + 1})"></div>`}</div></div>`).join(''));
             } catch(error) { /* Handled */ }
         }
         
         async function handleBulkBidSubmit() {
-            const bids = [];
-            $('.bidding-card').each(function() {
-                const card = $(this);
-                const input = card.find('.bid-amount-input');
-                if (input.length > 0 && input.val() && parseFloat(input.val()) > 0) {
-                    bids.push({
-                        loadId: card.data('load-id'),
-                        bid_amount: parseFloat(input.val())
-                    });
-                }
-            });
+            const bids = $('.bidding-card').map(function() { const input = $(this).find('.bid-amount-input'); if (input.length && input.val()) return { loadId: $(this).data('load-id'), bid_amount: parseFloat(input.val()) }; }).get();
             if (bids.length === 0) return showToast('No new valid bids were entered.', 'info');
-            
-            try {
-                const result = await apiCall('/bids', 'POST', { bids: bids });
-                showToast(result.message, 'success');
-                load_trucker_open_loads_view();
-            } catch(error) { /* Handled */ }
+            try { await apiCall('/bids', 'POST', { bids }); showToast('Bids submitted successfully!', 'success'); load_trucker_open_loads_view(); } catch(error) { /* Handled */ }
         }
 
         async function load_trucker_awarded_contracts_view() {
-            const tbody = $('#trucker-awarded-tbody');
-            const emptyStateContainer = $('#trucker-awarded-empty-state');
-            try {
-                renderEmptyState(emptyStateContainer, 'Loading your awarded contracts...', 'fa-spinner fa-spin');
-                tbody.parent().hide();
-                const result = await apiCall('/trucker/awarded-contracts');
-                if (result.data.length === 0) return renderEmptyState(emptyStateContainer, 'You have not been awarded any contracts yet.', 'fa-trophy');
-                
-                tbody.html(result.data.map(c => `<tr>
-                    <td>${c.load_id}</td>
-                    <td><small>${c.loading_point_address} <i class="fas fa-arrow-right"></i> ${c.unloading_point_address}</small></td>
-                    <td><strong>${formatCurrency(c.awarded_amount)}</strong></td>
-                    <td>${formatDate(c.awarded_date)}</td>
-                </tr>`).join(''));
-                tbody.parent().show();
-                emptyStateContainer.empty();
-            } catch(error) {/* Handled */}
+            const tbody = $('#trucker-awarded-tbody'), empty = $('#trucker-awarded-empty-state');
+            try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().hide(); const result = await apiCall('/trucker/awarded-contracts'); if (result.data.length === 0) return renderEmptyState(empty, 'No contracts awarded yet.', 'fa-trophy'); tbody.html(result.data.map(c => `<tr><td>${c.load_id}</td><td><small>${c.loading_point_address} <i class="fas fa-arrow-right"></i> ${c.unloading_point_address}</small></td><td><strong>${formatCurrency(c.awarded_amount)}</strong></td><td>${formatDate(c.awarded_date)}</td></tr>`).join('')); tbody.parent().show(); empty.empty(); } catch(e){}
         }
 
         // =========================================================
         // ================== ADMIN FUNCTIONS ======================
         // =========================================================
-        async function load_admin_dashboard_view() {
-             try {
-                const result = await apiCall('/admin/dashboard-stats');
-                const data = result.data;
-                $('#stats-active-loads').text(data.activeLoads || '0');
-                $('#stats-pending-users').text(data.pendingUsers || '0');
-                $('#stats-pending-loads').text(data.pendingLoads || '0');
-                $('#stats-awarded-contracts').text(data.awardedContracts || '0');
-            } catch (error) { /* Handled */ }
-        }
+        async function load_admin_dashboard_view() { try { const result = await apiCall('/admin/dashboard-stats'); $('#stats-active-loads').text(result.data.activeLoads||'0'); $('#stats-pending-users').text(result.data.pendingUsers||'0'); $('#stats-pending-loads').text(result.data.pendingLoads||'0'); $('#stats-awarded-contracts').text(result.data.awardedContracts||'0'); } catch(e){} }
         
         async function load_admin_pending_loads_view() {
             const container = $('#pending-loads-accordion-container');
@@ -516,117 +419,71 @@
                 renderEmptyState(container, 'Loading pending approvals...', 'fa-spinner fa-spin');
                 const result = await apiCall('/loads/pending');
                 if (result.data.groupedReqs.length === 0) return renderEmptyState(container, 'No loads are pending approval.', 'fa-inbox');
-                
                 const { groupedReqs, pendingLoads, allTruckers } = result.data;
-                container.html('<div class="accordion" id="pending-loads-accordion"></div>');
-                const accordion = $('#pending-loads-accordion');
-
+                const accordion = $('<div class="accordion"></div>');
                 groupedReqs.forEach(req => {
-                    const reqId = req.requisition_id;
-                    const reqLoads = pendingLoads.filter(load => load.requisition_id == reqId);
+                    const reqLoads = pendingLoads.filter(load => load.requisition_id == req.requisition_id);
                     if(reqLoads.length === 0) return;
-
-                    const loadsHTML = reqLoads.map(load => `
-                        <li class="list-group-item">
-                            <input class="form-check-input me-2 load-check-box" type="checkbox" value="${load.load_id}" checked>
-                            <label class="form-check-label">
-                                <strong>${load.item_name}</strong> from ${load.loading_point_address} to ${load.unloading_point_address}
-                                <small class="text-muted d-block">Vehicle: ${load.truck_name} | Weight: ${load.approx_weight_tonnes}T | Date: ${formatDate(load.requirement_date)}</small>
-                            </label>
-                        </li>`).join('');
-
-                    const truckersHTML = allTruckers.map(v => `<div class="form-check form-check-inline col-md-3"><input class="form-check-input trucker-assign-check" type="checkbox" value="${v.user_id}" id="v-${reqId}-${v.user_id}"><label class="form-check-label" for="v-${reqId}-${v.user_id}">${v.full_name}</label></div>`).join('');
-
-                    accordion.append(`
-                        <div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${reqId}">Req ID: REQ-${reqId} (By: ${req.creator}) - ${reqLoads.length} Load(s)</button></h2>
-                            <div id="collapse-${reqId}" class="accordion-collapse collapse" data-bs-parent="#pending-loads-accordion"><div class="accordion-body">
-                                <h6>Select loads to approve:</h6><ul class="list-group mb-3">${loadsHTML}</ul>
-                                <h6 class="d-flex justify-content-between"><span>Assign Truckers:</span><div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" onchange="$(this).closest('.accordion-body').find('.trucker-assign-check').prop('checked', this.checked);"><label>Select All</label></div></h6>
-                                <div class="border rounded p-3 row">${truckersHTML}</div>
-                                <div class="mt-3"><button class="btn btn-success" onclick="handleBulkApproval('${reqId}')">Process Selected Loads</button></div>
-                            </div></div></div>`);
+                    const loadsHTML = reqLoads.map(load => `<li class="list-group-item"><input class="form-check-input me-2 load-check-box" type="checkbox" value="${load.load_id}" checked><label class="form-check-label"><strong>${load.item_name}</strong> from ${load.loading_point_address} to ${load.unloading_point_address}<small class="text-muted d-block">Vehicle: ${load.truck_name} | Weight: ${load.approx_weight_tonnes}T | Date: ${formatDate(load.requirement_date)}</small></label></li>`).join('');
+                    const truckersHTML = allTruckers.map(v => `<div class="form-check form-check-inline col-md-3"><input class="form-check-input trucker-assign-check" type="checkbox" value="${v.user_id}" id="v-${req.requisition_id}-${v.user_id}"><label class="form-check-label" for="v-${req.requisition_id}-${v.user_id}">${v.full_name}</label></div>`).join('');
+                    accordion.append(`<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${req.requisition_id}">Req ID: REQ-${req.requisition_id} (By: ${req.creator}) - ${reqLoads.length} Load(s)</button></h2><div id="collapse-${req.requisition_id}" class="accordion-collapse collapse"><div class="accordion-body"><h6>Select loads to approve:</h6><ul class="list-group mb-3">${loadsHTML}</ul><h6 class="d-flex justify-content-between"><span>Assign Truckers:</span><div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" onchange="$(this).closest('.accordion-body').find('.trucker-assign-check').prop('checked', this.checked);"><label>Select All</label></div></h6><div class="border rounded p-3 row">${truckersHTML}</div><div class="mt-3"><button class="btn btn-success" onclick="handleBulkApproval('${req.requisition_id}')">Process Selected Loads</button></div></div></div></div>`);
                 });
+                container.html(accordion);
             } catch(error) { /* Handled */ }
         }
 
         async function handleBulkApproval(reqId) {
-            const container = $(`#collapse-${reqId}`);
-            const approvedLoadIds = container.find('.load-check-box:checked').map((i, el) => $(el).val()).get();
-            const truckerAssignments = container.find('.trucker-assign-check:checked').map((i, el) => $(el).val()).get();
-
-            if (approvedLoadIds.length === 0) return showToast('Please select at least one load to approve.', 'error');
-            if (truckerAssignments.length === 0) return showToast('Please assign at least one trucker.', 'error');
-
-            try {
-                const result = await apiCall('/loads/approve', 'POST', { approvedLoadIds, truckerAssignments, requisitionId: reqId });
-                showToast(result.message, 'success');
-                load_admin_pending_loads_view();
-            } catch(error) { /* Handled */ }
+            const c = $(`#collapse-${reqId}`), loads = c.find('.load-check-box:checked').map((i, el)=>$(el).val()).get(), truckers = c.find('.trucker-assign-check:checked').map((i, el)=>$(el).val()).get();
+            if(loads.length===0) return showToast('Select at least one load.', 'error'); if(truckers.length===0) return showToast('Assign at least one trucker.', 'error');
+            try { await apiCall('/loads/approve', 'POST', { approvedLoadIds: loads, truckerAssignments: truckers, requisitionId: reqId }); showToast('Loads processed!', 'success'); load_admin_pending_loads_view(); } catch(e){}
         }
 
         async function load_admin_awarded_contracts_view() {
-            const tbody = $('#admin-awarded-tbody');
-            const emptyStateContainer = $('#admin-awarded-empty-state');
-            try {
-                renderEmptyState(emptyStateContainer, 'Loading awarded contracts...', 'fa-spinner fa-spin');
-                tbody.parent().hide();
-                const result = await apiCall('/admin/awarded-contracts');
-                if (result.data.length === 0) return renderEmptyState(emptyStateContainer, 'No contracts have been awarded yet.', 'fa-trophy');
-                
-                tbody.html(result.data.map(c => `<tr>
-                    <td>${c.load_id}</td>
-                    <td><small>${c.loading_point_address} <i class="fas fa-arrow-right"></i> ${c.unloading_point_address}</small></td>
-                    <td>${c.trucker_name}</td>
-                    <td><strong>${formatCurrency(c.awarded_amount)}</strong></td>
-                    <td>${formatDate(c.awarded_date)}</td>
-                </tr>`).join(''));
-                tbody.parent().show();
-                emptyStateContainer.empty();
-            } catch(error) {/* Handled */}
+            const tbody = $('#admin-awarded-tbody'), empty = $('#admin-awarded-empty-state');
+            try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().hide(); const result = await apiCall('/admin/awarded-contracts'); if (result.data.length === 0) return renderEmptyState(empty, 'No contracts awarded yet.', 'fa-trophy'); tbody.html(result.data.map(c => `<tr><td>${c.load_id}</td><td><small>${c.loading_point_address} <i class="fas fa-arrow-right"></i> ${c.unloading_point_address}</small></td><td>${c.trucker_name}</td><td><strong>${formatCurrency(c.awarded_amount)}</strong></td><td>${formatDate(c.awarded_date)}</td></tr>`).join('')); tbody.parent().show(); empty.empty(); } catch(e){}
         }
         
-        // =========================================================
-        // ============= USER MANAGEMENT FUNCTIONS =================
-        // =========================================================
+        // --- USER MGMT ---
         async function load_admin_user_approvals_view() {
-             const tbody = $('#admin-pending-users-tbody');
-             const emptyContainer = $('#admin-pending-users-empty-state');
-             try {
-                renderEmptyState(emptyContainer, 'Loading pending users...', 'fa-spinner fa-spin');
-                const result = await apiCall('/users/pending');
-                if(result.data.length === 0) return renderEmptyState(emptyContainer, 'No users are pending approval.', 'fa-user-check');
-                emptyContainer.empty();
-                tbody.html(result.data.map(user => `<tr><td>${user.full_name}</td><td>${user.email}</td><td>${user.role}</td><td>${user.company_name || '-'}</td><td>${user.contact_number || '-'}</td><td><div class="btn-group btn-group-sm"><button class="btn btn-success" onclick="approveUser(${user.temp_id})">Approve</button> <button class="btn btn-danger" onclick="rejectUser(${user.temp_id})">Reject</button></div></td></tr>`).join(''));
-            } catch (error) { /* Handled */ }
+            const tbody = $('#admin-pending-users-tbody'), empty = $('#admin-pending-users-empty-state');
+            try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); const result = await apiCall('/users/pending'); if(result.data.length === 0) return renderEmptyState(empty, 'No users are pending approval.', 'fa-user-check'); empty.empty(); tbody.html(result.data.map(u => `<tr><td>${u.full_name}</td><td>${u.email}</td><td>${u.role}</td><td>${u.company_name||'-'}</td><td>${u.contact_number||'-'}</td><td><div class="btn-group btn-group-sm"><button class="btn btn-success" onclick="approveUser(${u.temp_id})">Approve</button> <button class="btn btn-danger" onclick="rejectUser(${u.temp_id})">Reject</button></div></td></tr>`).join('')); } catch(e){}
         }
-        async function approveUser(tempId) { if (confirm('Approve this user?')) { try { await apiCall('/users/approve', 'POST', { temp_id: tempId }); showToast('User Approved!', 'success'); load_admin_user_approvals_view(); } catch(e){} } }
-        async function rejectUser(tempId) { if (confirm('Reject this user?')) { try { await apiCall(`/pending-users/${tempId}`, 'DELETE'); showToast('User Rejected!', 'success'); load_admin_user_approvals_view(); } catch(e){} } }
-        
+        async function approveUser(id) { if (confirm('Approve user?')) { try { await apiCall('/users/approve', 'POST', {temp_id:id}); showToast('User Approved!', 'success'); load_admin_user_approvals_view(); } catch(e){} } }
+        async function rejectUser(id) { if (confirm('Reject user?')) { try { await apiCall(`/pending-users/${id}`, 'DELETE'); showToast('User Rejected.', 'success'); load_admin_user_approvals_view(); } catch(e){} } }
         async function load_admin_user_control_view() {
-            const tbody = $('#admin-users-tbody');
-            const emptyContainer = $('#admin-users-empty-state');
+            const tbody = $('#admin-users-tbody'), empty = $('#admin-users-empty-state');
+            try { renderEmptyState(empty, 'Loading users...', 'fa-spinner fa-spin'); const result = await apiCall('/users'); if(result.data.length === 0) return renderEmptyState(empty, 'No users found.', 'fa-users'); empty.empty(); tbody.html(result.data.map(u => `<tr><td>${u.full_name}</td><td>${u.email}</td><td><span class="badge bg-${getBadgeColor(u.role)}">${u.role}</span></td><td>${u.company_name||'-'}</td><td>${u.contact_number||'-'}</td><td>${u.gstin||'-'}</td><td><div class="btn-group btn-group-sm"><button class="btn btn-primary" onclick='openEditUserModal(${JSON.stringify(u)})'>Edit</button><button class="btn btn-danger" onclick="handleDeleteUser(${u.user_id})">Delete</button></div></td></tr>`).join('')); } catch (e) {}
+        }
+        function openAddUserModal() { $('#addUserModal').html(`<div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Add User</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="add-user-form"><div class="mb-3"><label class="form-label">Role</label><select id="add-role" class="form-select" required><option value="">Select...</option><option value="Shipper">Shipper</option><option value="Trucker">Trucker</option><option value="Admin">Admin</option></select></div><div class="mb-2"><input type="text" id="add-fullname" class="form-control" placeholder="Full Name" required></div><div class="mb-2"><input type="email" id="add-email" class="form-control" placeholder="Email" required></div><div class="mb-2"><input type="password" id="add-password" class="form-control" placeholder="Password" required></div><div class="mb-2"><input type="text" id="add-contact" class="form-control" placeholder="Contact"></div><div class="mb-2"><input type="text" id="add-company" class="form-control" placeholder="Company Name"></div><div class="mb-3"><input type="text" id="add-gstin" class="form-control" placeholder="GSTIN"></div><button type="submit" class="btn btn-success w-100 fw-bold">Create User</button></form></div></div></div>`); addUserModal.show(); }
+        async function handleAddUserSubmit(e) { e.preventDefault(); const data={full_name:$('#add-fullname').val(),email:$('#add-email').val(),password:$('#add-password').val(),role:$('#add-role').val(),company_name:$('#add-company').val(),contact_number:$('#add-contact').val(),gstin:$('#add-gstin').val()}; try { await apiCall('/users', 'POST', data); showToast('User created!', 'success'); addUserModal.hide(); load_admin_user_control_view(); } catch(e){} }
+        function openEditUserModal(u) { $('#editUserModal').html(`<div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Edit User</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="edit-user-form"><input type="hidden" id="edit-userid" value="${u.user_id}"><div class="mb-2"><label>Name</label><input type="text" id="edit-fullname" class="form-control" value="${u.full_name}" required></div><div class="mb-2"><label>Email</label><input type="email" id="edit-email" class="form-control" value="${u.email}" required></div><div class="mb-2"><label>Role</label><select id="edit-role" class="form-select" required><option value="Shipper">Shipper</option><option value="Trucker">Trucker</option><option value="Admin">Admin</option></select></div><div class="mb-2"><label>Company</label><input type="text" id="edit-company" class="form-control" value="${u.company_name||''}"></div><div class="mb-2"><label>Contact</label><input type="text" id="edit-contact" class="form-control" value="${u.contact_number||''}"></div><div class="mb-2"><label>GSTIN</label><input type="text" id="edit-gstin" class="form-control" value="${u.gstin||''}"></div><div class="mb-2"><label>New Password</label><input type="password" id="edit-password" class="form-control" placeholder="Leave blank to keep unchanged"></div><button type="submit" class="btn btn-success w-100">Save Changes</button></form></div></div></div>`); $('#edit-role').val(u.role); editUserModal.show(); }
+        async function handleUserUpdateSubmit(e) { e.preventDefault(); const id=$('#edit-userid').val(), data={full_name:$('#edit-fullname').val(),email:$('#edit-email').val(),role:$('#edit-role').val(),company_name:$('#edit-company').val(),contact_number:$('#edit-contact').val(),gstin:$('#edit-gstin').val(),password:$('#edit-password').val()}; try { await apiCall(`/users/${id}`, 'PUT', data); showToast('User updated!', 'success'); editUserModal.hide(); load_admin_user_control_view(); } catch(e){} }
+        async function handleDeleteUser(id) { if (confirm('Delete user?')) { try { await apiCall(`/users/${id}`, 'DELETE'); showToast('User deleted.', 'success'); load_admin_user_control_view(); } catch(e){} } }
+
+        // --- REPORTS & BULK UPLOAD ---
+        function openBulkUploadModal() { bulkUploadModal.show(); }
+        async function handleBulkUpload(e) { e.preventDefault(); const file = $('#bulk-upload-file')[0].files[0]; if (!file) return showToast('Please select a file.', 'error'); const formData = new FormData(); formData.append('bulkFile', file); try { await apiCall('/loads/bulk-upload', 'POST', formData, true); showToast('File uploaded and is being processed.', 'success'); bulkUploadModal.hide(); } catch(e){} }
+        function downloadBulkTemplate() { const data = [{"LoadingPoint":"City A", "UnloadingPoint":"City B", "MaterialName":"STEEL ITEMS", "TruckName":"10 Wheeler Truck", "WeightInTonnes":15, "RequirementDate":"2025-10-25"}]; const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Loads"); XLSX.writeFile(wb, "Bulk_Load_Template.xlsx"); }
+        async function load_admin_reports_view() {
+            const kpiContainer = $('#report-kpis');
+            const tableBody = $('#detailed-report-table tbody');
             try {
-                renderEmptyState(emptyContainer, 'Loading users...', 'fa-spinner fa-spin');
-                const result = await apiCall('/users');
-                if(result.data.length === 0) return renderEmptyState(emptyContainer, 'No users found.', 'fa-users');
-                emptyContainer.empty();
-                tbody.html(result.data.map(user => `<tr><td>${user.full_name}</td><td>${user.email}</td><td><span class="badge bg-${getBadgeColor(user.role)}">${user.role}</span></td><td>${user.company_name || '-'}</td><td>${user.contact_number || '-'}</td><td>${user.gstin || '-'}</td><td><div class="btn-group btn-group-sm"><button class="btn btn-primary" onclick='openEditUserModal(${JSON.stringify(user)})'>Edit</button><button class="btn btn-danger" onclick="handleDeleteUser(${user.user_id})">Delete</button></div></td></tr>`).join(''));
-            } catch (error) { /* Handled */ }
+                kpiContainer.html(renderEmptyState(null, 'Loading report data...', 'fa-spinner fa-spin'));
+                tableBody.empty();
+                const result = await apiCall('/admin/reports-data', 'POST', { startDate: $('#report-start-date').val(), endDate: $('#report-end-date').val() });
+                const { kpis, detailedReport } = result.data;
+                kpiContainer.html(`<div class="col-md-6"><div class="card card-body"><h6>Total Spend</h6><h3 class="fw-bold">${formatCurrency(kpis.totalSpend)}</h3></div></div><div class="col-md-6"><div class="card card-body"><h6>Total Loads Awarded</h6><h3 class="fw-bold">${kpis.awardedLoads}</h3></div></div>`);
+                if(detailedReport.length === 0) { tableBody.html(`<tr><td colspan="6" class="text-center text-muted">No awarded contracts found for the selected period.</td></tr>`); } 
+                else { tableBody.html(detailedReport.map(r => `<tr><td>${r.load_id}</td><td><small>${r.loading_point_address} <i class="fas fa-arrow-right"></i> ${r.unloading_point_address}</small></td><td>${r.item_name}</td><td>${r.trucker_name}</td><td>${formatCurrency(r.awarded_amount)}</td><td>${formatDate(r.awarded_date)}</td></tr>`).join('')); }
+            } catch(e){}
         }
-        function openAddUserModal() {
-            const modalContainer = $('#addUserModal');
-            modalContainer.html(`<div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Add New User</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="add-user-form"><div class="mb-3"><label class="form-label">Role</label><select id="add-role" class="form-select" required><option value="">Select role...</option><option value="Shipper">Shipper</option><option value="Trucker">Trucker</option><option value="Admin">Admin</option></select></div><div class="mb-2"><input type="text" id="add-fullname" class="form-control" placeholder="Full Name" required></div><div class="mb-2"><input type="email" id="add-email" class="form-control" placeholder="Email" required></div><div class="mb-2"><input type="password" id="add-password" class="form-control" placeholder="Password" required></div><div class="mb-2"><input type="text" id="add-contact" class="form-control" placeholder="Contact" required></div><div class="mb-2"><input type="text" id="add-company" class="form-control" placeholder="Company Name"></div><div class="mb-3"><input type="text" id="add-gstin" class="form-control" placeholder="GSTIN"></div><button type="submit" class="btn btn-success w-100 fw-bold">Create User</button></form></div></div></div>`);
-            addUserModal.show();
+        function downloadReport() {
+            const table = document.getElementById("detailed-report-table");
+            if(!table || $(table).find('tbody tr').length === 0) return showToast('No data available to download.', 'warning');
+            const wb = XLSX.utils.table_to_book(table, {sheet: "Report"});
+            XLSX.writeFile(wb, "Awarded_Loads_Report.xlsx");
+            showToast('Report downloaded.', 'success');
         }
-        async function handleAddUserSubmit(e) { e.preventDefault(); const data = { full_name: $('#add-fullname').val(), email: $('#add-email').val(), password: $('#add-password').val(), role: $('#add-role').val(), company_name: $('#add-company').val(), contact_number: $('#add-contact').val(), gstin: $('#add-gstin').val() }; try { await apiCall('/users', 'POST', data); showToast('User created!', 'success'); addUserModal.hide(); load_admin_user_control_view(); } catch(e){} }
-        function openEditUserModal(user) {
-            const modalContainer = $('#editUserModal');
-            modalContainer.html(`<div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Edit User</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="edit-user-form"><input type="hidden" id="edit-userid" value="${user.user_id}"><div class="mb-2"><label class="form-label">Full Name</label><input type="text" id="edit-fullname" class="form-control" value="${user.full_name}" required></div><div class="mb-2"><label class="form-label">Email</label><input type="email" id="edit-email" class="form-control" value="${user.email}" required></div><div class="mb-2"><label class="form-label">Role</label><select id="edit-role" class="form-select" required><option value="Shipper">Shipper</option><option value="Trucker">Trucker</option><option value="Admin">Admin</option></select></div><div class="mb-2"><label class="form-label">Company</label><input type="text" id="edit-company" class="form-control" value="${user.company_name || ''}"></div><div class="mb-2"><label class="form-label">Contact</label><input type="text" id="edit-contact" class="form-control" value="${user.contact_number || ''}"></div><div class="mb-2"><label class="form-label">GSTIN</label><input type="text" id="edit-gstin" class="form-control" value="${user.gstin || ''}"></div><div class="mb-2"><label class="form-label">New Password</label><input type="password" id="edit-password" class="form-control" placeholder="Leave blank to keep unchanged"></div><button type="submit" class="btn btn-success w-100">Save Changes</button></form></div></div></div>`);
-            $('#edit-role').val(user.role);
-            editUserModal.show();
-        }
-        async function handleUserUpdateSubmit(e) { e.preventDefault(); const userId = $('#edit-userid').val(); const data = { full_name: $('#edit-fullname').val(), email: $('#edit-email').val(), role: $('#edit-role').val(), company_name: $('#edit-company').val(), contact_number: $('#edit-contact').val(), gstin: $('#edit-gstin').val(), password: $('#edit-password').val() }; try { await apiCall(`/users/${userId}`, 'PUT', data); showToast('User updated!', 'success'); editUserModal.hide(); load_admin_user_control_view(); } catch(e){} }
-        async function handleDeleteUser(userId) { if (confirm('Are you sure you want to permanently delete this user?')) { try { await apiCall(`/users/${userId}`, 'DELETE'); showToast('User deleted.', 'success'); load_admin_user_control_view(); } catch(e){} } }
 
         // =========================================================
         // ================ UTILITY FUNCTIONS ======================
@@ -634,8 +491,8 @@
         function showToast(m, t='info') { const c = $('#toast-container'), e = $(`<div><i class="fas ${t === 'success' ? 'fa-check-circle' : 'fa-times-circle'} me-2"></i><span>${m}</span></div>`).addClass(`toast-notification ${t}`); c.append(e); setTimeout(()=>e.remove(), 4000); }
         function showLoader() { $('#loader-overlay').removeClass('hidden'); }
         function hideLoader() { $('#loader-overlay').addClass('hidden'); }
-        function renderEmptyState(containerSelector, message, iconClass = 'fa-folder-open') { $(containerSelector).html(`<div class="empty-state"><i class="fas ${iconClass}"></i><p>${message}</p></div>`); }
-        function formatCurrency(v) { const n = parseFloat(v); return isNaN(n) ? '₹0.00' : `₹${n.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`; }
+        function renderEmptyState(container, message, iconClass = 'fa-folder-open') { const html = `<div class="empty-state w-100"><i class="fas ${iconClass}"></i><p>${message}</p></div>`; if(container) $(container).html(html); return html;}
+        function formatCurrency(v) { const n = parseFloat(v); return isNaN(n) ? '₹0' : `₹${n.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`; }
         function formatDate(d) { return d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric'}) : 'N/A'; }
         function getBadgeColor(s) { return {'Awarded':'primary','Active':'success','Pending Approval':'warning','Submitted':'info','Rejected':'danger', 'Processed': 'secondary', 'Admin': 'info', 'Super Admin': 'danger', 'Trucker': 'success', 'Shipper': 'secondary'}[s]||'dark'; }
     </script>
