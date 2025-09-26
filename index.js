@@ -302,9 +302,10 @@ app.post('/api/contracts/award', authenticateToken, isAdmin, async (req, res, ne
         await connection.beginTransaction();
         for (const bid of bids) {
             await connection.query("DELETE FROM awarded_contracts WHERE load_id = ?", [bid.load_id]);
+            // CORRECTED QUERY: Removed 'awarded_by'
             await connection.query(
-                "INSERT INTO awarded_contracts (load_id, requisition_id, vendor_id, awarded_amount, awarded_by, remarks, awarded_date) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                [bid.load_id, bid.requisition_id, bid.vendor_id, bid.bid_amount, req.user.userId, bid.remarks, new Date()]
+                "INSERT INTO awarded_contracts (load_id, requisition_id, vendor_id, awarded_amount, remarks, awarded_date) VALUES (?, ?, ?, ?, ?, ?)",
+                [bid.load_id, bid.requisition_id, bid.vendor_id, bid.bid_amount, bid.remarks, new Date()]
             );
             await connection.query("UPDATE truck_loads SET status = 'Awarded' WHERE load_id = ?", [bid.load_id]);
         }
@@ -338,7 +339,6 @@ app.post('/api/loads/reopen-bidding', authenticateToken, isAdmin, async (req, re
                 await connection.query('INSERT INTO trucker_assignments (requisition_id, vendor_id, assigned_at) VALUES ?', [values]);
             }
         }
-        // You might want to log this action somewhere
         console.log(`Loads ${loadIds.join(',')} re-opened by ${req.user.fullName} with remarks: ${remarks}`);
 
         await connection.commit();
@@ -374,6 +374,7 @@ app.post('/api/messages', authenticateToken, async (req, res, next) => { try { c
 app.get('/api/sidebar-counts', authenticateToken, async (req, res, next) => { try { let counts = { unreadMessages: 0, pendingLoads: 0, pendingUsers: 0 }; const [[msgCount]] = await dbPool.query("SELECT COUNT(*) as count FROM messages WHERE recipient_id = ? AND is_read = 0", [req.user.userId]); counts.unreadMessages = msgCount.count; if(req.user.role === 'Admin' || req.user.role === 'Super Admin') { const [[pendingUsers]] = await dbPool.query("SELECT COUNT(*) as count FROM pending_users"); counts.pendingUsers = pendingUsers.count; const [[pendingLoads]] = await dbPool.query("SELECT COUNT(*) as count FROM truck_loads WHERE status = 'Pending Approval'"); counts.pendingLoads = pendingLoads.count; } res.json({ success: true, data: counts }); } catch(e){next(e)} });
 app.post('/api/send-email', authenticateToken, isAdmin, async (req, res, next) => {
     if (!process.env.SENDGRID_API_KEY) {
+        console.warn('Attempted to send email, but SendGrid is not configured.');
         return res.status(503).json({ success: false, message: 'Email service is not configured.' });
     }
     try {
