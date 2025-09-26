@@ -20,6 +20,7 @@
         }
         body { font-family: 'Poppins', sans-serif; background-color: var(--content-bg); }
         #app-container { display: none; }
+        .hidden { display: none !important; }
         .view { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         #loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); z-index: 10002; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); display: none; }
@@ -199,8 +200,6 @@
         $('#register-form').on('submit', handleRegistration);
         $(document).on('submit', '#create-load-form', handleLoadSubmit);
         $('#reg-role').on('change', handleRoleChange);
-
-        // BUG FIX: Added event listener for show/hide password
         $('#togglePassword').on('click', function() {
             const passwordInput = $('#password');
             const type = passwordInput.attr('type') === 'password' ? 'text' : 'password';
@@ -219,24 +218,19 @@
             const options = { method, headers };
             if (body) options.body = JSON.stringify(body);
             
-            // BUG FIX: URL construction is now correct
             const finalUrl = API_BASE_URL + (endpoint.startsWith('/') ? endpoint : '/' + endpoint);
             
             const response = await fetch(finalUrl, options);
-            
             const result = await response.json();
 
             if (!response.ok) {
                 if (response.status === 401 || response.status === 403) {
-                    // Don't logout on every error, only auth errors
                     handleLogout();
                 }
-                throw new Error(result.message || `HTTP Error: ${response.statusText}`);
+                throw new Error(result.message || `HTTP Error`);
             }
             return result;
         } catch (error) {
-            // This will catch JSON parsing errors if response is not valid JSON
-            // and other network errors.
             showToast(error.message, 'error');
             throw error;
         } finally {
@@ -245,7 +239,6 @@
     }
 
     function navigateTo(viewId) {
-        // Use a default view if the requested one doesn't exist to prevent errors
         const targetView = views[viewId] || `<div class="card"><div class="card-body">View "${viewId}" not found.</div></div>`;
         mainView.html(targetView);
         $('#nav-links .nav-link').removeClass('active');
@@ -264,11 +257,10 @@
         const currentViewLink = $('#nav-links .nav-link.active');
         if (currentViewLink.length > 0) {
             showToast('Refreshing data...', 'info');
-            const viewId = currentViewLink.data('view');
-            if (viewId === 'user-create-load-view') {
+            if (currentViewLink.data('view') === 'user-create-load-view') {
                 MASTER_DATA = { truckTypes: [], items: [] };
             }
-            navigateTo(viewId);
+            navigateTo(currentViewLink.data('view'));
         }
     }
     
