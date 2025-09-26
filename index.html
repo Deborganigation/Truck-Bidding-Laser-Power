@@ -8,54 +8,31 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
     <style>
         :root {
-            --primary-color: #5E72E4; --secondary-color: #F4F5F7; --success-color: #2DCE89;
-            --info-color: #11CDEF; --warning-color: #FB6340; --danger-color: #F5365C;
-            --sidebar-bg: #172B4D; --sidebar-text: #8898AA; --sidebar-hover-bg: #1F3866;
-            --sidebar-active-text: #ffffff; --content-bg: #F8F9FE; --card-bg: #ffffff;
-            --text-dark: #32325D; --text-muted: #8898AA; --border-color: #E9ECEF;
+            --primary-color: #5E72E4; --success-color: #2DCE89; --info-color: #11CDEF;
+            --sidebar-bg: #172B4D; --content-bg: #F8F9FE;
         }
         body { font-family: 'Poppins', sans-serif; background-color: var(--content-bg); }
         .hidden { display: none !important; }
-        #app-container { display: none; }
         #loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); z-index: 10002; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 10003; }
         .toast-notification { padding: 15px 20px; color: white; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 7px 14px rgba(50,50,93,.1), 0 3px 6px rgba(0,0,0,.08); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; }
         .toast-notification.success { background: linear-gradient(87deg, #2dce89 0, #2dcecc 100%) !important; }
         .toast-notification.error { background: linear-gradient(87deg, #f5365c 0, #f56036 100%) !important; }
-        .toast-notification.info { background: linear-gradient(87deg, #11cdef 0, #1171ef 100%) !important; }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        #login-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #172B4D; z-index: 2000; }
+        #login-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--sidebar-bg); z-index: 2000; }
         #login-video-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; filter: brightness(0.4); }
-        #login-container { width: 100%; max-width: 420px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.2); color: white; }
+        #login-container { width: 100%; max-width: 420px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.2); color: white; }
         #login-container .form-control { background-color: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; }
         #login-container .form-control::placeholder { color: rgba(255,255,255,0.7); }
+        #login-container a { color: var(--info-color); }
         .password-container { position: relative; }
         .password-container .toggle-password { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); cursor: pointer; color: rgba(255,255,255,0.7); background: transparent; border: none; padding: 5px; }
-        .wrapper { display: flex; }
-        .sidebar { width: 260px; background: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 1001; transition: all 0.3s ease-in-out; box-shadow: 0 0 2rem 0 rgba(136,152,170,.15); }
-        .sidebar .logo { font-size: 1.2rem; font-weight: 600; text-align: center; color: white; padding: 22px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
-        .sidebar .logo i { color: var(--info-color); }
-        .sidebar .nav-link { color: var(--sidebar-text); padding: 12px 25px; border-radius: .375rem; margin: 0 1rem 5px; transition: all 0.2s ease; white-space: nowrap; cursor: pointer; display: flex; align-items: center; justify-content: space-between;}
-        .sidebar .nav-link:hover { background-color: var(--sidebar-hover-bg); color: var(--sidebar-active-text); }
-        .sidebar .nav-link.active { background: linear-gradient(87deg, #5e72e4 0, #825ee4 100%) !important; color: var(--sidebar-active-text); font-weight: 500; box-shadow: 0 7px 14px rgba(50,50,93,.1), 0 3px 6px rgba(0,0,0,.08); }
-        .sidebar .nav-link .nav-link-text { display: flex; align-items: center; }
-        .sidebar .nav-link .nav-link-text i { margin-right: 15px; width: 20px; text-align: center; font-size: .95rem; }
-        .sidebar .user-profile { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding: 15px 10px; text-align: center; }
-        .main-content { width: 100%; padding: 30px; margin-left: 260px; transition: margin-left 0.3s ease-in-out; }
-        .card { border: none; border-radius: .5rem; box-shadow: 0 1px 3px rgba(50,50,93,.15), 0 1px 0 rgba(0,0,0,.02); }
-        .card-header { background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); font-weight: 600; padding: 1.25rem 1.5rem; }
-        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
-        .empty-state i { font-size: 2.5rem; margin-bottom: 1rem; }
-        .bidding-card { background-color: #fff; border-radius: .5rem; box-shadow: 0 1px 3px rgba(50,50,93,.15), 0 1px 0 rgba(0,0,0,.02); margin-bottom: 1.5rem; }
-        .bidding-card-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); background-color: #f6f9fc; }
-        .bidding-card-body { padding: 1.5rem; }
     </style>
 </head>
 <body>
+
     <div id="loader-overlay" class="hidden"><div class="spinner-border text-primary" role="status"></div></div>
     <div id="toast-container"></div>
 
@@ -72,7 +49,7 @@
                 </div>
                 <button type="submit" class="btn btn-primary w-100 fw-bold">Log In</button>
             </form>
-             <div id="login-error-msg" class="text-danger text-center small mt-2 fw-bold" style="display: none;"></div>
+            <div id="login-error-msg" class="text-danger text-center small mt-2 fw-bold" style="display: none;"></div>
             <p class="text-center mt-3 small">Don't have an account? <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Register Now</a></p>
         </div>
     </div>
@@ -102,14 +79,11 @@
             </div>
         </div>
     </div>
-    
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    
     <script>
     const API_BASE_URL = '/api';
-    let MASTER_DATA = { truckTypes: [], items: [] };
     let loginWrapper, appContainer, registerModal;
 
     $(document).ready(() => {
@@ -148,7 +122,6 @@
             const headers = { 'Content-Type': 'application/json' };
             const token = sessionStorage.getItem('authToken');
             if (token) headers['Authorization'] = `Bearer ${token}`;
-
             const options = { method, headers };
             if (body) options.body = JSON.stringify(body);
             
@@ -156,8 +129,10 @@
             const result = await response.json();
 
             if (!response.ok) {
-                if (response.status === 401 && !endpoint.includes('/login')) {
-                    setTimeout(handleLogout, 1500);
+                // BUG FIX: Only trigger logout on 401/403 errors for authenticated pages, NOT for login failures.
+                if ((response.status === 401 || response.status === 403) && !endpoint.includes('/login')) {
+                    showToast('Session expired. Logging out.', 'error');
+                    setTimeout(handleLogout, 2000);
                 }
                 throw new Error(result.message || `HTTP Error`);
             }
@@ -200,7 +175,7 @@
                 $(e.target)[0].reset();
             }
         } catch (error) {
-            console.error("Registration failed:", error);
+            console.error("Registration failed:", error.message);
         }
     }
 
@@ -215,171 +190,34 @@
         sessionStorage.clear();
         window.location.reload();
     }
-    
-    // =================================================================
-    // =========== DYNAMIC UI AND VIEW LOGIC STARTS HERE ===============
-    // =================================================================
 
     function setupUIForRole(user) {
         loginWrapper.addClass('hidden');
         appContainer.removeClass('hidden');
-
-        const appHtml = `
-            <nav class="sidebar" id="sidebar">
-                <div class="logo"> <i class="fas fa-truck"></i> <span>DEB'S LOGISTICS</span> </div>
-                <div id="nav-links" class="flex-grow-1"></div>
-                <div class="user-profile">
-                    <div><h6 id="user-name-sidebar" class="mb-0 text-white">${user.fullName}</h6><small id="user-email-sidebar" class="text-muted">${user.email}</small></div>
-                    <button onclick="handleLogout()" class="btn btn-sm btn-outline-danger w-100 mt-2"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></button>
+        
+        // After login, we show a simple placeholder.
+        // All your dashboards and forms will be added back here.
+        appContainer.html(`
+            <div class="container vh-100 d-flex justify-content-center align-items-center">
+                <div class="text-center">
+                    <h1>Welcome, ${user.fullName}!</h1>
+                    <p>Your role is: ${user.role}</p>
+                    <p class="text-success">Login successful! We will now add all your features back.</p>
+                    <button onclick="handleLogout()" class="btn btn-danger">Logout</button>
                 </div>
-            </nav>
-            <main class="main-content" id="main-content">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 id="header-title" class="h4 mb-0 fw-bold text-dark"></h1>
-                    <button class="btn btn-sm btn-outline-primary" onclick="handleManualRefresh()"><i class="fas fa-sync-alt me-2"></i>Refresh Data</button>
-                </div>
-                <div id="main-view"></div>
-            </main>
-        `;
-        appContainer.html(appHtml);
-
-        const navLinksContainer = $('#nav-links');
-        const allLinks = {
-            adminDashboard: `<a class="nav-link" data-view="admin-dashboard-view" onclick="navigateTo('admin-dashboard-view')"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a>`,
-            adminPendingLoads: `<a class="nav-link" data-view="admin-pending-loads-view" onclick="navigateTo('admin-pending-loads-view')"><div class="nav-link-text"><i class="fas fa-inbox"></i> <span>Requisition Approvals</span></div></a>`,
-            adminActiveLoads: `<a class="nav-link" data-view="admin-active-loads-view" onclick="navigateTo('admin-active-loads-view')"><div class="nav-link-text"><i class="fas fa-truck-loading"></i> <span>All Requirements</span></div></a>`,
-            adminBiddingHistory: `<a class="nav-link" data-view="admin-bidding-history-view" onclick="navigateTo('admin-bidding-history-view')"><div class="nav-link-text"><i class="fas fa-history"></i> <span>Bidding History</span></div></a>`,
-            adminAwardedLoads: `<a class="nav-link" data-view="admin-awarded-loads-view" onclick="navigateTo('admin-awarded-loads-view')"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>Awarded Contracts</span></div></a>`,
-            adminReports: `<a class="nav-link" data-view="admin-reports-view" onclick="navigateTo('admin-reports-view')"><div class="nav-link-text"><i class="fas fa-chart-line"></i> <span>Reports & Analytics</span></div></a>`,
-            adminPendingUsers: `<a class="nav-link" data-view="admin-pending-users-view" onclick="navigateTo('admin-pending-users-view')"><div class="nav-link-text"><i class="fas fa-user-check"></i> <span>User Approvals</span></div></a>`,
-            adminUserControl: `<a class="nav-link" data-view="admin-user-control-view" onclick="navigateTo('admin-user-control-view')"><div class="nav-link-text"><i class="fas fa-users-cog"></i> <span>User Control</span></div></a>`,
-            vendorDashboard: `<a class="nav-link" data-view="vendor-dashboard-view" onclick="navigateTo('vendor-dashboard-view')"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a>`,
-            vendorOpenLoads: `<a class="nav-link" data-view="vendor-open-loads-view" onclick="navigateTo('vendor-open-loads-view')"><div class="nav-link-text"><i class="fas fa-clipboard-list"></i> <span>My Open Requirements</span></div></a>`,
-            vendorMyBids: `<a class="nav-link" data-view="vendor-my-bids-view" onclick="navigateTo('vendor-my-bids-view')"><div class="nav-link-text"><i class="fas fa-gavel"></i> <span>My Bidding History</span></div></a>`,
-            vendorAwardedLoads: `<a class="nav-link" data-view="vendor-awarded-loads-view" onclick="navigateTo('vendor-awarded-loads-view')"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>My Awarded Contracts</span></div></a>`,
-            userCreateLoad: `<a class="nav-link" data-view="user-create-load-view" onclick="navigateTo('user-create-load-view')"><div class="nav-link-text"><i class="fas fa-plus-circle"></i> <span>Create Requisition</span></div></a>`,
-            userStatus: `<a class="nav-link" data-view="user-status-view" onclick="navigateTo('user-status-view')"><div class="nav-link-text"><i class="fas fa-history"></i> <span>My Requisition Status</span></div></a>`,
-            messaging: `<a class="nav-link" data-view="messaging-view" onclick="navigateTo('messaging-view')"><div class="nav-link-text"><i class="fas fa-comments"></i> <span>Messages</span></div></a>`
-        };
-
-        if (user.role === 'Admin' || user.role === 'Super Admin') {
-            navLinksContainer.append(allLinks.adminDashboard, allLinks.adminPendingLoads, allLinks.adminActiveLoads, allLinks.adminBiddingHistory, allLinks.adminAwardedLoads, allLinks.adminReports, allLinks.adminPendingUsers, allLinks.adminUserControl, allLinks.messaging);
-        } else if (user.role === 'Vendor') {
-            navLinksContainer.append(allLinks.vendorDashboard, allLinks.vendorOpenLoads, allLinks.vendorMyBids, allLinks.vendorAwardedLoads, allLinks.messaging);
-        } else if (user.role === 'User') {
-            navLinksContainer.append(allLinks.userCreateLoad, allLinks.userStatus, allLinks.messaging);
-        }
-
-        const defaultViewMap = { 'Super Admin': 'admin-dashboard-view', 'Admin': 'admin-dashboard-view', 'Vendor': 'vendor-dashboard-view', 'User': 'user-create-load-view' };
-        navigateTo(defaultViewMap[user.role]);
-    }
-
-    const views = {
-        'admin-dashboard-view': `<div class="card"><div class="card-body">Admin Dashboard Coming Soon...</div></div>`,
-        'admin-pending-loads-view': `<div class="card"><div class="card-header"><h5 class="mb-0">Pending Load Approvals</h5></div><div class="card-body"><div id="pending-loads-container"></div></div></div>`,
-        'admin-active-loads-view': `<div class="card"><div class="card-header"><h5 class="mb-0">All Active Loads</h5></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle"><thead><tr><th>Req ID</th><th>Shipper</th><th>Route</th><th>Load Details</th><th>Assigned Truckers</th><th>L1 Bid</th><th>Status</th><th>Actions</th></tr></thead><tbody id="admin-loads-tbody"></tbody></table><div id="admin-loads-empty-state"></div></div></div>`,
-        'admin-bidding-history-view': `<div class="card"><div class="card-body">Bidding History Coming Soon...</div></div>`,
-        'admin-awarded-loads-view': `<div class="card"><div class="card-body">Awarded Loads Coming Soon...</div></div>`,
-        'admin-reports-view': `<div class="card"><div class="card-body">Reports & Analytics Coming Soon...</div></div>`,
-        'admin-pending-users-view': `<div class="card"><div class="card-body">User Approvals Coming Soon...</div></div>`,
-        'admin-user-control-view': `<div class="card"><div class="card-body">User Control Coming Soon...</div></div>`,
-        'vendor-dashboard-view': `<div class="card"><div class="card-body">Trucker Dashboard Coming Soon...</div></div>`,
-        'vendor-open-loads-view': `<div id="vendor-loads-container"></div><div id="vendor-loads-empty-state"></div>`,
-        'vendor-my-bids-view': `<div class="card"><div class="card-body">My Bidding History Coming Soon...</div></div>`,
-        'vendor-awarded-loads-view': `<div class="card"><div class="card-body">My Awarded Contracts Coming Soon...</div></div>`,
-        'user-create-load-view': `<div class="card"><div class="card-header"><h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Post a New Load</h5></div><div class="card-body"><form id="create-load-form"><div id="load-item-container"></div><hr/><button type="submit" class="btn btn-primary w-100 fw-bold">Submit Load Request for Approval</button></form></div></div>`,
-        'user-status-view': `<div class="card"><div class="card-header"><h5 class="mb-0"><i class="fas fa-history me-2"></i>My Load Request Status</h5></div><div class="card-body" id="user-req-status-list"></div></div>`,
-        'messaging-view': `<div class="card"><div class="card-body">Messaging Coming Soon...</div></div>`,
-    };
-
-    async function navigateTo(viewId) {
-        const mainView = $('#main-view');
-        const headerTitle = $('#header-title');
-        mainView.html(views[viewId] || '<div>View not found</div>');
-        $('#nav-links .nav-link').removeClass('active');
-        const navLink = $(`[data-view="${viewId}"]`);
-        if (navLink.length) {
-            navLink.addClass('active');
-            headerTitle.text(navLink.find('span').text().trim());
-        }
-        const loadFunctionName = `load_${viewId.replace(/-/g, '_')}`;
-        if (typeof window[loadFunctionName] === 'function') {
-            window[loadFunctionName]();
-        }
-    }
-
-    async function handleManualRefresh() {
-        const currentViewLink = $('#nav-links .nav-link.active');
-        if (currentViewLink.length > 0) {
-            const viewId = currentViewLink.data('view');
-            if (viewId === 'user-create-load-view') {
-                MASTER_DATA = { truckTypes: [], items: [] };
-            }
-            navigateTo(viewId);
-        }
-    }
-    
-    async function fetchMasterData() {
-        if (MASTER_DATA.truckTypes.length === 0 || MASTER_DATA.items.length === 0) {
-            showToast('Loading master data...', 'info');
-            try {
-                const [trucksRes, itemsRes] = await Promise.all([
-                    apiCall('/master-data/truck-types'),
-                    apiCall('/master-data/items')
-                ]);
-                MASTER_DATA.truckTypes = trucksRes.data;
-                MASTER_DATA.items = itemsRes.data;
-            } catch (e) {
-                throw new Error('Failed to load master data. Please refresh.');
-            }
-        }
-    }
-
-    async function load_user_create_load_view() {
-        try {
-            await fetchMasterData();
-            $('#load-item-container').html(getLoadItemHtml());
-            $('.item-id-select, .truck-type-select').select2({ theme: "bootstrap-5", dropdownParent: $('#app-container') });
-        } catch (e) {
-            $('#load-item-container').html(`<div class="alert alert-danger">${e.message}</div>`);
-        }
-    }
-    
-    function getLoadItemHtml() {
-        const truckOptions = MASTER_DATA.truckTypes.map(p => `<option value='${p.truck_type_id}'>${p.truck_name} (${p.dala_length_feet} ft)</option>`).join('');
-        const itemOptions = MASTER_DATA.items.map(p => `<option value='${p.item_id}'>${p.item_name}</option>`).join('');
-        return `<div class="card card-body mb-3"><div class="row"><div class="col-md-6 mb-3"><label class="form-label">Loading Point Full Address</label><textarea class="form-control loading-point" rows="3" placeholder="Full address with contact details and PIN code" required></textarea></div><div class="col-md-6 mb-3"><label class="form-label">Unloading Point Full Address</label><textarea class="form-control unloading-point" rows="3" placeholder="Full address with contact details and PIN code" required></textarea></div></div><div class="row"><div class="col-md-6 mb-3"><label class="form-label">Material / Item</label><select class="form-select item-id-select" required><option value="">Select Material...</option>${itemOptions}</select></div><div class="col-md-6 mb-3"><label class="form-label">Approx. Weight (in Metric Tonnes)</label><input type="number" step="0.01" class="form-control weight" placeholder="e.g., 15.5" required></div></div><div class="row"><div class="col-md-6 mb-3"><label class="form-label">Required Truck Type</label><select class="form-select truck-type-select" required><option value="">Select Truck Type...</option>${truckOptions}</select></div><div class="col-md-6 mb-3"><label>Requirement Date</label><input type="date" class="form-control req-date" required></div></div></div>`;
-    }
-    
-    async function handleLoadSubmit(e) {
-        e.preventDefault();
-        const card = $('#load-item-container .card-body');
-        const payload = {
-            loading_point_address: card.find('.loading-point').val(),
-            unloading_point_address: card.find('.unloading-point').val(),
-            item_id: card.find('.item-id-select').val(),
-            approx_weight_tonnes: card.find('.weight').val(),
-            truck_type_id: card.find('.truck-type-select').val(),
-            requirement_date: card.find('.req-date').val(),
-        };
-        const result = await apiCall('/requisitions', 'POST', { items: JSON.stringify([payload]) });
-        if (result.success) {
-            showToast(result.message, 'success');
-            navigateTo('user-create-load-view');
-        }
+            </div>
+        `);
     }
     
     // UTILITY FUNCTIONS
     function showToast(m, t='info') {
-        const c = $('#toast-container'), e = $(`<div><i class="fas ${t === 'success' ? 'fa-check-circle' : 'fa-times-circle'} me-2"></i><span>${m}</span></div>`).addClass(`toast-notification ${t}`);
+        const c = $('#toast-container');
+        const e = $(`<div><i class="fas ${t === 'success' ? 'fa-check-circle' : 'fa-times-circle'} me-2"></i><span>${m}</span></div>`).addClass(`toast-notification ${t}`);
         c.append(e);
         setTimeout(() => e.remove(), 5000);
     }
     function showLoader() { $('#loader-overlay').removeClass('hidden'); }
     function hideLoader() { $('#loader-overlay').addClass('hidden'); }
-    function formatCurrency(v){ const n=parseFloat(v); return isNaN(n)?'₹0.00':`₹${n.toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:0})}` }
-    function formatDate(dateString) { if (!dateString) return 'N/A'; const date = new Date(dateString); return date.toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }); }
-
     </script>
 </body>
 </html>
