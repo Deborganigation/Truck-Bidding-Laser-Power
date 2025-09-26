@@ -26,7 +26,6 @@
         .toast-notification { padding: 15px 20px; color: white; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 7px 14px rgba(50,50,93,.1), 0 3px 6px rgba(0,0,0,.08); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; }
         .toast-notification.success { background: linear-gradient(87deg, #2dce89 0, #2dcecc 100%) !important; }
         .toast-notification.error { background: linear-gradient(87deg, #f5365c 0, #f56036 100%) !important; }
-        .toast-notification.info { background: linear-gradient(87deg, #11cdef 0, #1171ef 100%) !important; }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
         #login-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #172B4D; z-index: 2000; }
         #login-video-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; filter: brightness(0.4); }
@@ -37,14 +36,6 @@
         .password-container .toggle-password { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); cursor: pointer; color: rgba(255,255,255,0.7); background: transparent; border: none; padding: 5px; }
         .wrapper { display: flex; }
         .sidebar { width: 260px; background: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 1001; transition: all 0.3s ease-in-out; box-shadow: 0 0 2rem 0 rgba(136,152,170,.15); }
-        .sidebar .logo { font-size: 1.2rem; font-weight: 600; text-align: center; color: white; padding: 22px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
-        .sidebar .logo i { color: var(--info-color); }
-        .sidebar .nav-link { color: var(--sidebar-text); padding: 12px 25px; border-radius: .375rem; margin: 0 1rem 5px; transition: all 0.2s ease; white-space: nowrap; cursor: pointer; display: flex; align-items: center; justify-content: space-between;}
-        .sidebar .nav-link:hover { background-color: var(--sidebar-hover-bg); color: var(--sidebar-active-text); }
-        .sidebar .nav-link.active { background: linear-gradient(87deg, #5e72e4 0, #825ee4 100%) !important; color: var(--sidebar-active-text); font-weight: 500; box-shadow: 0 7px 14px rgba(50,50,93,.1), 0 3px 6px rgba(0,0,0,.08); }
-        .sidebar .nav-link .nav-link-text { display: flex; align-items: center; }
-        .sidebar .nav-link .nav-link-text i { margin-right: 15px; width: 20px; text-align: center; font-size: .95rem; }
-        .sidebar .user-profile { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding: 15px 10px; text-align: center; }
         .main-content { width: 100%; padding: 30px; margin-left: 260px; transition: margin-left 0.3s ease-in-out; }
         .card { border: none; border-radius: .5rem; box-shadow: 0 1px 3px rgba(50,50,93,.15), 0 1px 0 rgba(0,0,0,.02); }
         .card-header { background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); font-weight: 600; padding: 1.25rem 1.5rem; }
@@ -72,7 +63,7 @@
                 </div>
                 <button type="submit" class="btn btn-primary w-100 fw-bold">Log In</button>
             </form>
-             <div id="login-error-msg" class="text-danger text-center small mt-2 fw-bold" style="display: none;"></div>
+            <div id="login-error-msg" class="text-danger text-center small mt-2 fw-bold" style="display: none;"></div>
             <p class="text-center mt-3 small">Don't have an account? <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Register Now</a></p>
         </div>
     </div>
@@ -112,9 +103,6 @@
     let MASTER_DATA = { truckTypes: [], items: [] };
     let loginWrapper, appContainer, registerModal;
 
-    // =========================================================
-    // ================ CORE APP LOGIC =========================
-    // =========================================================
     $(document).ready(() => {
         loginWrapper = $('#login-wrapper');
         appContainer = $('#app-container');
@@ -174,9 +162,6 @@
         }
     }
 
-    // =========================================================
-    // ================= AUTH FUNCTIONS ======================
-    // =========================================================
     async function handleLogin(e) {
         e.preventDefault();
         $('#login-error-msg').hide();
@@ -185,7 +170,7 @@
             const result = await apiCall('/login', 'POST', { email, password });
             sessionStorage.setItem('loggedInUser', JSON.stringify(result.user));
             sessionStorage.setItem('authToken', result.token);
-            await setupUIForRole(result.user);
+            setupUIForRole(result.user);
         } catch (error) {
             $('#login-error-msg').text(error.message || 'Invalid credentials.').show();
         }
@@ -207,7 +192,7 @@
                 $(e.target)[0].reset();
             }
         } catch (error) {
-            console.error("Registration failed:", error.message);
+            console.error("Registration failed:", error);
         }
     }
 
@@ -226,6 +211,27 @@
     // =================================================================
     // =========== DYNAMIC UI AND VIEW LOGIC STARTS HERE ===============
     // =================================================================
+
+    const views = {
+        'admin-dashboard-view': `<div class="card"><div class="card-body">Admin Dashboard</div></div>`,
+        'admin-pending-loads-view': `<div class="card"><div class="card-header"><h5 class="mb-0">Pending Load Approvals</h5></div><div class="card-body"><div id="pending-loads-container"></div></div></div>`,
+        'admin-active-loads-view': `<div class="card"><div class="card-body">All Active Loads</div></div>`,
+        'admin-bidding-history-view': `<div class="card"><div class="card-body">Bidding History</div></div>`,
+        'admin-awarded-loads-view': `<div class="card"><div class="card-body">Awarded Loads</div></div>`,
+        'admin-reports-view': `<div class="card"><div class="card-body">Reports & Analytics</div></div>`,
+        'admin-pending-users-view': `<div class="card"><div class="card-body">User Approvals</div></div>`,
+        'admin-user-control-view': `<div class="card"><div class="card-body">User Control</div></div>`,
+        
+        'vendor-dashboard-view': `<div class="card"><div class="card-body">Trucker Dashboard</div></div>`,
+        'vendor-open-loads-view': `<div id="vendor-loads-container"></div><div id="vendor-loads-empty-state"></div>`,
+        'vendor-my-bids-view': `<div class="card"><div class="card-body">My Bidding History</div></div>`,
+        'vendor-awarded-loads-view': `<div class="card"><div class="card-body">My Awarded Contracts</div></div>`,
+        
+        'user-create-load-view': `<div class="card"><div class="card-header"><h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Post a New Load</h5></div><div class="card-body"><form id="create-load-form"><div id="load-item-container"></div><hr/><button type="submit" class="btn btn-primary w-100 fw-bold">Submit Load Request</button></form></div></div>`,
+        'user-status-view': `<div class="card"><div class="card-header"><h5 class="mb-0"><i class="fas fa-history me-2"></i>My Load Status</h5></div><div class="card-body" id="user-req-status-list"></div></div>`,
+        
+        'messaging-view': `<div class="card"><div class="card-body">Messaging</div></div>`,
+    };
 
     function setupUIForRole(user) {
         loginWrapper.addClass('hidden');
@@ -252,20 +258,20 @@
 
         const navLinksContainer = $('#nav-links');
         const allLinks = {
-            adminDashboard: `<a class="nav-link admin-nav-item" data-view="admin-dashboard-view" onclick="navigateTo('admin-dashboard-view')"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a>`,
-            adminPendingLoads: `<a class="nav-link admin-nav-item" data-view="admin-pending-loads-view" onclick="navigateTo('admin-pending-loads-view')"><div class="nav-link-text"><i class="fas fa-inbox"></i> <span>Requisition Approvals</span></div></a>`,
-            adminActiveLoads: `<a class="nav-link admin-nav-item" data-view="admin-active-loads-view" onclick="navigateTo('admin-active-loads-view')"><div class="nav-link-text"><i class="fas fa-truck-loading"></i> <span>All Requirements</span></div></a>`,
-            adminBiddingHistory: `<a class="nav-link admin-nav-item" data-view="admin-bidding-history-view" onclick="navigateTo('admin-bidding-history-view')"><div class="nav-link-text"><i class="fas fa-history"></i> <span>Bidding History</span></div></a>`,
-            adminAwardedLoads: `<a class="nav-link admin-nav-item" data-view="admin-awarded-loads-view" onclick="navigateTo('admin-awarded-loads-view')"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>Awarded Contracts</span></div></a>`,
-            adminReports: `<a class="nav-link admin-nav-item" data-view="admin-reports-view" onclick="navigateTo('admin-reports-view')"><div class="nav-link-text"><i class="fas fa-chart-line"></i> <span>Reports & Analytics</span></div></a>`,
-            adminPendingUsers: `<a class="nav-link admin-nav-item" data-view="admin-pending-users-view" onclick="navigateTo('admin-pending-users-view')"><div class="nav-link-text"><i class="fas fa-user-check"></i> <span>User Approvals</span></div></a>`,
-            adminUserControl: `<a class="nav-link admin-nav-item" data-view="admin-user-control-view" onclick="navigateTo('admin-user-control-view')"><div class="nav-link-text"><i class="fas fa-users-cog"></i> <span>User Control</span></div></a>`,
-            vendorDashboard: `<a class="nav-link vendor-nav-item" data-view="vendor-dashboard-view" onclick="navigateTo('vendor-dashboard-view')"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a>`,
-            vendorOpenLoads: `<a class="nav-link vendor-nav-item" data-view="vendor-open-loads-view" onclick="navigateTo('vendor-open-loads-view')"><div class="nav-link-text"><i class="fas fa-clipboard-list"></i> <span>My Open Requirements</span></div></a>`,
-            vendorMyBids: `<a class="nav-link vendor-nav-item" data-view="vendor-my-bids-view" onclick="navigateTo('vendor-my-bids-view')"><div class="nav-link-text"><i class="fas fa-gavel"></i> <span>My Bidding History</span></div></a>`,
-            vendorAwardedLoads: `<a class="nav-link vendor-nav-item" data-view="vendor-awarded-loads-view" onclick="navigateTo('vendor-awarded-loads-view')"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>My Awarded Contracts</span></div></a>`,
-            userCreateLoad: `<a class="nav-link user-nav-item" data-view="user-create-load-view" onclick="navigateTo('user-create-load-view')"><div class="nav-link-text"><i class="fas fa-plus-circle"></i> <span>Create Requisition</span></div></a>`,
-            userStatus: `<a class="nav-link user-nav-item" data-view="user-status-view" onclick="navigateTo('user-status-view')"><div class="nav-link-text"><i class="fas fa-history"></i> <span>My Requisition Status</span></div></a>`,
+            adminDashboard: `<a class="nav-link" data-view="admin-dashboard-view" onclick="navigateTo('admin-dashboard-view')"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a>`,
+            adminPendingLoads: `<a class="nav-link" data-view="admin-pending-loads-view" onclick="navigateTo('admin-pending-loads-view')"><div class="nav-link-text"><i class="fas fa-inbox"></i> <span>Requisition Approvals</span></div></a>`,
+            adminActiveLoads: `<a class="nav-link" data-view="admin-active-loads-view" onclick="navigateTo('admin-active-loads-view')"><div class="nav-link-text"><i class="fas fa-truck-loading"></i> <span>All Requirements</span></div></a>`,
+            adminBiddingHistory: `<a class="nav-link" data-view="admin-bidding-history-view" onclick="navigateTo('admin-bidding-history-view')"><div class="nav-link-text"><i class="fas fa-history"></i> <span>Bidding History</span></div></a>`,
+            adminAwardedLoads: `<a class="nav-link" data-view="admin-awarded-loads-view" onclick="navigateTo('admin-awarded-loads-view')"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>Awarded Contracts</span></div></a>`,
+            adminReports: `<a class="nav-link" data-view="admin-reports-view" onclick="navigateTo('admin-reports-view')"><div class="nav-link-text"><i class="fas fa-chart-line"></i> <span>Reports & Analytics</span></div></a>`,
+            adminPendingUsers: `<a class="nav-link" data-view="admin-pending-users-view" onclick="navigateTo('admin-pending-users-view')"><div class="nav-link-text"><i class="fas fa-user-check"></i> <span>User Approvals</span></div></a>`,
+            adminUserControl: `<a class="nav-link" data-view="admin-user-control-view" onclick="navigateTo('admin-user-control-view')"><div class="nav-link-text"><i class="fas fa-users-cog"></i> <span>User Control</span></div></a>`,
+            vendorDashboard: `<a class="nav-link" data-view="vendor-dashboard-view" onclick="navigateTo('vendor-dashboard-view')"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a>`,
+            vendorOpenLoads: `<a class="nav-link" data-view="vendor-open-loads-view" onclick="navigateTo('vendor-open-loads-view')"><div class="nav-link-text"><i class="fas fa-clipboard-list"></i> <span>My Open Requirements</span></div></a>`,
+            vendorMyBids: `<a class="nav-link" data-view="vendor-my-bids-view" onclick="navigateTo('vendor-my-bids-view')"><div class="nav-link-text"><i class="fas fa-gavel"></i> <span>My Bidding History</span></div></a>`,
+            vendorAwardedLoads: `<a class="nav-link" data-view="vendor-awarded-loads-view" onclick="navigateTo('vendor-awarded-loads-view')"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>My Awarded Contracts</span></div></a>`,
+            userCreateLoad: `<a class="nav-link" data-view="user-create-load-view" onclick="navigateTo('user-create-load-view')"><div class="nav-link-text"><i class="fas fa-plus-circle"></i> <span>Create Requisition</span></div></a>`,
+            userStatus: `<a class="nav-link" data-view="user-status-view" onclick="navigateTo('user-status-view')"><div class="nav-link-text"><i class="fas fa-history"></i> <span>My Requisition Status</span></div></a>`,
             messaging: `<a class="nav-link" data-view="messaging-view" onclick="navigateTo('messaging-view')"><div class="nav-link-text"><i class="fas fa-comments"></i> <span>Messages</span></div></a>`
         };
 
@@ -280,27 +286,6 @@
         const defaultViewMap = { 'Super Admin': 'admin-dashboard-view', 'Admin': 'admin-dashboard-view', 'Vendor': 'vendor-dashboard-view', 'User': 'user-create-load-view' };
         navigateTo(defaultViewMap[user.role]);
     }
-
-    const views = {
-        'admin-dashboard-view': `<div class="card"><div class="card-body">Admin Dashboard</div></div>`,
-        'admin-pending-loads-view': `<div class="card"><div class="card-header"><h5 class="mb-0">Pending Load Approvals</h5></div><div class="card-body"><div id="pending-loads-container"></div></div></div>`,
-        'admin-active-loads-view': `<div class="card"><div class="card-body">All Active Loads</div></div>`,
-        'admin-bidding-history-view': `<div class="card"><div class="card-body">Bidding History</div></div>`,
-        'admin-awarded-loads-view': `<div class="card"><div class="card-body">Awarded Loads</div></div>`,
-        'admin-reports-view': `<div class="card"><div class="card-body">Reports & Analytics</div></div>`,
-        'admin-pending-users-view': `<div class="card"><div class="card-body">User Approvals</div></div>`,
-        'admin-user-control-view': `<div class="card"><div class="card-body">User Control</div></div>`,
-        
-        'vendor-dashboard-view': `<div class="card"><div class="card-body">Trucker Dashboard</div></div>`,
-        'vendor-open-loads-view': `<div id="vendor-loads-container"></div><div id="vendor-loads-empty-state"></div>`,
-        'vendor-my-bids-view': `<div class="card"><div class="card-body">My Bidding History</div></div>`,
-        'vendor-awarded-loads-view': `<div class="card"><div class="card-body">My Awarded Contracts</div></div>`,
-        
-        'user-create-load-view': `<div class="card"><div class="card-header"><h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Post a New Load</h5></div><div class="card-body"><form id="create-load-form"><div id="load-item-container"></div><hr/><button type="submit" class="btn btn-primary w-100 fw-bold">Submit Load Request</button></form></div></div>`,
-        'user-status-view': `<div class="card"><div class="card-header"><h5 class="mb-0"><i class="fas fa-history me-2"></i>My Load Status</h5></div><div class="card-body" id="user-req-status-list"></div></div>`,
-        
-        'messaging-view': `<div class="card"><div class="card-body">Messaging</div></div>`,
-    };
 
     function navigateTo(viewId) {
         const mainView = $('#main-view');
@@ -331,7 +316,6 @@
     
     async function fetchMasterData() {
         if (MASTER_DATA.truckTypes.length === 0 || MASTER_DATA.items.length === 0) {
-            showToast('Loading master data...', 'info');
             try {
                 const [trucksRes, itemsRes] = await Promise.all([
                     apiCall('/master-data/truck-types'),
@@ -345,6 +329,11 @@
         }
     }
 
+    // =========================================================
+    // ================= VIEW LOADER FUNCTIONS =================
+    // =========================================================
+
+    // --- SHIPPER (USER) ---
     async function load_user_create_load_view() {
         try {
             await fetchMasterData();
@@ -354,7 +343,74 @@
             $('#load-item-container').html(`<div class="alert alert-danger">${e.message}</div>`);
         }
     }
+    
+    async function load_user_status_view() {
+        const listDiv = $('#user-req-status-list').html('<div class="text-center p-4">Loading...</div>'); 
+        const result = await apiCall('/requisitions/my-status');
+        if (!result.success || result.data.length === 0) {
+            return renderEmptyState('#user-req-status-list', 'You have not posted any loads yet.', 'fa-file-signature');
+        }
+        listDiv.html('');
+        result.data.forEach(req => {
+            const loadsHTML = req.loads.map(load => `
+                <li class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                        <small><strong>${load.item_name}</strong> to ${load.unloading_point_address.substring(0,30)}...</small>
+                        <span class="badge bg-${getBadgeColor(load.status)}">${load.status}</span>
+                    </div>
+                    ${load.status === 'Awarded' ? `<small class="d-block text-success">Awarded to: ${load.awarded_vendor || 'N/A'} (Amount: ${formatCurrency(load.awarded_amount)})</small>` : ''}
+                </li>`).join('');
+            listDiv.append(`<div class="card mb-3"><div class="card-header d-flex justify-content-between"><strong>Req ID: REQ-${req.requisition_id}</strong><span class="badge bg-${getBadgeColor(req.status)}">${req.status}</span></div><ul class="list-group list-group-flush">${loadsHTML}</ul></div>`);
+        });
+    }
 
+    // --- TRUCKER (VENDOR) ---
+    async function load_vendor_open_loads_view() {
+        const result = await apiCall('/requirements/assigned');
+        const container = $('#vendor-loads-container').empty();
+        if (!result.success || result.data.length === 0) {
+            return renderEmptyState('#vendor-loads-empty-state', 'No open loads assigned for bidding.', 'fa-clipboard-list');
+        }
+        $('#vendor-loads-empty-state').empty();
+        result.data.forEach(load => {
+            let historyHtml = '<li class="list-group-item small text-muted">No bids submitted yet.</li>';
+            if (load.my_bid_history && load.my_bid_history.length > 0) {
+                historyHtml = load.my_bid_history.map(bid => `<li class="list-group-item small d-flex justify-content-between"><span>Bid: <strong>${formatCurrency(bid.bid_amount)}</strong></span> <span class="badge bg-info">Rank: ${bid.rank ? `L${bid.rank}` : 'N/A'}</span></li>`).join('');
+            }
+            const attempts = load.bid_attempts || 0;
+            const bidInputHtml = (attempts >= 3) 
+                ? `<div class="text-center text-danger small p-3 bg-light rounded mt-3"><i class="fas fa-exclamation-circle me-1"></i> Max 3 bids reached.</div>` 
+                : `<div class="input-group mt-3" data-load-id="${load.load_id}"><input type="number" class="form-control bid-amount" placeholder="Enter Your Bid Amount (₹)"><button class="btn btn-success" onclick="handleSingleBid(this)">Submit Bid</button></div>`;
+
+            const loadCardHtml = `
+            <div class="bidding-card">
+                <div class="bidding-card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">${load.item_name}</h6>
+                    <small class="text-muted">REQ-${load.requisition_id}</small>
+                </div>
+                <div class="bidding-card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <p class="mb-2"><strong>Route:</strong> ${load.loading_point_address} <i class="fas fa-long-arrow-alt-right"></i> ${load.unloading_point_address}</p>
+                            <p class="mb-2"><strong>Details:</strong> ${load.approx_weight_tonnes} MT | ${load.truck_name} (${load.dala_length_feet} ft)</p>
+                            <p class="mb-0"><strong>Date:</strong> ${formatDate(load.requirement_date)}</p>
+                            <p class="mb-0"><strong>My Current Rank:</strong> ${load.my_rank ? `<span class="badge bg-primary fs-6">L${load.my_rank}</span>` : '<span class="text-muted">Not Bid Yet</span>'}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>My Bid History</h6>
+                            <ul class="list-group">${historyHtml}</ul>
+                        </div>
+                    </div>
+                    ${bidInputHtml}
+                </div>
+            </div>`;
+            container.append(loadCardHtml);
+        });
+    }
+
+    // =========================================================
+    // =============== ACTION HANDLERS =======================
+    // =========================================================
     function getLoadItemHtml() {
         const truckOptions = MASTER_DATA.truckTypes.map(p => `<option value='${p.truck_type_id}'>${p.truck_name} (${p.dala_length_feet} ft)</option>`).join('');
         const itemOptions = MASTER_DATA.items.map(p => `<option value='${p.item_id}'>${p.item_name}</option>`).join('');
@@ -372,17 +428,44 @@
             truck_type_id: card.find('.truck-type-select').val(),
             requirement_date: card.find('.req-date').val(),
         };
-        const result = await apiCall('/requisitions', 'POST', { items: JSON.stringify([payload]) });
-        if (result.success) {
-            showToast(result.message, 'success');
-            navigateTo('user-create-load-view');
+        try {
+            const result = await apiCall('/requisitions', 'POST', { items: JSON.stringify([payload]) });
+            if (result.success) {
+                showToast(result.message, 'success');
+                navigateTo('user-create-load-view');
+            }
+        } catch(error) {
+            console.error("Load submission failed:", error);
+        }
+    }
+    
+    async function handleSingleBid(button) {
+        const btn = $(button);
+        const inputGroup = btn.closest('.input-group');
+        const bidInput = inputGroup.find('.bid-amount');
+        const loadId = inputGroup.data('load-id');
+
+        if (!bidInput.val() || parseFloat(bidInput.val()) <= 0) {
+            return showToast('Please enter a valid bid amount.', 'error');
+        }
+        const bidData = {
+            itemId: loadId, // Backend expects itemId for compatibility
+            bid_amount: parseFloat(bidInput.val())
+        };
+        try {
+            const result = await apiCall('/bids/bulk', 'POST', { bids: [bidData] });
+            if (result.success) {
+                showToast(result.message, 'success');
+                load_vendor_open_loads_view();
+            }
+        } catch (error) {
+            console.error("Bid submission failed:", error);
         }
     }
     
     // UTILITY FUNCTIONS
     function showToast(m, t='info') {
-        const c = $('#toast-container');
-        const e = $(`<div><i class="fas ${t === 'success' ? 'fa-check-circle' : 'fa-times-circle'} me-2"></i><span>${m}</span></div>`).addClass(`toast-notification ${t}`);
+        const c = $('#toast-container'), e = $(`<div><i class="fas ${t === 'success' ? 'fa-check-circle' : 'fa-times-circle'} me-2"></i><span>${m}</span></div>`).addClass(`toast-notification ${t}`);
         c.append(e);
         setTimeout(() => e.remove(), 5000);
     }
@@ -390,6 +473,8 @@
     function hideLoader() { $('#loader-overlay').addClass('hidden'); }
     function formatCurrency(v){ const n=parseFloat(v); return isNaN(n)?'₹0.00':`₹${n.toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:0})}` }
     function formatDate(dateString) { if (!dateString) return 'N/A'; const date = new Date(dateString); return date.toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }); }
+    function getBadgeColor(s){return {'Awarded':'primary','Active':'success','Pending Approval':'warning','Submitted':'info','Rejected':'danger','Processed': 'secondary'}[s]||'dark'}
+
     </script>
 </body>
 </html>
