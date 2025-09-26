@@ -161,7 +161,7 @@
                 <div class="row g-4 mb-4 view">
                     <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-info" onclick="navigateTo('trucker-open-loads-view')"><div><h5 class="mb-0">Open for Bidding</h5><p class="display-4" id="trucker-stats-open">--</p></div><i class="fas fa-file-signature stat-icon"></i></div></div>
                     <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-primary"><div><h5 class="mb-0">Bids Submitted</h5><p class="display-4" id="trucker-stats-submitted">--</p></div><i class="fas fa-gavel stat-icon"></i></div></div>
-                    <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-success"><div><h5 class="mb-0">Contracts Won</h5><p class="display-4" id="trucker-stats-won">--</p></div><i class="fas fa-trophy stat-icon"></i></div></div>
+                    <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-success" onclick="navigateTo('trucker-awarded-contracts-view')"><div><h5 class="mb-0">Contracts Won</h5><p class="display-4" id="trucker-stats-won">--</p></div><i class="fas fa-trophy stat-icon"></i></div></div>
                     <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-warning" onclick="navigateTo('trucker-open-loads-view')"><div><h5 class="mb-0">Needs My Bid</h5><p class="display-4" id="trucker-stats-needs-bid">--</p></div><i class="fas fa-edit stat-icon"></i></div></div>
                 </div>`,
             'trucker-open-loads-view': `
@@ -172,9 +172,10 @@
                     </div>
                     <div id="trucker-bidding-container" class="d-grid gap-4"></div>
                 </div>`,
+            'trucker-awarded-contracts-view': `<div class="card view"><div class="card-header"><h5 class="mb-0">My Awarded Contracts</h5></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Load ID</th><th>Route</th><th>Awarded Amount</th><th>Date</th></tr></thead><tbody id="trucker-awarded-tbody"></tbody></table><div id="trucker-awarded-empty-state"></div></div></div>`,
             'admin-dashboard-view': `
                 <div class="row g-4 mb-4 view">
-                    <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-primary" onclick="navigateTo('admin-all-loads-view')"><div><h5 class="mb-0">Active Loads</h5><p class="display-4" id="stats-active-loads">--</p></div><i class="fas fa-truck stat-icon"></i></div></div>
+                    <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-primary"><div><h5 class="mb-0">Active Loads</h5><p class="display-4" id="stats-active-loads">--</p></div><i class="fas fa-truck stat-icon"></i></div></div>
                     <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-success" onclick="navigateTo('admin-user-approvals-view')"><div><h5 class="mb-0">Pending Users</h5><p class="display-4" id="stats-pending-users">--</p></div><i class="fas fa-user-check stat-icon"></i></div></div>
                     <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-warning" onclick="navigateTo('admin-pending-loads-view')"><div><h5 class="mb-0">Pending Loads</h5><p class="display-4" id="stats-pending-loads">--</p></div><i class="fas fa-inbox stat-icon"></i></div></div>
                     <div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-info" onclick="navigateTo('admin-awarded-contracts-view')"><div><h5 class="mb-0">Loads Awarded</h5><p class="display-4" id="stats-awarded-contracts">--</p></div><i class="fas fa-trophy stat-icon"></i></div></div>
@@ -184,9 +185,9 @@
                     <div class="card-header"><h5 class="mb-0">Pending Load Approvals</h5></div>
                     <div class="card-body"><div id="pending-loads-accordion-container"></div></div>
                 </div>`,
-             'admin-user-approvals-view': `<div class="card view"><div class="card-header"><h5 class="mb-0">Pending User Approvals</h5></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Name</th><th>Email</th><th>Role</th><th>Company</th><th>Contact</th><th>Action</th></tr></thead><tbody id="admin-pending-users-tbody"></tbody></table><div id="admin-pending-users-empty-state"></div></div></div>`,
+            'admin-awarded-contracts-view': `<div class="card view"><div class="card-header"><h5 class="mb-0">All Awarded Contracts</h5></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Load ID</th><th>Route</th><th>Trucker</th><th>Awarded Amount</th><th>Date</th></tr></thead><tbody id="admin-awarded-tbody"></tbody></table><div id="admin-awarded-empty-state"></div></div></div>`,
+            'admin-user-approvals-view': `<div class="card view"><div class="card-header"><h5 class="mb-0">Pending User Approvals</h5></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Name</th><th>Email</th><th>Role</th><th>Company</th><th>Contact</th><th>Action</th></tr></thead><tbody id="admin-pending-users-tbody"></tbody></table><div id="admin-pending-users-empty-state"></div></div></div>`,
             'admin-user-control-view': `<div class="card view"><div class="card-header d-flex justify-content-between align-items-center"><h5 class="mb-0">User Control Center</h5><button class="btn btn-success btn-sm" onclick="openAddUserModal()"><i class="fas fa-plus me-2"></i>Add User</button></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Name</th><th>Email</th><th>Role</th><th>Company</th><th>Contact</th><th>GSTIN</th><th>Action</th></tr></thead><tbody id="admin-users-tbody"></tbody></table><div id="admin-users-empty-state"></div></div></div>`,
-            'admin-awarded-contracts-view': `<div class="card view"><div class="card-header"><h5 class="mb-0">Awarded Contracts</h5></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Load ID</th><th>Route</th><th>Trucker</th><th>Awarded Amount</th><th>Date</th></tr></thead><tbody id="admin-awarded-tbody"></tbody></table><div id="admin-awarded-empty-state"></div></div></div>`,
         };
         
         // =========================================================
@@ -302,7 +303,8 @@
                     <a class="nav-link" data-view="shipper-status-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-history"></i> <span>My Load Status</span></div></a>`,
                 'Trucker': `
                     <a class="nav-link" data-view="trucker-dashboard-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a>
-                    <a class="nav-link" data-view="trucker-open-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-truck-loading"></i> <span>Open Loads for Bidding</span></div></a>`,
+                    <a class="nav-link" data-view="trucker-open-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-truck-loading"></i> <span>Open Loads for Bidding</span></div></a>
+                    <a class="nav-link" data-view="trucker-awarded-contracts-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>My Awarded Contracts</span></div></a>`,
                 'Admin': `
                     <a class="nav-link" data-view="admin-dashboard-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a>
                     <a class="nav-link" data-view="admin-pending-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-inbox"></i> <span>Load Approvals</span></div></a>
@@ -375,10 +377,11 @@
         }
 
         async function load_shipper_status_view() {
-            const listDiv = $('#shipper-req-status-list').html('<div class="text-center p-4">Loading...</div>');
+            const listDiv = $('#shipper-req-status-list');
             try {
+                renderEmptyState(listDiv, 'Loading your requests...', 'fa-spinner fa-spin');
                 const result = await apiCall('/requisitions/my-status');
-                if (result.data.length === 0) return renderEmptyState('#shipper-req-status-list', 'You have not posted any loads yet.', 'fa-file-signature');
+                if (result.data.length === 0) return renderEmptyState(listDiv, 'You have not posted any loads yet.', 'fa-file-signature');
 
                 listDiv.html('');
                 result.data.forEach(req => {
@@ -415,10 +418,11 @@
         }
 
         async function load_trucker_open_loads_view() {
-            const container = $('#trucker-bidding-container').html('<div class="text-center p-5">Loading open loads...</div>');
+            const container = $('#trucker-bidding-container');
             try {
+                renderEmptyState(container, 'Loading open loads...', 'fa-spinner fa-spin');
                 const result = await apiCall('/loads/assigned');
-                if (result.data.length === 0) return renderEmptyState('#trucker-bidding-container', 'No loads are currently assigned to you for bidding.', 'fa-truck-loading');
+                if (result.data.length === 0) return renderEmptyState(container, 'No loads are currently assigned to you for bidding.', 'fa-truck-loading');
 
                 const cardsHTML = result.data.map(load => {
                      const attempts = load.bid_attempts || 0;
@@ -456,20 +460,40 @@
             $('.bidding-card').each(function() {
                 const card = $(this);
                 const input = card.find('.bid-amount-input');
-                if (input.length > 0 && input.val()) {
+                if (input.length > 0 && input.val() && parseFloat(input.val()) > 0) {
                     bids.push({
                         loadId: card.data('load-id'),
                         bid_amount: parseFloat(input.val())
                     });
                 }
             });
-            if (bids.length === 0) return showToast('No new bids were entered.', 'info');
+            if (bids.length === 0) return showToast('No new valid bids were entered.', 'info');
             
             try {
                 const result = await apiCall('/bids', 'POST', { bids: bids });
                 showToast(result.message, 'success');
                 load_trucker_open_loads_view();
             } catch(error) { /* Handled */ }
+        }
+
+        async function load_trucker_awarded_contracts_view() {
+            const tbody = $('#trucker-awarded-tbody');
+            const emptyStateContainer = $('#trucker-awarded-empty-state');
+            try {
+                renderEmptyState(emptyStateContainer, 'Loading your awarded contracts...', 'fa-spinner fa-spin');
+                tbody.parent().hide();
+                const result = await apiCall('/trucker/awarded-contracts');
+                if (result.data.length === 0) return renderEmptyState(emptyStateContainer, 'You have not been awarded any contracts yet.', 'fa-trophy');
+                
+                tbody.html(result.data.map(c => `<tr>
+                    <td>${c.load_id}</td>
+                    <td><small>${c.loading_point_address} <i class="fas fa-arrow-right"></i> ${c.unloading_point_address}</small></td>
+                    <td><strong>${formatCurrency(c.awarded_amount)}</strong></td>
+                    <td>${formatDate(c.awarded_date)}</td>
+                </tr>`).join(''));
+                tbody.parent().show();
+                emptyStateContainer.empty();
+            } catch(error) {/* Handled */}
         }
 
         // =========================================================
@@ -487,10 +511,11 @@
         }
         
         async function load_admin_pending_loads_view() {
-            const container = $('#pending-loads-accordion-container').html('<div class="text-center p-4">Loading...</div>');
+            const container = $('#pending-loads-accordion-container');
             try {
+                renderEmptyState(container, 'Loading pending approvals...', 'fa-spinner fa-spin');
                 const result = await apiCall('/loads/pending');
-                if (result.data.groupedReqs.length === 0) return renderEmptyState('#pending-loads-accordion-container', 'No loads are pending approval.', 'fa-inbox');
+                if (result.data.groupedReqs.length === 0) return renderEmptyState(container, 'No loads are pending approval.', 'fa-inbox');
                 
                 const { groupedReqs, pendingLoads, allTruckers } = result.data;
                 container.html('<div class="accordion" id="pending-loads-accordion"></div>');
@@ -542,9 +567,9 @@
         async function load_admin_awarded_contracts_view() {
             const tbody = $('#admin-awarded-tbody');
             const emptyStateContainer = $('#admin-awarded-empty-state');
-            tbody.parent().hide();
-            renderEmptyState(emptyStateContainer, 'Loading awarded contracts...', 'fa-spinner fa-spin');
             try {
+                renderEmptyState(emptyStateContainer, 'Loading awarded contracts...', 'fa-spinner fa-spin');
+                tbody.parent().hide();
                 const result = await apiCall('/admin/awarded-contracts');
                 if (result.data.length === 0) return renderEmptyState(emptyStateContainer, 'No contracts have been awarded yet.', 'fa-trophy');
                 
@@ -564,11 +589,13 @@
         // ============= USER MANAGEMENT FUNCTIONS =================
         // =========================================================
         async function load_admin_user_approvals_view() {
+             const tbody = $('#admin-pending-users-tbody');
+             const emptyContainer = $('#admin-pending-users-empty-state');
              try {
+                renderEmptyState(emptyContainer, 'Loading pending users...', 'fa-spinner fa-spin');
                 const result = await apiCall('/users/pending');
-                const tbody = $('#admin-pending-users-tbody');
-                if(result.data.length === 0) return renderEmptyState('#admin-pending-users-empty-state', 'No users are pending approval.', 'fa-user-check');
-                $('#admin-pending-users-empty-state').empty();
+                if(result.data.length === 0) return renderEmptyState(emptyContainer, 'No users are pending approval.', 'fa-user-check');
+                emptyContainer.empty();
                 tbody.html(result.data.map(user => `<tr><td>${user.full_name}</td><td>${user.email}</td><td>${user.role}</td><td>${user.company_name || '-'}</td><td>${user.contact_number || '-'}</td><td><div class="btn-group btn-group-sm"><button class="btn btn-success" onclick="approveUser(${user.temp_id})">Approve</button> <button class="btn btn-danger" onclick="rejectUser(${user.temp_id})">Reject</button></div></td></tr>`).join(''));
             } catch (error) { /* Handled */ }
         }
@@ -576,11 +603,13 @@
         async function rejectUser(tempId) { if (confirm('Reject this user?')) { try { await apiCall(`/pending-users/${tempId}`, 'DELETE'); showToast('User Rejected!', 'success'); load_admin_user_approvals_view(); } catch(e){} } }
         
         async function load_admin_user_control_view() {
+            const tbody = $('#admin-users-tbody');
+            const emptyContainer = $('#admin-users-empty-state');
             try {
+                renderEmptyState(emptyContainer, 'Loading users...', 'fa-spinner fa-spin');
                 const result = await apiCall('/users');
-                const tbody = $('#admin-users-tbody');
-                if(result.data.length === 0) return renderEmptyState('#admin-users-empty-state', 'No users found.', 'fa-users');
-                $('#admin-users-empty-state').empty();
+                if(result.data.length === 0) return renderEmptyState(emptyContainer, 'No users found.', 'fa-users');
+                emptyContainer.empty();
                 tbody.html(result.data.map(user => `<tr><td>${user.full_name}</td><td>${user.email}</td><td><span class="badge bg-${getBadgeColor(user.role)}">${user.role}</span></td><td>${user.company_name || '-'}</td><td>${user.contact_number || '-'}</td><td>${user.gstin || '-'}</td><td><div class="btn-group btn-group-sm"><button class="btn btn-primary" onclick='openEditUserModal(${JSON.stringify(user)})'>Edit</button><button class="btn btn-danger" onclick="handleDeleteUser(${user.user_id})">Delete</button></div></td></tr>`).join(''));
             } catch (error) { /* Handled */ }
         }
