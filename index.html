@@ -36,7 +36,7 @@
         #login-container .form-control { background-color: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; }
         #login-container .form-control::placeholder { color: rgba(255,255,255,0.7); }
         .password-container { position: relative; }
-        .password-container .toggle-password { position: absolute; top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer; color: rgba(255,255,255,0.7); }
+        .password-container .toggle-password { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); cursor: pointer; color: rgba(255,255,255,0.7); background: transparent; border: none; padding: 5px; }
         .wrapper { display: flex; }
         .sidebar { width: 260px; background: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 1001; transition: all 0.3s ease-in-out; box-shadow: 0 0 2rem 0 rgba(136,152,170,.15); }
         .sidebar .logo { font-size: 1.2rem; font-weight: 600; text-align: center; color: white; padding: 22px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
@@ -72,7 +72,9 @@
                 <div class="mb-3"><input type="email" id="email" class="form-control" placeholder="Email" required></div>
                 <div class="mb-3 password-container">
                     <input type="password" id="password" class="form-control" placeholder="Password" required>
-                    <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+                    <button type="button" class="toggle-password" id="togglePassword" aria-label="Show password">
+                        <i class="fas fa-eye"></i>
+                    </button>
                 </div>
                 <button type="submit" class="btn btn-primary w-100 fw-bold">Log In</button>
             </form>
@@ -119,10 +121,10 @@
         </main>
     </div>
 
-    <div class="modal fade" id="registerModal" tabindex="-1">
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header bg-success text-white"><h5 class="modal-title">Create Account</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                <div class="modal-header bg-success text-white"><h5 class="modal-title" id="registerModalLabel">Create Account</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>
                 <div class="modal-body">
                     <form id="register-form">
                         <div class="mb-3"><select id="reg-role" class="form-select" required><option value="">Register as...</option><option value="User">Shipper (I have loads)</option><option value="Vendor">Trucker (I have trucks)</option></select></div>
@@ -138,7 +140,7 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="adminActionModal" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header bg-primary text-white"><h5 class="modal-title" id="adminActionModalTitle">Bids for Load</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body" id="adminActionModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-success" onclick="handleAwardSubmit()">Award Selected Bid(s)</button></div></div></div></div>
+    <div class="modal fade" id="adminActionModal" tabindex="-1" aria-labelledby="adminActionModalTitle" aria-hidden="true"><div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header bg-primary text-white"><h5 class="modal-title" id="adminActionModalTitle">Bids for Load</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" id="adminActionModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-success" onclick="handleAwardSubmit()">Award Selected Bid(s)</button></div></div></div></div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -148,7 +150,7 @@
     // =========================================================
     // ================ CONFIG & STATE =========================
     // =========================================================
-    const API_BASE_URL = '/api';
+    const API_BASE_URL = '/api'; // This works when frontend and backend are on the same domain
     let MASTER_DATA = { truckTypes: [], items: [] };
     let loginWrapper, appContainer, mainView, headerTitle;
     let registerModal, adminActionModal;
@@ -187,8 +189,9 @@
         headerTitle = $('#header-title');
         
         try { 
-            registerModal = new bootstrap.Modal('#registerModal');
-            adminActionModal = new bootstrap.Modal('#adminActionModal');
+            // FIXED: Initialize modals using the correct method (passing the DOM element)
+            registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
+            adminActionModal = new bootstrap.Modal(document.getElementById('adminActionModal'));
         } catch (e) { console.error("Error initializing modals:", e); }
         
         const user = sessionStorage.getItem('loggedInUser');
@@ -200,11 +203,14 @@
         $('#register-form').on('submit', handleRegistration);
         $(document).on('submit', '#create-load-form', handleLoadSubmit);
         $('#reg-role').on('change', handleRoleChange);
+        
+        // Event listener for the improved password toggle button
         $('#togglePassword').on('click', function() {
             const passwordInput = $('#password');
             const type = passwordInput.attr('type') === 'password' ? 'text' : 'password';
             passwordInput.attr('type', type);
-            $(this).toggleClass('fa-eye-slash fa-eye');
+            // Toggle the eye icon
+            $(this).find('i').toggleClass('fa-eye-slash fa-eye');
         });
     });
 
@@ -296,11 +302,16 @@
     async function handleRegistration(e) {
         e.preventDefault();
         const data = { FullName: $('#reg-fullname').val(), Email: $('#reg-email').val(), Password: $('#reg-password').val(), Role: $('#reg-role').val(), CompanyName: $('#reg-company').val(), ContactNumber: $('#reg-contact').val(), GSTIN: $('#reg-gstin').val() };
-        const result = await apiCall('/register', 'POST', data);
-        if (result.success) {
-            showToast(result.message, 'success');
-            registerModal.hide();
-            $(e.target)[0].reset();
+        try {
+            const result = await apiCall('/register', 'POST', data);
+            if (result.success) {
+                showToast(result.message, 'success');
+                registerModal.hide();
+                $(e.target)[0].reset();
+            }
+        } catch(error) {
+            // Error toast is already shown by apiCall function
+            console.error("Registration failed:", error);
         }
     }
     
@@ -411,21 +422,21 @@
     }
 
     async function load_admin_pending_loads_view() {
-         const container = $('#pending-loads-container').html('<div class="text-center p-4">Loading...</div>');
-         const result = await apiCall('/requirements/pending');
-         if (!result.success || result.data.groupedReqs.length === 0) {
-            return renderEmptyState('#pending-loads-container', 'No loads are pending approval.', 'fa-inbox');
-         }
-         const { groupedReqs, pendingLoads, allTruckers } = result.data;
-         container.html('<div class="accordion" id="pending-reqs-accordion"></div>');
-         const accordion = $('#pending-reqs-accordion');
-         groupedReqs.forEach(req => {
-            const reqId = req.requisition_id;
-            const reqLoads = pendingLoads.filter(load => load.requisition_id == reqId);
-            const loadsHTML = reqLoads.map(load => `<li class="list-group-item"><input class="form-check-input me-2 load-check-box" type="checkbox" value="${load.load_id}" checked><label class="form-check-label">${load.item_name} (${load.approx_weight_tonnes} MT) from ${load.loading_point_address.substring(0,20)}...</label></li>`).join('');
-            const truckersHTML = allTruckers.map(v => `<div class="form-check form-check-inline"><input class="form-check-input trucker-assign-check" type="checkbox" value="${v.user_id}"><label class="form-check-label">${v.full_name}</label></div>`).join('');
-            accordion.append(`<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${reqId}">Req ID: REQ-${reqId} (By: ${req.creator}) - ${reqLoads.length} loads</button></h2><div id="collapse-${reqId}" class="accordion-collapse collapse" data-bs-parent="#pending-reqs-accordion"><div class="accordion-body"><h6>Select loads to approve:</h6><ul class="list-group mb-3">${loadsHTML}</ul><h6>Assign truckers:</h6><div class="border rounded p-2">${truckersHTML}</div><div class="mt-3"><button class="btn btn-success" onclick="handleBulkApproval('${reqId}')">Process Selected Loads</button></div></div></div></div>`);
-         });
+          const container = $('#pending-loads-container').html('<div class="text-center p-4">Loading...</div>');
+          const result = await apiCall('/requirements/pending');
+          if (!result.success || result.data.groupedReqs.length === 0) {
+              return renderEmptyState('#pending-loads-container', 'No loads are pending approval.', 'fa-inbox');
+          }
+          const { groupedReqs, pendingLoads, allTruckers } = result.data;
+          container.html('<div class="accordion" id="pending-reqs-accordion"></div>');
+          const accordion = $('#pending-reqs-accordion');
+          groupedReqs.forEach(req => {
+              const reqId = req.requisition_id;
+              const reqLoads = pendingLoads.filter(load => load.requisition_id == reqId);
+              const loadsHTML = reqLoads.map(load => `<li class="list-group-item"><input class="form-check-input me-2 load-check-box" type="checkbox" value="${load.load_id}" checked><label class="form-check-label">${load.item_name} (${load.approx_weight_tonnes} MT) from ${load.loading_point_address.substring(0,20)}...</label></li>`).join('');
+              const truckersHTML = allTruckers.map(v => `<div class="form-check form-check-inline"><input class="form-check-input trucker-assign-check" type="checkbox" value="${v.user_id}"><label class="form-check-label">${v.full_name}</label></div>`).join('');
+              accordion.append(`<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${reqId}">Req ID: REQ-${reqId} (By: ${req.creator}) - ${reqLoads.length} loads</button></h2><div id="collapse-${reqId}" class="accordion-collapse collapse" data-bs-parent="#pending-reqs-accordion"><div class="accordion-body"><h6>Select loads to approve:</h6><ul class="list-group mb-3">${loadsHTML}</ul><h6>Assign truckers:</h6><div class="border rounded p-2">${truckersHTML}</div><div class="mt-3"><button class="btn btn-success" onclick="handleBulkApproval('${reqId}')">Process Selected Loads</button></div></div></div></div>`);
+          });
     }
 
     // =========================================================
@@ -491,6 +502,13 @@
             showToast(result.message, 'success');
             load_admin_pending_loads_view();
         }
+    }
+    
+    // ADDED: Placeholder function for the 'Award Bids' button to prevent errors
+    function handleAwardSubmit() {
+        // You can add logic here to get selected bids from the modal and make an API call
+        showToast("Award functionality is not yet implemented.", "info");
+        adminActionModal.hide();
     }
 
     // =========================================================
