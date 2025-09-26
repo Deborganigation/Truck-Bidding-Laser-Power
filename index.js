@@ -3,7 +3,7 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const jwt =require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
 const xlsx = require('xlsx');
@@ -77,13 +77,6 @@ const isAdminOrSuperAdmin = (req, res, next) => {
     next();
 };
 
-const isSuperAdmin = (req, res, next) => {
-    if (req.user.role !== 'Super Admin') {
-        return res.status(403).json({ success: false, message: 'Forbidden: Super Admin access required' });
-    }
-    next();
-};
-
 // ================== API ROUTES ==================
 
 // --- NEW APIs FOR MASTER DATA ---
@@ -105,19 +98,22 @@ app.get('/api/master-data/items', authenticateToken, async (req, res, next) => {
     }
 });
 
-
 // --- 1. AUTH & USER MANAGEMENT ---
 app.post('/api/login', async (req, res, next) => {
     try {
         const { email, password } = req.body;
         if (!email || !password) return res.status(400).json({ success: false, message: 'Email and password are required.' });
+        
         const [rows] = await dbPool.query('SELECT * FROM users WHERE email = ? AND is_active = 1', [email]);
         if (rows.length === 0) return res.status(401).json({ success: false, message: 'Invalid credentials or account inactive.' });
+        
         const user = rows[0];
         const match = await bcrypt.compare(password, user.password_hash);
         if (!match) return res.status(401).json({ success: false, message: 'Invalid credentials.' });
+        
         const payload = { userId: user.user_id, role: user.role, fullName: user.full_name, email: user.email };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '8h' });
+        
         delete user.password_hash;
         res.json({ success: true, token, user });
     } catch (error) {
@@ -288,11 +284,8 @@ app.post('/api/requisitions/approve', authenticateToken, isAdminOrSuperAdmin, as
     }
 });
 
-// --- USER MANAGEMENT & OTHER ROUTES (Mostly unchanged from your original) ---
-// (Paste the remaining routes from your old index.js here, after this comment)
-// ... for example: app.get('/api/admin/bidding-history', ...), app.get('/api/users', ...), etc.
-// IMPORTANT: You will need to manually update any routes that used 'requisition_items' or 'item_id'
-// For example, in /api/admin/bidding-history, you need to join with `truck_loads` on `load_id`.
+// --- ALL OTHER ROUTES CAN BE ADDED HERE FROM YOUR OLD FILE AND ADAPTED ---
+// For now, these are the core refactored routes.
 
 // ================== GLOBAL ERROR HANDLER ==================
 app.use((err, req, res, next) => {
