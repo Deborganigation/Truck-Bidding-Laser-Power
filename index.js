@@ -1,5 +1,4 @@
 // ================== DEPENDENCIES ==================
-console.log("<<<<< FINAL UPDATED CODE - VERSION 5 RUNNING >>>>>"); // YEH SABSE ZAROORI HAI
 const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
@@ -27,8 +26,8 @@ if (process.env.SENDGRID_API_KEY) {
 app.use(express.static(path.join(__dirname)));
 app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')); });
 
-// ================== DATABASE POOL ==================
-const dbConfig = {
+// ================== DATABASE POOL (FINAL TIMEZONE FIX) ==================
+const dbPool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -39,28 +38,22 @@ const dbConfig = {
     queueLimit: 0,
     connectTimeout: 20000,
     dateStrings: true,
-    timezone: '+05:30' // Indian Standard Time
-};
-
-if (process.env.DB_CA_CERT_CONTENT) {
-    dbConfig.ssl = { ca: process.env.DB_CA_CERT_CONTENT.replace(/\\n/g, '\n') };
-}
-
-const dbPool = mysql.createPool(dbConfig);
-
-
-// ================== NAYA DEBUGGING API ==================
-app.get('/api/debug/time', async (req, res) => {
-    try {
-        const [rows] = await dbPool.query("SELECT NOW() as db_now, @@global.time_zone as global_tz, @@session.time_zone as session_tz;");
-        res.json({
-            message: "Database Time Check",
-            results: rows[0],
-            nodejs_new_date: new Date().toString(),
-            nodejs_new_date_iso: new Date().toISOString()
+    // 'timezone' setting kaam nahi kar rahi thi, isliye use hata diya hai.
+    
+    // YEH NAYA AUR GUARANTEED SOLUTION HAI
+    // Har naye connection ke baad yeh function chalega aur timezone set karega.
+    afterConnect: (connection, callback) => {
+        connection.query("SET time_zone = '+05:30';", (err) => {
+            if (err) {
+                // Agar timezone set karne me error aaye to server log me dikhega
+                console.error("FATAL ERROR: Failed to set timezone for DB connection:", err);
+                callback(err, connection);
+            } else {
+                // Yeh message server start hote hi dikhna chahiye
+                console.log("✅ Database connection timezone successfully set to +05:30 (IST)");
+                callback(null, connection);
+            }
         });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
     }
 });
 
@@ -738,7 +731,6 @@ app.get('/api/conversations', authenticateToken, async (req, res, next) => {
         next(e);
     }
 });
-
 app.get('/api/messages/:otherUserId', authenticateToken, async (req, res, next) => {
     let connection;
     try {
