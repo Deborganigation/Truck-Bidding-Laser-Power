@@ -378,7 +378,6 @@ app.get('/api/trucker/awarded-contracts', authenticateToken, async (req, res, ne
 });
 
 // --- ADMIN APIs ---
-// ... (All other Admin APIs like dashboard, pending-loads, etc. are here)
 app.get('/api/loads/pending', authenticateToken, isAdmin, async (req, res, next) => { try { const [groupedReqs] = await dbPool.query(`SELECT r.requisition_id, r.created_at, u.full_name as creator FROM requisitions r JOIN users u ON r.created_by = u.user_id WHERE r.status = 'Pending Approval' ORDER BY r.requisition_id DESC`); const [pendingLoads] = await dbPool.query(`SELECT tl.*, im.item_name, ttm.truck_name FROM truck_loads tl JOIN item_master im ON tl.item_id = im.item_id JOIN truck_type_master ttm ON tl.truck_type_id = ttm.truck_type_id WHERE tl.status = 'Pending Approval'`); const [allTruckers] = await dbPool.query("SELECT user_id, full_name FROM users WHERE role = 'Vendor' AND is_active = 1"); res.json({ success: true, data: { groupedReqs, pendingLoads, allTruckers } }); } catch (error) { next(error); }});
 app.post('/api/loads/approve', authenticateToken, isAdmin, async (req, res, next) => {
     let connection;
@@ -442,50 +441,65 @@ app.get('/api/admin/awarded-contracts', authenticateToken, isAdmin, async (req, 
     }
 });
 
-// UI ENHANCEMENT: ADDED MORE DETAILS TO THE QUERY
+// UI ENHANCEMENT: ADDED MORE DETAILS & SYNTAX FIX
 app.get('/api/admin/all-loads', authenticateToken, isAdmin, async (req, res, next) => {
-    try {
-        const { status, startDate, endDate } = req.query;
-        let query = `
-            SELECT tl.*, im.item_name, ttm.truck_name, l1_details.l1_bid, l1_details.l1_trucker, 
-                   (SELECT GROUP_CONCAT(u_assign.full_name SEPARATOR ', ') FROM trucker_assignments ta JOIN users u_assign ON ta.vendor_id = u_assign.user_id WHERE ta.requisition_id = tl.requisition_id) as assigned_truckers 
-            FROM truck_loads tl 
-            JOIN item_master im ON tl.item_id = im.item_id 
-            JOIN truck_type_master ttm ON tl.truck_type_id = ttm.truck_type_id 
-            LEFT JOIN ( 
-                SELECT b.load_id, MIN(b.bid_amount) as l1_bid, 
-                       (SELECT u.full_name FROM bids b_inner JOIN users u ON b_inner.vendor_id = u.user_id WHERE b_inner.load_id = b.load_id ORDER BY b_inner.bid_amount ASC, b_inner.submitted_at ASC LIMIT 1) as l1_trucker 
-                FROM bids b GROUP BY b.load_id 
-            ) AS l1_details ON tl.load_id = l1_details.load_id`;
+    try {
+        const { status, startDate, endDate } = req.query;
+        // Cleaned up query to remove any invisible characters
+        const query = `SELECT 
+            tl.*, 
+            im.item_name, 
+            ttm.truck_name, 
+            l1_details.l1_bid, 
+            l1_details.l1_trucker,
+            (SELECT GROUP_CONCAT(u_assign.full_name SEPARATOR ', ') 
+             FROM trucker_assignments ta 
+             JOIN users u_assign ON ta.vendor_id = u_assign.user_id 
+             WHERE ta.requisition_id = tl.requisition_id) as assigned_truckers
+        FROM truck_loads tl
+        JOIN item_master im ON tl.item_id = im.item_id
+        JOIN truck_type_master ttm ON tl.truck_type_id = ttm.truck_type_id
+        LEFT JOIN (
+            SELECT 
+                b.load_id, 
+                MIN(b.bid_amount) as l1_bid,
+                (SELECT u.full_name 
+                 FROM bids b_inner 
+                 JOIN users u ON b_inner.vendor_id = u.user_id 
+                 WHERE b_inner.load_id = b.load_id 
+                 ORDER BY b_inner.bid_amount ASC, b_inner.submitted_at ASC 
+                 LIMIT 1) as l1_trucker
+            FROM bids b 
+            GROUP BY b.load_id
+        ) AS l1_details ON tl.load_id = l1_details.load_id`;
 
-        const params = [];
-        const whereClauses = [];
+        const params = [];
+        const whereClauses = [];
 
-        if (status) {
-            whereClauses.push('tl.status = ?');
-            params.push(status);
-        } else {
-             whereClauses.push("tl.status = 'Active'");
-        }
-        if (startDate) {
-            whereClauses.push('tl.requirement_date >= ?');
-            params.push(startDate);
-        }
-        if (endDate) {
-            whereClauses.push('tl.requirement_date <= ?');
-            params.push(endDate);
-        }
-        if (whereClauses.length > 0) {
-            query += ` WHERE ${whereClauses.join(' AND ')}`;
-        }
-        query += ' ORDER BY tl.requisition_id DESC, tl.load_id ASC';
-        
-        const [loads] = await dbPool.query(query, params);
-        res.json({ success: true, data: loads });
-    } catch (error) {
-        next(error);
-    }
+        if (status) {
+            whereClauses.push('tl.status = ?');
+            params.push(status);
+        } else {
+            whereClauses.push("tl.status = 'Active'");
+        }
+        if (startDate) {
+            whereClauses.push('tl.requirement_date >= ?');
+            params.push(startDate);
+        }
+        if (endDate) {
+            whereClauses.push('tl.requirement_date <= ?');
+            params.push(endDate);
+        }
+
+        const finalQuery = `${query} WHERE ${whereClauses.join(' AND ')} ORDER BY tl.requisition_id DESC, tl.load_id ASC`;
+        
+        const [loads] = await dbPool.query(finalQuery, params);
+        res.json({ success: true, data: loads });
+    } catch (error) {
+        next(error);
+    }
 });
+
 
 // UI ENHANCEMENT: ADDED MORE DETAILS TO THE QUERY
 app.get('/api/admin/bidding-history', authenticateToken, isAdmin, async (req, res, next) => {
