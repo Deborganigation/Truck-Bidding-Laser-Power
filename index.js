@@ -68,6 +68,65 @@ const isAdmin = (req, res, next) => {
     next();
 };
 
+// ================== EMAIL HELPER FUNCTION ==================
+const sendAwardNotificationEmails = async (awardedBids) => {
+    if (!process.env.SENDGRID_API_KEY || !process.env.SENDER_EMAIL) {
+        console.error("Email sending skipped: SendGrid API Key or Sender Email is not configured.");
+        return;
+    }
+
+    // Group bids by vendor
+    const notificationsByVendor = {};
+    for (const bid of awardedBids) {
+        if (!notificationsByVendor[bid.vendor_id]) {
+            notificationsByVendor[bid.vendor_id] = {
+                vendorName: bid.trucker_name,
+                vendorEmail: bid.trucker_email,
+                loads: [],
+                totalValue: 0
+            };
+        }
+        notificationsByVendor[bid.vendor_id].loads.push(bid);
+        notificationsByVendor[bid.vendor_id].totalValue += parseFloat(bid.bid_amount);
+    }
+
+    // Get Admin emails for CC
+    const [adminRows] = await dbPool.query("SELECT email FROM users WHERE role IN ('Admin', 'Super Admin') AND is_active = 1");
+    const adminEmails = adminRows.map(a => a.email);
+
+    for (const vendorId in notificationsByVendor) {
+        const notification = notificationsByVendor[vendorId];
+        const subject = `Congratulations! You've been awarded new loads from DEB'S LOGISTICS`;
+        const loadsHtml = notification.loads.map(load => 
+            `<tr>
+                <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">
+                    Load #${load.load_id}<br>
+                    <small style="color: #555;">${load.loading_point_address} to ${load.unloading_point_address}</small>
+                </td>
+                <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: right; vertical-align: middle;">
+                    ₹${parseFloat(load.bid_amount).toLocaleString('en-IN')}
+                </td>
+            </tr>`
+        ).join('');
+
+        const htmlBody = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 8px;"><div style="background-color: #172B4D; color: white; padding: 20px; text-align: center;"><h1 style="margin: 0;">Contract Awarded</h1></div><div style="padding: 20px;"><p>Dear ${notification.vendorName},</p><p>Congratulations! We are pleased to inform you that you have been awarded the following load(s):</p><table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;"><thead><tr><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Load Details</th><th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Awarded Amount</th></tr></thead><tbody>${loadsHtml}</tbody><tfoot><tr style="font-weight: bold; background-color: #f8f9fa;"><td style="padding: 10px; text-align: right;">Total Value:</td><td style="padding: 10px; text-align: right;">₹${notification.totalValue.toLocaleString('en-IN')}</td></tr></tfoot></table><p style="margin-top: 25px;">Our team will contact you shortly regarding the next steps. Thank you for your participation.</p><p>Sincerely,<br/><b>The DEB'S LOGISTICS Team</b></p></div></div>`;
+        
+        try {
+            await sgMail.send({
+                to: notification.vendorEmail,
+                from: process.env.SENDER_EMAIL,
+                cc: adminEmails,
+                subject: subject,
+                html: htmlBody
+            });
+            console.log(`Award notification email sent to ${notification.vendorEmail}`);
+        } catch (error) {
+            console.error(`Failed to send award email to ${notification.vendorEmail}:`, error.response ? error.response.body : error);
+        }
+    }
+};
+
+
 // ================== API ROUTES ==================
 
 // --- MASTER DATA APIs ---
@@ -85,7 +144,6 @@ app.post('/api/login', async (req, res, next) => {
         const match = await bcrypt.compare(password, user.password_hash);
         if (!match) return res.status(401).json({ success: false, message: 'Invalid credentials.' });
 
-        // Standardize roles for frontend
         if (user.role === 'User') user.role = 'Shipper';
         if (user.role === 'Vendor') user.role = 'Trucker';
 
@@ -102,7 +160,6 @@ app.post('/api/register', async (req, res, next) => {
     try {
         const { FullName, Email, Password, Role, CompanyName, ContactNumber, GSTIN } = req.body;
         const hashedPassword = await bcrypt.hash(Password, 10);
-        // Convert frontend role to DB role
         const dbRole = (Role === 'Trucker') ? 'Vendor' : 'User';
         await dbPool.query('INSERT INTO pending_users (full_name, email, password, role, company_name, contact_number, gstin) VALUES (?, ?, ?, ?, ?, ?, ?)', [FullName, Email, hashedPassword, dbRole, CompanyName, ContactNumber, GSTIN]);
         res.status(201).json({ success: true, message: 'Registration successful! Awaiting admin approval.' });
@@ -170,7 +227,7 @@ app.get('/api/shipper/status', authenticateToken, async (req, res, next) => {
 app.get('/api/loads/assigned', authenticateToken, async (req, res, next) => {
     try {
         const vendorId = req.user.userId;
-        const { startDate, endDate } = req.query; // Filter by requirement_date
+        const { startDate, endDate } = req.query; 
 
         let query = `
             SELECT
@@ -219,10 +276,10 @@ app.post('/api/bids', authenticateToken, async (req, res, next) => {
         
         for (const bid of bids) {
             const vendorId = req.user.userId;
-
             const [[loadDetails]] = await connection.query('SELECT status, bidding_start_time, bidding_end_time FROM truck_loads WHERE load_id = ?', [bid.loadId]);
+
             if (!loadDetails || loadDetails.status !== 'Active') {
-                skippedBids.push(`Load ID ${bid.loadId} (Not active for bidding)`);
+                skippedBids.push(`Load ID ${bid.loadId} (Not active)`);
                 continue;
             }
 
@@ -231,7 +288,7 @@ app.post('/api/bids', authenticateToken, async (req, res, next) => {
             const endTime = loadDetails.bidding_end_time ? new Date(loadDetails.bidding_end_time) : null;
 
             if ((startTime && now < startTime) || (endTime && now > endTime)) {
-                skippedBids.push(`Load ID ${bid.loadId} (Bidding window is closed)`);
+                skippedBids.push(`Load ID ${bid.loadId} (Bidding window closed)`);
                 continue;
             }
 
@@ -420,7 +477,7 @@ app.get('/api/admin/all-loads', authenticateToken, isAdmin, async (req, res, nex
             whereClauses.push('tl.status = ?');
             params.push(status);
         } else {
-             whereClauses.push("tl.status = 'Active'"); // Default to Active if no status is provided
+             whereClauses.push("tl.status = 'Active'");
         }
         if (startDate) {
             whereClauses.push('tl.requirement_date >= ?');
@@ -474,15 +531,54 @@ app.get('/api/admin/bidding-history', authenticateToken, isAdmin, async (req, re
     }
 });
 
-app.post('/api/loads/bulk-upload', authenticateToken, isAdmin, upload.single('bulkFile'), async (req, res, next) => { if (!req.file) return res.status(400).json({ success: false, message: 'No Excel file uploaded.' }); let connection; try { connection = await dbPool.getConnection(); const workbook = xlsx.read(req.file.buffer, { type: 'buffer', cellDates: true }); const sheet = workbook.Sheets[workbook.SheetNames[0]]; const jsonData = xlsx.utils.sheet_to_json(sheet); if (jsonData.length === 0) return res.status(400).json({ success: false, message: 'Excel file is empty.' }); const [itemRows] = await connection.query('SELECT item_id, item_name FROM item_master'); const [truckRows] = await connection.query('SELECT truck_type_id, truck_name FROM truck_type_master'); const itemMap = new Map(itemRows.map(i => [i.item_name.toLowerCase(), i.item_id])); const truckMap = new Map(truckRows.map(t => [t.truck_name.toLowerCase(), t.truck_type_id])); await connection.beginTransaction(); const [reqResult] = await connection.query("INSERT INTO requisitions (created_by, status, created_at) VALUES (?, 'Pending Approval', ?)", [req.user.userId, new Date()]); const reqId = reqResult.insertId; for (const row of jsonData) { const itemId = itemMap.get(String(row.MaterialName).toLowerCase()); const truckTypeId = truckMap.get(String(row.TruckName).toLowerCase()); if (!itemId || !truckTypeId) { console.warn(`Skipping row, master data not found for: ${row.MaterialName} or ${row.TruckName}`); continue; } await connection.query( `INSERT INTO truck_loads (requisition_id, created_by, loading_point_address, unloading_point_address, item_id, approx_weight_tonnes, truck_type_id, requirement_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending Approval')`, [reqId, req.user.userId, row.LoadingPoint, row.UnloadingPoint, itemId, row.WeightInTonnes, truckTypeId, row.RequirementDate] ); } await connection.commit(); res.status(201).json({ success: true, message: 'Bulk upload processed successfully.' }); } catch (error) { if (connection) await connection.rollback(); next(error); } finally { if (connection) connection.release(); }});
+app.post('/api/loads/bulk-upload', authenticateToken, isAdmin, upload.single('bulkFile'), async (req, res, next) => { if (!req.file) return res.status(400).json({ success: false, message: 'No Excel file uploaded.' }); let connection; try { connection = await dbPool.getConnection(); const workbook = xlsx.read(req.file.buffer, { type: 'buffer', cellDates: true }); const sheet = workbook.Sheets[workbook.SheetNames[0]]; const jsonData = xlsx.utils.sheet_to_json(sheet); if (jsonData.length === 0) return res.status(400).json({ success: false, message: 'Excel file is empty.' }); const [itemRows] = await connection.query('SELECT item_id, item_name FROM item_master'); const [truckRows] = await connection.query('SELECT truck_type_id, truck_name FROM truck_type_master'); const itemMap = new Map(itemRows.map(i => [i.item_name.toLowerCase(), i.item_id])); const truckMap = new Map(truckRows.map(t => [t.truck_name.toLowerCase(), t.truck_type_id])); await connection.beginTransaction(); const [reqResult] = await connection.query("INSERT INTO requisitions (created_by, status, created_at) VALUES (?, 'Pending Approval', ?)", [req.user.userId, new Date()]); const reqId = reqResult.insertId; for (const row of jsonData) { const itemId = itemMap.get(String(row.MaterialName).toLowerCase()); const truckTypeId = truckMap.get(String(row.TruckName).toLowerCase()); if (!itemId || !truckTypeId) { console.warn(`Skipping row, master data not found for: ${row.MaterialName} or ${row.TruckName}`); continue; } await connection.query( `INSERT INTO truck_loads (requisition_id, created_by, loading_point_address, unloading_point_address, item_id, approx_weight_tonnes, truck_type_id, requirement_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending Approval')`, [reqId, req.user.userId, row.LoadingPoint, row.UnloadingPoint, itemId, row.WeightInTonnes, row.RequirementDate] ); } await connection.commit(); res.status(201).json({ success: true, message: 'Bulk upload processed successfully.' }); } catch (error) { if (connection) await connection.rollback(); next(error); } finally { if (connection) connection.release(); }});
 app.post('/api/admin/reports-data', authenticateToken, isAdmin, async (req, res, next) => { try { const { startDate, endDate } = req.body; const params = []; let whereClause = ''; if (startDate && endDate) { whereClause = ' WHERE ac.awarded_date BETWEEN ? AND ?'; params.push(startDate, `${endDate} 23:59:59`); } const detailedReportQuery = `SELECT ac.load_id, tl.loading_point_address, tl.unloading_point_address, im.item_name, tl.approx_weight_tonnes, ttm.truck_name, u.full_name as trucker_name, ac.awarded_amount, ac.awarded_date FROM awarded_contracts ac JOIN truck_loads tl ON ac.load_id = tl.load_id JOIN users u ON ac.vendor_id = u.user_id JOIN item_master im ON tl.item_id = im.item_id JOIN truck_type_master ttm ON tl.truck_type_id = ttm.truck_type_id ${whereClause.replace('ac.','ac.')} ORDER BY ac.awarded_date DESC`; const kpiQuery = `SELECT COALESCE(SUM(ac.awarded_amount), 0) AS totalSpend, COUNT(ac.load_id) as awardedLoads FROM awarded_contracts ac ${whereClause}`; const [ [kpis], [detailedReport] ] = await Promise.all([ dbPool.query(kpiQuery, params), dbPool.query(detailedReportQuery, params) ]); res.json({ success: true, data: { kpis: kpis, detailedReport }}); } catch (error) { next(error); }});
 app.get('/api/admin/loads/:id/bids', authenticateToken, isAdmin, async (req, res, next) => { try { const [bids] = await dbPool.query(`SELECT b.*, u.full_name as trucker_name FROM bids b JOIN users u ON b.vendor_id = u.user_id WHERE b.load_id = ? ORDER BY b.bid_amount ASC`, [req.params.id]); const [[loadDetails]] = await dbPool.query('SELECT * FROM truck_loads WHERE load_id = ?', [req.params.id]); res.json({ success: true, data: { bids, loadDetails } }); } catch (error) { next(error); }});
 app.post('/api/admin/bids-for-loads', authenticateToken, isAdmin, async (req, res, next) => { try { const { loadIds } = req.body; if (!loadIds || loadIds.length === 0) { return res.status(400).json({ success: false, message: 'No load IDs provided.' }); } const results = []; for (const loadId of loadIds) { const [bids] = await dbPool.query(`SELECT b.*, u.full_name as trucker_name, u.email as trucker_email, u.contact_number as trucker_contact FROM bids b JOIN users u ON b.vendor_id = u.user_id WHERE b.load_id = ? ORDER BY b.bid_amount ASC`, [loadId]); const [[loadDetails]] = await dbPool.query('SELECT tl.*, im.item_name FROM truck_loads tl JOIN item_master im ON tl.item_id = im.item_id WHERE tl.load_id = ?', [loadId]); results.push({ ...loadDetails, bids }); } res.json({ success: true, data: results }); } catch (error) { next(error); }});
 app.get('/api/requisitions/:id/assignments', authenticateToken, isAdmin, async (req, res, next) => { try { const [allTruckers] = await dbPool.query("SELECT user_id, full_name FROM users WHERE role = 'Vendor' AND is_active = 1 ORDER BY full_name"); const [assignedResult] = await dbPool.query("SELECT vendor_id FROM trucker_assignments WHERE requisition_id = ?", [req.params.id]); const assignedTruckerIds = assignedResult.map(a => a.vendor_id); res.json({ success: true, data: { allTruckers, assignedTruckerIds } }); } catch (error) { next(error); }});
 app.put('/api/requisitions/:id/assignments', authenticateToken, isAdmin, async (req, res, next) => { let connection; try { connection = await dbPool.getConnection(); await connection.beginTransaction(); await connection.query('DELETE FROM trucker_assignments WHERE requisition_id = ?', [req.params.id]); if (req.body.truckerIds && req.body.truckerIds.length > 0) { const values = req.body.truckerIds.map(vId => [req.params.id, vId, new Date()]); await connection.query('INSERT INTO trucker_assignments (requisition_id, vendor_id, assigned_at) VALUES ?', [values]); } await connection.commit(); res.json({ success: true, message: 'Trucker assignments updated.' }); } catch (error) { if (connection) await connection.rollback(); next(error); } finally { if (connection) connection.release(); }});
-app.put('/api/admin/loads/bidding-time', authenticateToken, isAdmin, async (req, res, next) => { try { const { loadId, startTime, endTime } = req.body; if (!loadId) { return res.status(400).json({ success: false, message: 'Load ID is required.' }); } await dbPool.query("UPDATE truck_loads SET bidding_start_time = ?, bidding_end_time = ? WHERE load_id = ?", [startTime || null, endTime || null, loadId]); res.json({ success: true, message: 'Bidding time updated successfully.' }); } catch (error) { next(error); }});
-app.post('/api/contracts/award', authenticateToken, isAdmin, async (req, res, next) => { let connection; try { connection = await dbPool.getConnection(); const { bids } = req.body; await connection.beginTransaction(); for (const bid of bids) { await connection.query("DELETE FROM awarded_contracts WHERE load_id = ?", [bid.load_id]); await connection.query( "INSERT INTO awarded_contracts (load_id, requisition_id, vendor_id, awarded_amount, remarks, awarded_date) VALUES (?, ?, ?, ?, ?, ?)", [bid.load_id, bid.requisition_id, bid.vendor_id, bid.bid_amount, bid.remarks, new Date()] ); await connection.query("UPDATE truck_loads SET status = 'Awarded' WHERE load_id = ?", [bid.load_id]); } await connection.commit(); res.json({ success: true, message: 'Contract(s) awarded successfully.' }); } catch (error) { if (connection) await connection.rollback(); next(error); } finally { if (connection) connection.release(); }});
+
+app.put('/api/admin/loads/bidding-time', authenticateToken, isAdmin, async (req, res, next) => { 
+    try { 
+        const { loadId, startTime, endTime } = req.body; 
+        if (!loadId) { return res.status(400).json({ success: false, message: 'Load ID is required.' }); } 
+        await dbPool.query("UPDATE truck_loads SET bidding_start_time = ?, bidding_end_time = ? WHERE load_id = ?", [startTime || null, endTime || null, loadId]); 
+        res.json({ success: true, message: 'Bidding time updated successfully.' }); 
+    } catch (error) { 
+        next(error); 
+    }
+});
+
+app.post('/api/contracts/award', authenticateToken, isAdmin, async (req, res, next) => {
+    let connection;
+    try {
+        connection = await dbPool.getConnection();
+        const { bids } = req.body;
+        await connection.beginTransaction();
+        for (const bid of bids) {
+            await connection.query("DELETE FROM awarded_contracts WHERE load_id = ?", [bid.load_id]);
+            await connection.query(
+                "INSERT INTO awarded_contracts (load_id, requisition_id, vendor_id, awarded_amount, remarks, awarded_date) VALUES (?, ?, ?, ?, ?, ?)",
+                [bid.load_id, bid.requisition_id, bid.vendor_id, bid.bid_amount, bid.remarks, new Date()]
+            );
+            await connection.query("UPDATE truck_loads SET status = 'Awarded' WHERE load_id = ?", [bid.load_id]);
+        }
+        await connection.commit();
+        
+        // Send emails after transaction is successful
+        sendAwardNotificationEmails(bids).catch(err => console.error("Email sending failed after award:", err));
+
+        res.json({ success: true, message: 'Contract(s) awarded successfully.' });
+    } catch (error) {
+        if (connection) await connection.rollback();
+        next(error);
+    } finally {
+        if (connection) connection.release();
+    }
+});
+
 app.post('/api/loads/reopen-bidding', authenticateToken, isAdmin, async (req, res, next) => { let connection; try { connection = await dbPool.getConnection(); const { loadIds, remarks, truckerIds } = req.body; await connection.beginTransaction(); const [reqIdsResult] = await connection.query('SELECT DISTINCT requisition_id FROM truck_loads WHERE load_id IN (?)', [loadIds]); const requisitionIds = reqIdsResult.map(r => r.requisition_id); await connection.query("UPDATE truck_loads SET status = 'Active' WHERE load_id IN (?)", [loadIds]); await connection.query("DELETE FROM awarded_contracts WHERE load_id IN (?)", [loadIds]); for (const reqId of requisitionIds) { await connection.query('DELETE FROM trucker_assignments WHERE requisition_id = ?', [reqId]); if (truckerIds && truckerIds.length > 0) { const values = truckerIds.map(vId => [reqId, vId, new Date()]); await connection.query('INSERT INTO trucker_assignments (requisition_id, vendor_id, assigned_at) VALUES ?', [values]); } } console.log(`Loads ${loadIds.join(',')} re-opened by ${req.user.fullName} with remarks: ${remarks}`); await connection.commit(); res.json({ success: true, message: 'Bidding re-opened successfully.' }); } catch (error) { if (connection) await connection.rollback(); next(error); } finally { if (connection) connection.release(); }});
+
 
 // --- USER MANAGEMENT (Admin) ---
 app.get('/api/users/pending', authenticateToken, isAdmin, async (req, res, next) => { try { const [rows] = await dbPool.query(`SELECT temp_id, full_name, email, role, company_name, contact_number FROM pending_users ORDER BY temp_id DESC`); const data = rows.map(u => ({...u, role: u.role === 'Vendor' ? 'Trucker' : 'Shipper'})); res.json({ success: true, data }); } catch (error) { next(error); }});
@@ -502,29 +598,8 @@ app.post('/api/master-data/:type/bulk-upload', authenticateToken, isAdmin, uploa
 // --- MESSAGING & NOTIFICATIONS ---
 app.get('/api/conversations', authenticateToken, async (req, res, next) => { try { const [users] = await dbPool.query('SELECT user_id, full_name, role FROM users WHERE user_id != ? AND is_active = 1', [req.user.userId]); const data = users.map(u => ({...u, role: u.role === 'Vendor' ? 'Trucker' : (u.role === 'User' ? 'Shipper' : u.role)})); res.json({ success: true, data }); } catch(e) { next(e); }});
 app.get('/api/messages/:otherUserId', authenticateToken, async (req, res, next) => { try { const [messages] = await dbPool.query('SELECT * FROM messages WHERE (sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?) ORDER BY timestamp ASC', [req.user.userId, req.params.otherUserId, req.params.otherUserId, req.user.userId]); await dbPool.query('UPDATE messages SET is_read = 1 WHERE recipient_id = ? AND sender_id = ?', [req.user.userId, req.params.otherUserId]); res.json({ success: true, data: messages }); } catch(e) { next(e); }});
-app.post('/api/messages', authenticateToken, async (req, res, next) => { try { const { recipientId, messageBody } = req.body; const utcTimestamp = new Date().toISOString(); await dbPool.query('INSERT INTO messages (sender_id, recipient_id, message_body, timestamp) VALUES (?, ?, ?, ?)', [req.user.userId, recipientId, messageBody, utcTimestamp]); res.status(201).json({ success: true, message: 'Message sent' }); } catch(e) { next(e); }});
+app.post('/api/messages', authenticateToken, async (req, res, next) => { try { const { recipientId, messageBody } = req.body; const mysqlTimestamp = new Date().toISOString().slice(0, 19).replace('T', ' '); await dbPool.query('INSERT INTO messages (sender_id, recipient_id, message_body, timestamp) VALUES (?, ?, ?, ?)', [req.user.userId, recipientId, messageBody, mysqlTimestamp]); res.status(201).json({ success: true, message: 'Message sent' }); } catch(e) { next(e); }});
 app.get('/api/sidebar-counts', authenticateToken, async (req, res, next) => { try { let counts = { unreadMessages: 0, pendingLoads: 0, pendingUsers: 0 }; const [[msgCount]] = await dbPool.query("SELECT COUNT(*) as count FROM messages WHERE recipient_id = ? AND is_read = 0", [req.user.userId]); counts.unreadMessages = msgCount.count; if(req.user.role === 'Admin' || req.user.role === 'Super Admin') { const [[pendingUsers]] = await dbPool.query("SELECT COUNT(*) as count FROM pending_users"); counts.pendingUsers = pendingUsers.count; const [[pendingLoads]] = await dbPool.query("SELECT COUNT(*) as count FROM truck_loads WHERE status = 'Pending Approval'"); counts.pendingLoads = pendingLoads.count; } res.json({ success: true, data: counts }); } catch(e){next(e)} });
-app.post('/api/send-email', authenticateToken, isAdmin, async (req, res, next) => {
-    if (!process.env.SENDGRID_API_KEY) {
-        console.warn('Attempted to send email, but SendGrid is not configured.');
-        return res.status(503).json({ success: false, message: 'Email service is not configured.' });
-    }
-    try {
-        const { recipient, subject, htmlBody, cc } = req.body;
-        const msg = {
-            to: recipient,
-            from: process.env.SENDER_EMAIL, // Must be a verified sender in SendGrid
-            cc: cc,
-            subject: subject,
-            html: htmlBody,
-        };
-        await sgMail.send(msg);
-        res.json({ success: true, message: 'Email sent successfully.' });
-    } catch (error) {
-        console.error("SendGrid Error:", error.response ? error.response.body : error);
-        next(error);
-    }
-});
 
 // ================== GLOBAL ERROR HANDLER ==================
 app.use((err, req, res, next) => {
