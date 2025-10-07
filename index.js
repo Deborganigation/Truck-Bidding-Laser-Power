@@ -26,7 +26,7 @@ if (process.env.SENDGRID_API_KEY) {
 app.use(express.static(path.join(__dirname)));
 app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')); });
 
-// ================== DATABASE POOL (FINAL TIMEZONE FIX) ==================
+// ================== DATABASE POOL (FINAL & GUARANTEED TIMEZONE FIX) ==================
 const dbPool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -50,7 +50,7 @@ const dbPool = mysql.createPool({
                 callback(err, connection);
             } else {
                 // Yeh message server start hote hi dikhna chahiye
-                console.log("✅ Database connection timezone successfully set to +05:30 (IST)");
+                // console.log("✅ Database connection timezone successfully set to +05:30 (IST)");
                 callback(null, connection);
             }
         });
@@ -79,7 +79,6 @@ const isAdmin = (req, res, next) => {
 
 // ================== EMAIL HELPER FUNCTION ==================
 const sendAwardNotificationEmails = async (awardedBids) => {
-    // ... baaki code same rahega ...
     if (!process.env.SENDGRID_API_KEY || !process.env.SENDER_EMAIL) {
         console.error("Email sending skipped: SendGrid API Key or Sender Email is not configured in .env file.");
         return;
@@ -196,7 +195,6 @@ app.post('/api/messages', authenticateToken, async (req, res, next) => {
 
 
 // Baaki sabhi APIs... (All other APIs remain the same and are correct)
-// ... (The rest of your API routes go here, they don't need changes)
 // =========================================================================
 
 // --- AUTH, MASTER DATA, etc. ---
