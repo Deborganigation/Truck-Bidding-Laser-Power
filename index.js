@@ -299,7 +299,7 @@ app.get('/api/loads/assigned', authenticateToken, async (req, res, next) => {
             (SELECT JSON_ARRAYAGG(JSON_OBJECT('bid_amount', bhl.bid_amount, 'rank', (
                 SELECT COUNT(DISTINCT b_rank.vendor_id) + 1 FROM bids b_rank WHERE b_rank.load_id = bhl.load_id AND b_rank.bid_amount < bhl.bid_amount
             )))
-                FROM bidding_history_log bhl WHERE bhl.load_id = tl.load_id AND bhl.vendor_id = ? ORDER BY bhl.submitted_at ASC) AS my_bid_history,
+             FROM bidding_history_log bhl WHERE bhl.load_id = tl.load_id AND bhl.vendor_id = ? ORDER BY bhl.submitted_at ASC) AS my_bid_history,
             CASE WHEN b.bid_id IS NOT NULL THEN
                 (SELECT COUNT(DISTINCT b2.vendor_id) + 1 FROM bids b2 WHERE b2.load_id = tl.load_id AND b2.bid_amount < b.bid_amount)
             ELSE NULL END AS my_rank
@@ -411,8 +411,9 @@ app.post('/api/loads/approve', authenticateToken, isAdmin, async (req, res, next
         await connection.beginTransaction();
         
         if (approvedLoadIds && approvedLoadIds.length > 0) {
+            // ✅ *** FIX APPLIED HERE *** ✅
             await connection.query(
-                "UPDATE truck_loads SET status = 'Active', bidding_start_time = ?, bidding_end_time = ? WHERE load_id IN (?)", 
+                "UPDATE truck_loads SET status = 'Active', bidding_start_time = CONVERT_TZ(?, '+00:00', '+05:30'), bidding_end_time = CONVERT_TZ(?, '+00:00', '+05:30') WHERE load_id IN (?)",
                 [biddingStartTime || null, biddingEndTime || null, approvedLoadIds]
             );
         }
@@ -561,7 +562,11 @@ app.put('/api/admin/loads/bidding-time', authenticateToken, isAdmin, async (req,
     try { 
         const { loadId, startTime, endTime } = req.body; 
         if (!loadId) { return res.status(400).json({ success: false, message: 'Load ID is required.' }); } 
-        await dbPool.query("UPDATE truck_loads SET bidding_start_time = ?, bidding_end_time = ? WHERE load_id = ?", [startTime || null, endTime || null, loadId]); 
+        // ✅ *** FIX APPLIED HERE *** ✅
+        await dbPool.query(
+            "UPDATE truck_loads SET bidding_start_time = CONVERT_TZ(?, '+00:00', '+05:30'), bidding_end_time = CONVERT_TZ(?, '+00:00', '+05:30') WHERE load_id = ?",
+            [startTime || null, endTime || null, loadId]
+        ); 
         res.json({ success: true, message: 'Bidding time updated successfully.' }); 
     } catch (error) { 
         next(error); 
@@ -573,8 +578,9 @@ app.put('/api/admin/loads/bulk-bidding-time', authenticateToken, isAdmin, async 
         if (!loadIds || loadIds.length === 0) {
             return res.status(400).json({ success: false, message: 'Please select at least one load.' });
         }
+        // ✅ *** FIX APPLIED HERE *** ✅
         await dbPool.query(
-            "UPDATE truck_loads SET bidding_start_time = ?, bidding_end_time = ? WHERE load_id IN (?)",
+            "UPDATE truck_loads SET bidding_start_time = CONVERT_TZ(?, '+00:00', '+05:30'), bidding_end_time = CONVERT_TZ(?, '+00:00', '+05:30') WHERE load_id IN (?)",
             [startTime || null, endTime || null, loadIds]
         );
         res.json({ success: true, message: `${loadIds.length} load(s) have been updated with the new bidding time.` });
