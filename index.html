@@ -350,9 +350,9 @@
 
         function renderBidInput(load) {
             const now = new Date();
-            // ✅ *** FIX APPLIED HERE *** ✅
-            const startTime = load.bidding_start_time ? new Date(load.bidding_start_time.replace(' ', 'T') + '+05:30') : null;
-            const endTime = load.bidding_end_time ? new Date(load.bidding_end_time.replace(' ', 'T') + '+05:30') : null;
+            // ✅ *** FIX APPLIED HERE: Using 'Z' for UTC interpretation *** ✅
+            const startTime = load.bidding_start_time ? new Date(load.bidding_start_time.replace(' ', 'T') + 'Z') : null;
+            const endTime = load.bidding_end_time ? new Date(load.bidding_end_time.replace(' ', 'T') + 'Z') : null;
             
             if (endTime && now > endTime) {
                 return `<span class="text-danger fw-bold small"><i class="fas fa-clock me-1"></i>Bidding Closed</span>`;
@@ -373,8 +373,8 @@
                 const timerElement = $(this);
                 const startTimeString = timerElement.data('start-time');
                 if (!startTimeString) return;
-                // ✅ *** FIX APPLIED HERE *** ✅
-                const startTime = new Date(startTimeString.replace(' ', 'T') + '+05:30');
+                // ✅ *** FIX APPLIED HERE: Using 'Z' for UTC interpretation *** ✅
+                const startTime = new Date(startTimeString.replace(' ', 'T') + 'Z');
 
                 const interval = setInterval(() => {
                     const now = new Date();
@@ -604,16 +604,15 @@
         
         function formatDate(d, includeTime = false) { 
             if (!d) return 'N/A';
-            // ✅ *** FIX APPLIED HERE *** ✅
-            // Append '+05:30' to tell JS that the incoming string is in IST.
-            const date = new Date(d.replace(' ', 'T') + '+05:30'); 
-            const options = { day: 'numeric', month: 'short', year: 'numeric' }; 
+            // ✅ *** FIX APPLIED HERE: Using 'Z' for UTC interpretation *** ✅
+            // Append 'Z' to tell JS that the incoming string is in UTC.
+            // JS will then automatically convert it to the user's local timezone for display.
+            const date = new Date(d.replace(' ', 'T') + 'Z'); 
+            const options = { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }; 
             if (includeTime) { 
                 options.hour = 'numeric'; 
                 options.minute = '2-digit';
                 options.hour12 = true;
-                // Add timezone name to avoid any confusion
-                options.timeZoneName = 'short';
             } 
             return new Intl.DateTimeFormat('en-IN', options).format(date); 
         }
