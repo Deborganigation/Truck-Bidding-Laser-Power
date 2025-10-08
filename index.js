@@ -798,6 +798,77 @@ app.post('/api/admin/reports-data', authenticateToken, isAdmin, async (req, res,
     }
 });
 
+app.delete('/api/loads/:id', authenticateToken, isAdmin, async (req, res, next) => {
+    let connection;
+    try {
+        const { id } = req.params;
+        connection = await dbPool.getConnection();
+        await connection.beginTransaction();
+        
+        await connection.query("DELETE FROM bids WHERE load_id = ?", [id]);
+        await connection.query("DELETE FROM awarded_contracts WHERE load_id = ?", [id]);
+        const [result] = await connection.query("DELETE FROM truck_loads WHERE load_id = ?", [id]);
+        
+        await connection.commit();
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Load not found.' });
+        }
+        res.json({ success: true, message: 'Load and all related bids have been deleted.' });
+    } catch (error) {
+        if (connection) await connection.rollback();
+        next(error);
+    } finally {
+        if (connection) connection.release();
+    }
+});
+
+app.get('/api/loads/:id', authenticateToken, isAdmin, async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const [[load]] = await dbPool.query("SELECT * FROM truck_loads WHERE load_id = ?", [id]);
+        if (!load) {
+            return res.status(404).json({ success: false, message: 'Load not found.' });
+        }
+        res.json({ success: true, data: load });
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.put('/api/loads/:id', authenticateToken, isAdmin, async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { 
+            loading_point_address, 
+            unloading_point_address, 
+            item_id, 
+            truck_type_id,
+            approx_weight_tonnes,
+            requirement_date
+        } = req.body;
+
+        const [result] = await dbPool.query(
+            `UPDATE truck_loads SET 
+                loading_point_address = ?, 
+                unloading_point_address = ?, 
+                item_id = ?, 
+                truck_type_id = ?,
+                approx_weight_tonnes = ?,
+                requirement_date = ?
+            WHERE load_id = ?`,
+            [loading_point_address, unloading_point_address, item_id, truck_type_id, approx_weight_tonnes, requirement_date, id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Load not found.' });
+        }
+        res.json({ success: true, message: 'Load updated successfully!' });
+    } catch (error) {
+        next(error);
+    }
+});
+
 app.post('/api/loads/bulk-upload', authenticateToken, isAdmin, upload.single('bulkFile'), async (req, res, next) => { if (!req.file) return res.status(400).json({ success: false, message: 'No Excel file uploaded.' }); let connection; try { connection = await dbPool.getConnection(); const workbook = xlsx.read(req.file.buffer, { type: 'buffer', cellDates: true }); const sheet = workbook.Sheets[workbook.SheetNames[0]]; const jsonData = xlsx.utils.sheet_to_json(sheet); if (jsonData.length === 0) return res.status(400).json({ success: false, message: 'Excel file is empty.' }); const [itemRows] = await connection.query('SELECT item_id, item_name FROM item_master'); const [truckRows] = await connection.query('SELECT truck_type_id, truck_name FROM truck_type_master'); const itemMap = new Map(itemRows.map(i => [i.item_name.toLowerCase(), i.item_id])); const truckMap = new Map(truckRows.map(t => [t.truck_name.toLowerCase(), t.truck_type_id])); await connection.beginTransaction(); const [reqResult] = await connection.query("INSERT INTO requisitions (created_by, status, created_at) VALUES (?, 'Pending Approval', NOW())", [req.user.userId]); const reqId = reqResult.insertId; for (const row of jsonData) { const itemId = itemMap.get(String(row.MaterialName).toLowerCase()); const truckTypeId = truckMap.get(String(row.TruckName).toLowerCase()); if (!itemId || !truckTypeId) { console.warn(`Skipping row, master data not found for: ${row.MaterialName} or ${row.TruckName}`); continue; } await connection.query( `INSERT INTO truck_loads (requisition_id, created_by, loading_point_address, unloading_point_address, item_id, approx_weight_tonnes, truck_type_id, requirement_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending Approval')`, [reqId, req.user.userId, row.LoadingPoint, row.UnloadingPoint, itemId, row.WeightInTonnes, row.RequirementDate] ); } await connection.commit(); res.status(201).json({ success: true, message: 'Bulk upload processed successfully.' }); } catch (error) { if (connection) await connection.rollback(); next(error); } finally { if (connection) connection.release(); }});
 app.get('/api/admin/loads/:id/bids', authenticateToken, isAdmin, async (req, res, next) => { try { const [bids] = await dbPool.query(`SELECT b.*, u.full_name as trucker_name FROM bids b JOIN users u ON b.vendor_id = u.user_id WHERE b.load_id = ? ORDER BY b.bid_amount ASC`, [req.params.id]); const [[loadDetails]] = await dbPool.query('SELECT * FROM truck_loads WHERE load_id = ?', [req.params.id]); res.json({ success: true, data: { bids, loadDetails } }); } catch (error) { next(error); }});
 app.post('/api/admin/bids-for-loads', authenticateToken, isAdmin, async (req, res, next) => { try { const { loadIds } = req.body; if (!loadIds || loadIds.length === 0) { return res.status(400).json({ success: false, message: 'No load IDs provided.' }); } const results = []; for (const loadId of loadIds) { const [bids] = await dbPool.query(`SELECT b.*, u.full_name as trucker_name, u.email as trucker_email, u.contact_number as trucker_contact FROM bids b JOIN users u ON b.vendor_id = u.user_id WHERE b.load_id = ? ORDER BY b.bid_amount ASC`, [loadId]); const [[loadDetails]] = await dbPool.query('SELECT tl.*, im.item_name FROM truck_loads tl JOIN item_master im ON tl.item_id = im.item_id WHERE tl.load_id = ?', [loadId]); results.push({ ...loadDetails, bids }); } res.json({ success: true, data: results }); } catch (error) { next(error); }});
