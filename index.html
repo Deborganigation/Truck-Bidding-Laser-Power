@@ -350,8 +350,9 @@
 
         function renderBidInput(load) {
             const now = new Date();
-            const startTime = load.bidding_start_time ? new Date(load.bidding_start_time.replace(' ', 'T')) : null;
-            const endTime = load.bidding_end_time ? new Date(load.bidding_end_time.replace(' ', 'T')) : null;
+            // ✅ *** FIX APPLIED HERE *** ✅
+            const startTime = load.bidding_start_time ? new Date(load.bidding_start_time.replace(' ', 'T') + '+05:30') : null;
+            const endTime = load.bidding_end_time ? new Date(load.bidding_end_time.replace(' ', 'T') + '+05:30') : null;
             
             if (endTime && now > endTime) {
                 return `<span class="text-danger fw-bold small"><i class="fas fa-clock me-1"></i>Bidding Closed</span>`;
@@ -372,7 +373,8 @@
                 const timerElement = $(this);
                 const startTimeString = timerElement.data('start-time');
                 if (!startTimeString) return;
-                const startTime = new Date(startTimeString.replace(' ', 'T'));
+                // ✅ *** FIX APPLIED HERE *** ✅
+                const startTime = new Date(startTimeString.replace(' ', 'T') + '+05:30');
 
                 const interval = setInterval(() => {
                     const now = new Date();
@@ -453,10 +455,10 @@
         }
         async function handleBulkApproval(reqId) { 
             const c = $(`#collapse-${reqId}`), 
-                  loads = c.find('.load-check-box:checked').map((i, el) => $(el).val()).get(), 
-                  truckers = c.find('.trucker-assign-check:checked').map((i, el) => $(el).val()).get(),
-                  biddingStartTime = c.find('.bidding-start-time-input').val(),
-                  biddingEndTime = c.find('.bidding-end-time-input').val();
+                    loads = c.find('.load-check-box:checked').map((i, el) => $(el).val()).get(), 
+                    truckers = c.find('.trucker-assign-check:checked').map((i, el) => $(el).val()).get(),
+                    biddingStartTime = c.find('.bidding-start-time-input').val(),
+                    biddingEndTime = c.find('.bidding-end-time-input').val();
             if (loads.length === 0) return showToast('Select at least one load.', 'error'); 
             if (truckers.length === 0) return showToast('Assign at least one trucker.', 'error'); 
             try { 
@@ -602,12 +604,16 @@
         
         function formatDate(d, includeTime = false) { 
             if (!d) return 'N/A';
-            const date = new Date(d.replace(' ', 'T')); 
+            // ✅ *** FIX APPLIED HERE *** ✅
+            // Append '+05:30' to tell JS that the incoming string is in IST.
+            const date = new Date(d.replace(' ', 'T') + '+05:30'); 
             const options = { day: 'numeric', month: 'short', year: 'numeric' }; 
             if (includeTime) { 
                 options.hour = 'numeric'; 
                 options.minute = '2-digit';
                 options.hour12 = true;
+                // Add timezone name to avoid any confusion
+                options.timeZoneName = 'short';
             } 
             return new Intl.DateTimeFormat('en-IN', options).format(date); 
         }
