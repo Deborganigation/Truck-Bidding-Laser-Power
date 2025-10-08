@@ -68,26 +68,11 @@
         .empty-state i { font-size: 2.5rem; margin-bottom: 1rem; }
         .chart-container { position: relative; height: 350px; width: 100%; }
         .filters-card { background-color: #f6f9fc; box-shadow: none; border: 1px solid var(--border-color); }
-        
-        #chat-messages { 
-            display: flex; 
-            flex-direction: column; 
-            padding: 20px;
-            background-color: var(--whatsapp-bg);
-            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAKCAYAAACX8y46AAAAOklEQVQYV2NkQAM3Z85gYGAQYmD4T5h5eHj+169fg4iKEl008uXLl1308/Pz/79//58pLi5GAgA2Xz9RfYd7yQAAAABJRU5ErkJggg==');
-        }
+        #chat-messages { display: flex; flex-direction: column; padding: 20px; background-color: var(--whatsapp-bg); background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAKCAYAAACX8y46AAAAOklEQVQYV2NkQAM3Z85gYGAQYmD4T5h5eHj+169fg4iKEl008uXLl1308/Pz/79//58pLi5GAgA2Xz9RfYd7yQAAAABJRU5ErkJggg==');}
         .message-wrapper { display: flex; width: 100%; margin-bottom: 15px; }
         .message-wrapper.sent { justify-content: flex-end; }
         .message-wrapper.received { justify-content: flex-start; }
-        .message-bubble { 
-            padding: 8px 12px; 
-            border-radius: 8px; 
-            max-width: 75%; 
-            word-wrap: break-word; 
-            box-shadow: 0 1px 1px rgba(0,0,0,0.1); 
-            display: flex;
-            flex-direction: column;
-        }
+        .message-bubble { padding: 8px 12px; border-radius: 8px; max-width: 75%; word-wrap: break-word; box-shadow: 0 1px 1px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
         .message-bubble.sent { background-color: var(--whatsapp-sent-bg); border-bottom-right-radius: 2px; }
         .message-bubble.received { background-color: #fff; border-bottom-left-radius: 2px; }
         .message-text { margin-bottom: 5px; }
@@ -165,7 +150,7 @@
             'admin-master-data-view': `<div class="row view"><div class="col-md-6"><div class="card"><div class="card-header d-flex justify-content-between"><span>Material Types</span><div><button class="btn btn-info btn-sm me-2" onclick="openBulkUploadModal('item')"><i class="fas fa-upload"></i></button><button class="btn btn-success btn-sm" onclick="openMasterDataModal('item')"><i class="fas fa-plus"></i></button></div></div><div class="card-body table-responsive p-0"><table class="table table-hover"><tbody id="item-master-tbody"></tbody></table></div></div></div><div class="col-md-6"><div class="card"><div class="card-header d-flex justify-content-between"><span>Truck Types</span><div><button class="btn btn-info btn-sm me-2" onclick="openBulkUploadModal('truck')"><i class="fas fa-upload"></i></button><button class="btn btn-success btn-sm" onclick="openMasterDataModal('truck')"><i class="fas fa-plus"></i></button></div></div><div class="card-body table-responsive p-0"><table class="table table-hover"><tbody id="truck-master-tbody"></tbody></table></div></div></div></div>`,
             'admin-user-approvals-view': `<div class="card view"><div class="card-header"><h5 class="mb-0">Pending User Approvals</h5></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Name</th><th>Email</th><th>Role</th><th>Company</th><th>Contact</th><th>Action</th></tr></thead><tbody id="admin-pending-users-tbody"></tbody></table><div id="admin-pending-users-empty-state"></div></div></div>`,
             'admin-user-control-view': `<div class="card view"><div class="card-header d-flex justify-content-between align-items-center"><h5 class="mb-0">User Control Center</h5><button class="btn btn-success btn-sm" onclick="openAddUserModal()"><i class="fas fa-plus me-2"></i>Add User</button></div><div class="card-body table-responsive p-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Name</th><th>Email</th><th>Role</th><th>Company</th><th>Contact</th><th>GSTIN</th><th>Action</th></tr></thead><tbody id="admin-users-tbody"></tbody></table><div id="admin-users-empty-state"></div></div></div>`,
-            'messaging-view': `<div class="card view" style="height: calc(100vh - 125px);"><div class="row g-0 h-100"><div class="col-lg-4 col-12 border-end d-flex flex-column"><div class="p-3 border-bottom bg-light"><input type="search" id="chat-search-bar" class="form-control" placeholder="Search chats..."></div><div id="chat-list" class="list-group list-group-flush" style="overflow-y: auto; flex-grow: 1;"></div></div><div class="col-lg-8 col-12 d-flex flex-column"><div id="chat-main" class="h-100"><div id="chat-welcome" class="d-flex align-items-center justify-content-center h-100"><div class="text-center text-muted"><i class="fab fa-whatsapp fa-3x mb-3"></i><p>Select a conversation to start messaging.</p></div></div><div id="chat-window" class="d-none h-100 d-flex flex-column"><div class="card-header d-flex align-items-center border-bottom bg-light"><h5 id="chat-with-name" class="mb-0"></h5></div><div id="chat-messages" class="card-body p-0" style="overflow-y: auto; flex-grow: 1;"></div><div class="card-footer bg-light p-3 border-top"><form id="message-form" class="d-flex"><input type="text" id="message-input" class="form-control" placeholder="Type a message..." autocomplete="off" required><button type="submit" class="btn btn-primary ms-2"><i class="fas fa-paper-plane"></i></button></form></div></div></div></div></div></div>`
+            'messaging-view': `<div class="card view" style="height: calc(100vh - 125px);"><div class="row g-0 h-100"><div class="col-lg-4 col-12 border-end d-flex flex-column"><div class="p-3 border-bottom bg-light"><input type="search" id="chat-search-bar" class="form-control" placeholder="Search chats..."></div><div id="chat-list" class="list-group list-group-flush" style="overflow-y: auto; flex-grow: 1;"></div></div><div class="col-lg-8 col-12 d-flex flex-column"><div id="chat-main" class="h-100"><div id="chat-welcome" class="d-flex align-items-center justify-content-center h-100"><div class="text-center text-muted"><i class="fab fa-whatsapp fa-3x mb-3"></i><p>Select a conversation to start messaging.</p></div></div><div id="chat-window" class="d-none h-100 d-flex flex-column"><div class="card-header d-flex align-items-center border-bottom bg-light"><h5 id="chat-with-name" class="mb-0"></h5></div><div id="chat-messages" class="card-body" style="overflow-y: auto; flex-grow: 1;"></div><div class="card-footer bg-light p-3 border-top"><form id="message-form" class="d-flex"><input type="text" id="message-input" class="form-control" placeholder="Type a message..." autocomplete="off" required><button type="submit" class="btn btn-primary ms-2"><i class="fas fa-paper-plane"></i></button></form></div></div></div></div></div></div>`
         };
         
         $(document).ready(() => {
@@ -334,392 +319,34 @@
         async function handleLoadSubmit(e) { e.preventDefault(); const loads = []; $('#load-items-container .card').each(function() { const card = $(this); loads.push({ loading_point_address: card.find('.loading_point_address').val(), unloading_point_address: card.find('.unloading_point_address').val(), item_id: card.find('.item_id').val(), truck_type_id: card.find('.truck_type_id').val(), approx_weight_tonnes: card.find('.approx_weight_tonnes').val(), requirement_date: card.find('.requirement_date').val() }); }); if (loads.length === 0) return showToast('Please add at least one load.', 'warning'); try { await apiCall('/loads', 'POST', { items: JSON.stringify(loads) }); showToast(`${loads.length} load request(s) submitted!`, 'success'); navigateTo('shipper-create-load-view'); } catch (e) {} }
         async function load_shipper_status_view() { const listDiv = $('#shipper-req-status-list'); try { renderEmptyState(listDiv, 'Loading...', 'fa-spinner fa-spin'); const result = await apiCall('/shipper/status'); if (result.data.length === 0) return renderEmptyState(listDiv, 'You have not posted any loads yet.', 'fa-file-signature'); listDiv.html(result.data.map(req => `<div class="card mb-3 view"><div class="card-header d-flex justify-content-between"><strong>TRN: REQ-${req.requisition_id}</strong><small>${formatDate(req.created_at)}</small></div><ul class="list-group list-group-flush">${req.loads.map(load => `<li class="list-group-item"><div class="d-flex w-100 justify-content-between"><div class="me-3"><h6 class="mb-0">${load.item_name} (Load ID: ${load.load_id})</h6><small>${load.loading_point_address} <i class="fas fa-long-arrow-alt-right"></i> ${load.unloading_point_address}</small></div><span class="badge bg-${getBadgeColor(load.status)} align-self-center">${load.status}</span></div>${load.status === 'Awarded' ? `<small class="d-block text-success mt-1"><i class="fas fa-trophy me-1"></i>Awarded to: ${load.awarded_vendor || 'N/A'} for <strong>${formatCurrency(load.awarded_amount)}</strong></small>` : ''}</li>`).join('')}</ul></div>`).join('')); } catch (e) {} }
         async function load_trucker_dashboard_view() { try { const result = await apiCall('/trucker/dashboard-stats'); const data = result.data; $('#trucker-stats-open').text(data.assignedLoads || '0'); $('#trucker-stats-submitted').text(data.submittedBids || '0'); $('#trucker-stats-won').text(data.contractsWon || '0'); $('#trucker-stats-needs-bid').text(data.needsBid || '0'); $('#trucker-kpi-container').html(data.kpis.map(kpi => `<li class="list-group-item d-flex justify-content-between align-items-center"><span><i class="fas ${kpi.icon} text-${kpi.color} me-3"></i>${kpi.title}</span><span class="fw-bold h5 mb-0">${kpi.value}</span></li>`).join('') || '<li class="list-group-item text-center text-muted">No data.</li>'); $('#trucker-recent-bids').html(data.recentBids.map(bid => `<a href="#" class="list-group-item list-group-item-action"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1 small">Load #${bid.load_id}</h6><span class="badge bg-${getBadgeColor(bid.status)}">${bid.status || 'N/A'}</span></div><p class="mb-1 small text-muted">My Bid: ${formatCurrency(bid.bid_amount)}</p></a>`).join('') || '<div class="list-group-item text-center text-muted small">No recent bids.</div>'); } catch (e) {} }
-        
-        async function load_trucker_open_loads_view() { 
-            const container = $('#trucker-bidding-table-container');
-            try { 
-                renderEmptyState(container, 'Loading...', 'fa-spinner fa-spin');
-                const filters = {
-                    startDate: $('#trucker-req-filter-start-date').val(),
-                    endDate: $('#trucker-req-filter-end-date').val()
-                };
-                const result = await apiCall('/loads/assigned', 'GET', filters); 
-                truckerLoadsCache = result.data; 
-                if (truckerLoadsCache.length === 0) {
-                    container.html(renderEmptyState(null, 'No loads assigned for bidding.', 'fa-truck-loading'));
-                    return;
-                }
-                renderBiddingTable(truckerLoadsCache);
-            } catch (e) {} 
-        }
-
-        function renderBiddingTable(loads) { 
-            biddingTimers.forEach(timer => clearInterval(timer));
-            biddingTimers = [];
-            const container = $('#trucker-bidding-table-container'); 
-            const tableHTML = `<div class="table-responsive p-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Load ID</th><th>Loading Point</th><th>Unloading Point</th><th>Material</th><th>Weight</th><th>Vehicle</th><th>Req. Date</th><th>History</th><th>My Rank</th><th>My Bid / Status</th></tr></thead><tbody>${loads.map(load => { const history = (load.my_bid_history || []).map((b, i) => `<li>Bid ${i + 1}: <strong>${formatCurrency(b.bid_amount)}</strong> (Rank: L${b.rank || 'N/A'})</li>`).join(''); return `<tr data-load-id="${load.load_id}"><td>${load.load_id}</td><td><small>${load.loading_point_address}</small></td><td><small>${load.unloading_point_address}</small></td><td><small>${load.item_name}</small></td><td><small>${load.approx_weight_tonnes}T</small></td><td><small>${load.truck_name}</small></td><td><small>${formatDate(load.requirement_date)}</small></td><td><button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="popover" data-bs-html="true" title="My Bidding History" data-bs-content="${history || 'No past bids.'}"><i class="fas fa-history"></i></button></td><td><span class="badge bg-${load.my_rank ? 'primary' : 'secondary'}">${load.my_rank ? `L${load.my_rank}` : 'N/A'}</span></td><td class="bidding-status-cell" data-start-time="${load.bidding_start_time}" data-end-time="${load.bidding_end_time}">${renderBidInput(load)}</td></tr>` }).join('')}</tbody></table></div>`; 
-            container.html(tableHTML); 
-            $('[data-bs-toggle="popover"]').popover({ trigger: 'hover focus' }); 
-            updateBiddingTimers();
-        }
-
-        function renderBidInput(load) {
-            const now = new Date();
-            const startTime = load.bidding_start_time ? new Date(load.bidding_start_time.replace(' ', 'T')) : null;
-            const endTime = load.bidding_end_time ? new Date(load.bidding_end_time.replace(' ', 'T')) : null;
-            
-            if (endTime && now > endTime) {
-                return `<span class="text-danger fw-bold small"><i class="fas fa-clock me-1"></i>Bidding Closed</span>`;
-            }
-
-            if (startTime && now < startTime) {
-                return `<span class="text-info fw-bold small countdown-timer" data-start-time-raw="${load.bidding_start_time}">Starts in...</span>`;
-            }
-
-            if (startTime && endTime && now >= startTime && now < endTime) {
-                return `<div class="live-bidding-container">
-                            <span class="text-success fw-bold small live-countdown-timer" data-end-time-raw="${load.bidding_end_time}">
-                                <i class="fas fa-hourglass-half me-1"></i>Calculating...
-                            </span>
-                            <div class="input-group input-group-sm mt-1">
-                                <span class="input-group-text">₹</span>
-                                <input type="number" class="form-control bid-amount-input" placeholder="Amount">
-                            </div>
-                        </div>`;
-            }
-
-            return `<div class="input-group input-group-sm">
-                        <span class="input-group-text">₹</span>
-                        <input type="number" class="form-control bid-amount-input" placeholder="Amount">
-                    </div>`;
-        }
-        
-        function updateBiddingTimers() {
-            biddingTimers.forEach(timer => clearInterval(timer));
-            biddingTimers = [];
-
-            $('.countdown-timer').each(function() {
-                const timerElement = $(this);
-                const startTimeString = timerElement.data('start-time-raw');
-                if (!startTimeString) return;
-                const startTime = new Date(startTimeString.replace(' ', 'T'));
-
-                const interval = setInterval(() => {
-                    const now = new Date();
-                    const diff = startTime - now;
-                    if (diff <= 0) {
-                        clearInterval(interval);
-                        const loadId = timerElement.closest('tr').data('load-id');
-                        const load = truckerLoadsCache.find(l => l.load_id == loadId);
-                        if(load) timerElement.parent().html(renderBidInput(load));
-                        updateBiddingTimers();
-                    } else {
-                        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-                        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                        const s = Math.floor((diff % (1000 * 60)) / 1000);
-                        timerElement.html(`<i class="fas fa-hourglass-start me-1"></i>Starts in: ${d > 0 ? d + 'd ' : ''}${h}h ${m}m ${s}s`);
-                    }
-                }, 1000);
-                biddingTimers.push(interval);
-            });
-
-            $('.live-countdown-timer').each(function() {
-                const timerElement = $(this);
-                const endTimeString = timerElement.data('end-time-raw');
-                if (!endTimeString) return;
-                const endTime = new Date(endTimeString.replace(' ', 'T'));
-
-                const interval = setInterval(() => {
-                    const now = new Date();
-                    const diff = endTime - now;
-                    if (diff <= 0) {
-                        clearInterval(interval);
-                        timerElement.closest('td').html(`<span class="text-danger fw-bold small"><i class="fas fa-clock me-1"></i>Bidding Closed</span>`);
-                    } else {
-                        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                        const s = Math.floor((diff % (1000 * 60)) / 1000);
-                        timerElement.html(`<i class="fas fa-hourglass-half me-1"></i>Closes in: ${m}m ${s}s`);
-                    }
-                }, 1000);
-                biddingTimers.push(interval);
-            });
-        }
-
+        async function load_trucker_open_loads_view() { const container = $('#trucker-bidding-table-container'); try { renderEmptyState(container, 'Loading...', 'fa-spinner fa-spin'); const filters = { startDate: $('#trucker-req-filter-start-date').val(), endDate: $('#trucker-req-filter-end-date').val() }; const result = await apiCall('/loads/assigned', 'GET', filters); truckerLoadsCache = result.data; if (truckerLoadsCache.length === 0) { container.html(renderEmptyState(null, 'No loads assigned for bidding.', 'fa-truck-loading')); return; } renderBiddingTable(truckerLoadsCache); } catch (e) {} }
+        function renderBiddingTable(loads) { biddingTimers.forEach(timer => clearInterval(timer)); biddingTimers = []; const container = $('#trucker-bidding-table-container'); const tableHTML = `<div class="table-responsive p-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Load ID</th><th>Loading Point</th><th>Unloading Point</th><th>Material</th><th>Weight</th><th>Vehicle</th><th>Req. Date</th><th>History</th><th>My Rank</th><th>My Bid / Status</th></tr></thead><tbody>${loads.map(load => { const history = (load.my_bid_history || []).map((b, i) => `<li>Bid ${i + 1}: <strong>${formatCurrency(b.bid_amount)}</strong> (Rank: L${b.rank || 'N/A'})</li>`).join(''); return `<tr data-load-id="${load.load_id}"><td>${load.load_id}</td><td><small>${load.loading_point_address}</small></td><td><small>${load.unloading_point_address}</small></td><td><small>${load.item_name}</small></td><td><small>${load.approx_weight_tonnes}T</small></td><td><small>${load.truck_name}</small></td><td><small>${formatDate(load.requirement_date)}</small></td><td><button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="popover" data-bs-html="true" title="My Bidding History" data-bs-content="${history || 'No past bids.'}"><i class="fas fa-history"></i></button></td><td><span class="badge bg-${load.my_rank ? 'primary' : 'secondary'}">${load.my_rank ? `L${load.my_rank}` : 'N/A'}</span></td><td class="bidding-status-cell" data-start-time="${load.bidding_start_time}" data-end-time="${load.bidding_end_time}">${renderBidInput(load)}</td></tr>` }).join('')}</tbody></table></div>`; container.html(tableHTML); $('[data-bs-toggle="popover"]').popover({ trigger: 'hover focus' }); updateBiddingTimers(); }
+        function renderBidInput(load) { const now = new Date(); const startTime = load.bidding_start_time ? new Date(load.bidding_start_time.replace(' ', 'T')) : null; const endTime = load.bidding_end_time ? new Date(load.bidding_end_time.replace(' ', 'T')) : null; if (endTime && now > endTime) { return `<span class="text-danger fw-bold small"><i class="fas fa-clock me-1"></i>Bidding Closed</span>`; } if (startTime && now < startTime) { return `<span class="text-info fw-bold small countdown-timer" data-start-time-raw="${load.bidding_start_time}">Starts in...</span>`; } if (startTime && endTime && now >= startTime && now < endTime) { return `<div class="live-bidding-container"><span class="text-success fw-bold small live-countdown-timer" data-end-time-raw="${load.bidding_end_time}"><i class="fas fa-hourglass-half me-1"></i>Calculating...</span><div class="input-group input-group-sm mt-1"><span class="input-group-text">₹</span><input type="number" class="form-control bid-amount-input" placeholder="Amount"></div></div>`; } return `<div class="input-group input-group-sm"><span class="input-group-text">₹</span><input type="number" class="form-control bid-amount-input" placeholder="Amount"></div>`; }
+        function updateBiddingTimers() { biddingTimers.forEach(timer => clearInterval(timer)); biddingTimers = []; $('.countdown-timer').each(function() { const timerElement = $(this); const startTimeString = timerElement.data('start-time-raw'); if (!startTimeString) return; const startTime = new Date(startTimeString.replace(' ', 'T')); const interval = setInterval(() => { const now = new Date(); const diff = startTime - now; if (diff <= 0) { clearInterval(interval); const loadId = timerElement.closest('tr').data('load-id'); const load = truckerLoadsCache.find(l => l.load_id == loadId); if(load) timerElement.parent().html(renderBidInput(load)); updateBiddingTimers(); } else { const d = Math.floor(diff / (1000 * 60 * 60 * 24)); const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)); const s = Math.floor((diff % (1000 * 60)) / 1000); timerElement.html(`<i class="fas fa-hourglass-start me-1"></i>Starts in: ${d > 0 ? d + 'd ' : ''}${h}h ${m}m ${s}s`); } }, 1000); biddingTimers.push(interval); }); $('.live-countdown-timer').each(function() { const timerElement = $(this); const endTimeString = timerElement.data('end-time-raw'); if (!endTimeString) return; const endTime = new Date(endTimeString.replace(' ', 'T')); const interval = setInterval(() => { const now = new Date(); const diff = endTime - now; if (diff <= 0) { clearInterval(interval); timerElement.closest('td').html(`<span class="text-danger fw-bold small"><i class="fas fa-clock me-1"></i>Bidding Closed</span>`); } else { const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)); const s = Math.floor((diff % (1000 * 60)) / 1000); timerElement.html(`<i class="fas fa-hourglass-half me-1"></i>Closes in: ${m}m ${s}s`); } }, 1000); biddingTimers.push(interval); }); }
         async function handleBulkBidSubmit() { const bids = $('.bid-amount-input').map(function() { if ($(this).val()) { const loadId = $(this).closest('[data-load-id]').data('load-id'); return { loadId: loadId, bid_amount: parseFloat($(this).val()) }; } }).get(); if (bids.length === 0) return showToast('No new bids entered.', 'info'); try { const result = await apiCall('/bids', 'POST', { bids }); showToast(result.message, 'success'); load_trucker_open_loads_view(); } catch (e) {} }
-        
-        async function load_trucker_bidding_history_view() { 
-            const tbody = $('#trucker-bids-tbody'), empty = $('#trucker-bids-empty-state'); 
-            try { 
-                renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); 
-                tbody.parent().hide(); 
-                const filters = {
-                    status: $('#trucker-bids-filter-status').val(),
-                    startDate: $('#trucker-bids-filter-start-date').val(),
-                    endDate: $('#trucker-bids-filter-end-date').val()
-                };
-                const result = await apiCall('/trucker/bidding-history', 'GET', filters); 
-                if (result.data.length === 0) { tbody.parent().show(); return renderEmptyState(empty, 'No bidding history found.', 'fa-gavel');} 
-                tbody.html(result.data.map(b => `<tr><td>${b.load_id}</td><td>${b.loading_point_address}</td><td>${b.unloading_point_address}</td><td>${b.item_name}</td><td>${b.truck_name}</td><td>${b.approx_weight_tonnes}T</td><td>${formatDate(b.requirement_date)}</td><td><strong>${formatCurrency(b.bid_amount)}</strong></td><td><span class="badge bg-info">L${b.rank || 'N/A'}</span></td><td>${b.l1_bid ? formatCurrency(b.l1_bid) : '-'}</td><td><span class="badge bg-${getBadgeColor(b.status)}">${b.status}</span></td><td>${formatDate(b.submitted_at, true)}</td></tr>`).join('')); 
-                tbody.parent().show(); 
-                empty.empty(); 
-            } catch (e) {} 
-        }
-        
-        async function load_trucker_awarded_contracts_view() { 
-            const tbody = $('#trucker-awarded-tbody'), empty = $('#trucker-awarded-empty-state'); 
-            try { 
-                renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); 
-                tbody.parent().hide();
-                const filters = {
-                    startDate: $('#trucker-awarded-filter-start-date').val(),
-                    endDate: $('#trucker-awarded-filter-end-date').val()
-                };
-                const result = await apiCall('/trucker/awarded-contracts', 'GET', filters); 
-                if (result.data.length === 0) { tbody.parent().show(); return renderEmptyState(empty, 'No contracts awarded yet.', 'fa-trophy');} 
-                tbody.html(result.data.map(c => `
-                    <tr>
-                        <td>${c.load_id}</td>
-                        <td><small>${c.loading_point_address} to ${c.unloading_point_address}</small></td>
-                        <td>${c.item_name || 'N/A'}</td>
-                        <td>${c.truck_name || 'N/A'}</td>
-                        <td>${c.approx_weight_tonnes ? c.approx_weight_tonnes + 'T' : 'N/A'}</td>
-                        <td>${c.requirement_date ? formatDate(c.requirement_date) : 'N/A'}</td>
-                        <td><strong>${formatCurrency(c.awarded_amount)}</strong></td>
-                        <td>${formatDate(c.awarded_date)}</td>
-                    </tr>`).join(''));
-                tbody.parent().show(); 
-                empty.empty(); 
-            } catch (e) {} 
-        }
-        
+        async function load_trucker_bidding_history_view() { const tbody = $('#trucker-bids-tbody'), empty = $('#trucker-bids-empty-state'); try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().hide(); const filters = { status: $('#trucker-bids-filter-status').val(), startDate: $('#trucker-bids-filter-start-date').val(), endDate: $('#trucker-bids-filter-end-date').val() }; const result = await apiCall('/trucker/bidding-history', 'GET', filters); if (result.data.length === 0) { tbody.parent().show(); return renderEmptyState(empty, 'No bidding history found.', 'fa-gavel');} tbody.html(result.data.map(b => `<tr><td>${b.load_id}</td><td>${b.loading_point_address}</td><td>${b.unloading_point_address}</td><td>${b.item_name}</td><td>${b.truck_name}</td><td>${b.approx_weight_tonnes}T</td><td>${formatDate(b.requirement_date)}</td><td><strong>${formatCurrency(b.bid_amount)}</strong></td><td><span class="badge bg-info">L${b.rank || 'N/A'}</span></td><td>${b.l1_bid ? formatCurrency(b.l1_bid) : '-'}</td><td><span class="badge bg-${getBadgeColor(b.status)}">${b.status}</span></td><td>${formatDate(b.submitted_at, true)}</td></tr>`).join('')); tbody.parent().show(); empty.empty(); } catch (e) {} }
+        async function load_trucker_awarded_contracts_view() { const tbody = $('#trucker-awarded-tbody'), empty = $('#trucker-awarded-empty-state'); try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().hide(); const filters = { startDate: $('#trucker-awarded-filter-start-date').val(), endDate: $('#trucker-awarded-filter-end-date').val() }; const result = await apiCall('/trucker/awarded-contracts', 'GET', filters); if (result.data.length === 0) { tbody.parent().show(); return renderEmptyState(empty, 'No contracts awarded yet.', 'fa-trophy');} tbody.html(result.data.map(c => `<tr><td>${c.load_id}</td><td><small>${c.loading_point_address} to ${c.unloading_point_address}</small></td><td>${c.item_name || 'N/A'}</td><td>${c.truck_name || 'N/A'}</td><td>${c.approx_weight_tonnes ? c.approx_weight_tonnes + 'T' : 'N/A'}</td><td>${c.requirement_date ? formatDate(c.requirement_date) : 'N/A'}</td><td><strong>${formatCurrency(c.awarded_amount)}</strong></td><td>${formatDate(c.awarded_date)}</td></tr>`).join('')); tbody.parent().show(); empty.empty(); } catch (e) {} }
         async function load_admin_dashboard_view() { try { const result = await apiCall('/admin/dashboard-stats'); const data = result.data; $('#stats-active-loads').text(data.activeLoads || '0'); $('#stats-pending-users').text(data.pendingUsers || '0'); $('#stats-pending-loads').text(data.pendingLoads || '0'); $('#stats-awarded-contracts').text(data.awardedContracts || '0'); createChart('adminLoadChart', 'bar', { labels: data.charts.loadTrends.labels, datasets: [{ label: 'Loads Created', data: data.charts.loadTrends.data, backgroundColor: '#5E72E4' }] }); createChart('adminTruckerBiddingChart', 'doughnut', { labels: data.charts.biddingActivity.labels, datasets: [{ data: data.charts.biddingActivity.data, backgroundColor: ['#5E72E4', '#2DCE89', '#FB6340', '#11CDEF', '#F5365C'] }] }); } catch (e) {} }
-        
-        async function load_admin_pending_loads_view() { 
-            const container = $('#pending-loads-accordion-container'); 
-            try { 
-                renderEmptyState(container, 'Loading...', 'fa-spinner fa-spin'); 
-                const result = await apiCall('/loads/pending'); 
-                if (!result.data || result.data.groupedReqs.length === 0) return renderEmptyState(container, 'No loads are pending approval.', 'fa-inbox'); 
-                const { groupedReqs, pendingLoads, allTruckers } = result.data; 
-                const accordion = $('<div class="accordion"></div>'); 
-                groupedReqs.forEach(req => { 
-                    const reqLoads = pendingLoads.filter(load => load.requisition_id == req.requisition_id); 
-                    if (reqLoads.length === 0) return; 
-                    const loadsHTML = reqLoads.map(load => `<li class="list-group-item"><input class="form-check-input me-2 load-check-box" type="checkbox" value="${load.load_id}" checked><label class="form-check-label"><strong>${load.item_name}</strong> from ${load.loading_point_address} to ${load.unloading_point_address}<small class="text-muted d-block">Vehicle: ${load.truck_name} | Weight: ${load.approx_weight_tonnes}T | Date: ${formatDate(load.requirement_date)}</small></label></li>`).join(''); 
-                    const truckersHTML = allTruckers.map(v => `<div class="form-check form-check-inline col-md-3"><input class="form-check-input trucker-assign-check" type="checkbox" value="${v.user_id}" id="v-${req.requisition_id}-${v.user_id}"><label class="form-check-label" for="v-${req.requisition_id}-${v.user_id}">${v.full_name}</label></div>`).join(''); 
-                    accordion.append(`<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${req.requisition_id}">TRN: REQ-${req.requisition_id} (By: ${req.creator}) - ${reqLoads.length} Load(s)</button></h2><div id="collapse-${req.requisition_id}" class="accordion-collapse collapse"><div class="accordion-body"><h6>Select loads to approve:</h6><ul class="list-group mb-3">${loadsHTML}</ul><h6 class="mt-3">Set Bidding Window (Optional)</h6><div class="row"><div class="col-6"><label class="form-label small">Bidding Start Time</label><input type="datetime-local" class="form-control form-control-sm bidding-start-time-input"></div><div class="col-6"><label class="form-label small">Bidding End Time</label><input type="datetime-local" class="form-control form-control-sm bidding-end-time-input"></div></div><h6 class="d-flex justify-content-between mt-3"><span>Assign Truckers:</span><div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" onchange="$(this).closest('.accordion-body').find('.trucker-assign-check').prop('checked', this.checked);"><label>Select All</label></div></h6><div class="border rounded p-3 row">${truckersHTML}</div><div class="mt-3"><button class="btn btn-success" onclick="handleBulkApproval('${req.requisition_id}')">Process Selected Loads</button></div></div></div></div>`); 
-                }); 
-                container.html(accordion); 
-            } catch (e) {} 
-        }
-        async function handleBulkApproval(reqId) { 
-            const c = $(`#collapse-${reqId}`), 
-                        loads = c.find('.load-check-box:checked').map((i, el) => $(el).val()).get(), 
-                        truckers = c.find('.trucker-assign-check:checked').map((i, el) => $(el).val()).get(),
-                        biddingStartTime = c.find('.bidding-start-time-input').val(),
-                        biddingEndTime = c.find('.bidding-end-time-input').val();
-            if (loads.length === 0) return showToast('Select at least one load.', 'error'); 
-            if (truckers.length === 0) return showToast('Assign at least one trucker.', 'error'); 
-            try { 
-                await apiCall('/loads/approve', 'POST', { approvedLoadIds: loads, truckerAssignments: truckers, requisitionId: reqId, biddingStartTime, biddingEndTime }); 
-                showToast('Loads processed!', 'success'); 
-                load_admin_pending_loads_view(); 
-            } catch (e) {} 
-        }
-        
-        async function load_admin_all_loads_view() { 
-            const tbody = $('#admin-loads-tbody'), empty = $('#admin-loads-empty-state'); 
-            try { 
-                renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); 
-                tbody.parent().hide(); 
-                const filters = {
-                    status: $('#admin-loads-filter-status').val(),
-                    startDate: $('#admin-loads-filter-start-date').val(),
-                    endDate: $('#admin-loads-filter-end-date').val()
-                };
-                const result = await apiCall('/admin/all-loads', 'GET', filters); 
-                if (result.data.length === 0) { tbody.parent().show(); return renderEmptyState(empty, 'No loads found for the selected filters.');} 
-                tbody.html(result.data.map(l => `<tr data-load-id="${l.load_id}" data-load-times='${JSON.stringify({start: l.bidding_start_time, end: l.bidding_end_time})}'><td><input type="checkbox" class="form-check-input load-checkbox"></td><td>${l.load_id}</td><td>${l.loading_point_address}</td><td>${l.unloading_point_address}</td><td>${l.item_name}</td><td>${l.truck_name}</td><td>${l.approx_weight_tonnes}T</td><td>${formatDate(l.requirement_date)}</td><td><span class="badge bg-${getBadgeColor(l.status)}">${l.status}</span></td><td>${l.l1_bid ? formatCurrency(l.l1_bid) : '-'}</td><td><div class="btn-group btn-group-sm"><button class="btn btn-info" onclick="openViewBidsModal(${l.load_id})"><i class="fas fa-gavel"></i></button><button class="btn btn-primary" onclick="openEditLoadModal(${l.load_id})"><i class="fas fa-edit"></i></button><button class="btn btn-danger" onclick="handleDeleteLoad(${l.load_id})"><i class="fas fa-trash"></i></button><button class="btn btn-secondary" onclick="openAssignTruckersModal(${l.requisition_id})"><i class="fas fa-users"></i></button><button class="btn btn-warning" onclick="openSetBiddingTimeModal(${l.load_id})"><i class="fas fa-clock"></i></button></div></td></tr>`).join('')); 
-                tbody.parent().show(); 
-                empty.empty(); 
-            } catch (e) {} 
-        }
-        
-        async function load_admin_bidding_history_view() { 
-            const tbody = $('#admin-bids-tbody'), empty = $('#admin-bids-empty-state'); 
-            try { 
-                renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); 
-                tbody.parent().hide();
-                const filters = {
-                    startDate: $('#admin-bids-filter-start-date').val(),
-                    endDate: $('#admin-bids-filter-end-date').val()
-                };
-                const result = await apiCall('/admin/bidding-history', 'GET', filters); 
-                if (result.data.length === 0) { tbody.parent().show(); return renderEmptyState(empty, 'No bidding history found.'); } 
-                tbody.html(result.data.map(b => `<tr><td>${b.load_id}</td><td>${b.loading_point_address}</td><td>${b.unloading_point_address}</td><td>${b.item_name}</td><td>${b.truck_name}</td><td>${formatDate(b.requirement_date)}</td><td>${b.trucker_name}</td><td><strong>${formatCurrency(b.bid_amount)}</strong></td><td>${formatDate(b.submitted_at, true)}</td></tr>`).join('')); 
-                tbody.parent().show(); 
-                empty.empty(); 
-            } catch (e) {} 
-        }
-        
-        async function load_admin_awarded_contracts_view() { 
-            const tbody = $('#admin-awarded-tbody'), empty = $('#admin-awarded-empty-state'); 
-            try { 
-                renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); 
-                tbody.parent().hide();
-                const filters = {
-                    startDate: $('#admin-awarded-filter-start-date').val(),
-                    endDate: $('#admin-awarded-filter-end-date').val()
-                };
-                const result = await apiCall('/admin/awarded-contracts', 'GET', filters); 
-                if (result.data.length === 0) { tbody.parent().show(); return renderEmptyState(empty, 'No contracts awarded yet.', 'fa-trophy'); } 
-                tbody.html(result.data.map(c => `
-                    <tr>
-                        <td><input type="checkbox" class="form-check-input awarded-load-checkbox" data-load-id="${c.load_id}"></td>
-                        <td>${c.requisition_id}</td>
-                        <td>${c.load_id}</td>
-                        <td>${c.trucker_name}</td>
-                        <td><small>${c.trucker_email || ''}<br>${c.trucker_contact || ''}</small></td>
-                        <td><small>${c.loading_point_address} to ${c.unloading_point_address}</small></td>
-                        <td>${c.item_name || 'N/A'}</td>
-                        <td>${c.truck_name || 'N/A'}</td>
-                        <td>${c.requirement_date ? formatDate(c.requirement_date) : 'N/A'}</td>
-                        <td><strong>${formatCurrency(c.awarded_amount)}</strong></td>
-                        <td>${formatDate(c.awarded_date)}</td>
-                    </tr>`).join('')); 
-                tbody.parent().show(); 
-                empty.empty(); 
-            } catch (e) {} 
-        }
-
-        async function load_admin_reports_view() {
-            const kpiContainer = $('#report-kpis'), tableBody = $('#detailed-report-table tbody');
-            try {
-                kpiContainer.html(renderEmptyState(null, 'Loading...', 'fa-spinner fa-spin'));
-                tableBody.empty();
-                const result = await apiCall('/admin/reports-data', 'POST', {
-                    startDate: $('#report-start-date').val(),
-                    endDate: $('#report-end-date').val()
-                });
-                const { kpis, detailedReport, chartsData } = result.data;
-                const awardedLoadsCount = kpis.awardedLoads || 0;
-                kpiContainer.html(`<div class="col-md-6"><div class="card card-body"><h6>Total Spend</h6><h3 class="fw-bold">${formatCurrency(kpis.totalSpend)}</h3></div></div><div class="col-md-6"><div class="card card-body"><h6>Total Loads Awarded</h6><h3 class="fw-bold">${awardedLoadsCount}</h3></div></div>`);
-                
-                if (detailedReport.length === 0) {
-                    tableBody.html(`<tr><td colspan="10" class="text-center text-muted">No data for this period.</td></tr>`);
-                } else {
-                    tableBody.html(detailedReport.map(r => `<tr><td>${r.load_id}</td><td>${r.loading_point_address}</td><td>${r.unloading_point_address}</td><td>${r.item_name}</td><td>${r.truck_name}</td><td>${r.approx_weight_tonnes}T</td><td>${formatDate(r.requirement_date)}</td><td>${r.trucker_name}</td><td>${formatCurrency(r.awarded_amount)}</td><td>${formatDate(r.awarded_date)}</td></tr>`).join(''));
-                }
-
-                if(chartsData) {
-                    createChart('top-truckers-chart', 'pie', { labels: chartsData.topTruckers.labels, datasets: [{ data: chartsData.topTruckers.data, backgroundColor: ['#5E72E4', '#2DCE89', '#FB6340', '#11CDEF', '#F5365C'] }] });
-                    createChart('spend-material-chart', 'bar', { labels: chartsData.spendByMaterial.labels, datasets: [{ label: 'Spend', data: chartsData.spendByMaterial.data, backgroundColor: '#FB6340' }] });
-                    createChart('spend-time-chart', 'line', { labels: chartsData.spendOverTime.labels, datasets: [{ label: 'Total Spend', data: chartsData.spendOverTime.data, borderColor: '#5E72E4', tension: 0.1 }] });
-                }
-            } catch (e) {}
-        }
-        
-        function openSetBiddingTimeModal(loadId) {
-            const row = $(`tr[data-load-id="${loadId}"]`);
-            const times = row.data('load-times');
-            $('#setTimeLoadId').val(loadId);
-            $('#setTimeLoadName').text(loadId);
-            const formatForInput = (dateString) => dateString ? dateString.slice(0, 16).replace(' ', 'T') : '';
-            $('#setTimeStartTime').val(formatForInput(times.start));
-            setBiddingTimeModal.show();
-        }
-
-        async function handleSetBiddingTimeSubmit() {
-            const loadId = $('#setTimeLoadId').val();
-            const startTimeStr = $('#setTimeStartTime').val();
-            const durationMinutes = parseInt($('#setTimeDuration').val(), 10);
-
-            if (!startTimeStr) {
-                return showToast('Please select a Bidding Start Time.', 'error');
-            }
-
-            const startTime = new Date(startTimeStr);
-            const endTime = new Date(startTime.getTime() + durationMinutes * 60000);
-
-            const formattedEndTime = endTime.getFullYear() + '-' +
-                ('0' + (endTime.getMonth() + 1)).slice(-2) + '-' +
-                ('0' + endTime.getDate()).slice(-2) + 'T' +
-                ('0' + endTime.getHours()).slice(-2) + ':' +
-                ('0' + endTime.getMinutes()).slice(-2);
-
-            try {
-                await apiCall('/admin/loads/bidding-time', 'PUT', { loadId, startTime: startTimeStr, endTime: formattedEndTime });
-                showToast('Bidding time updated!', 'success');
-                setBiddingTimeModal.hide();
-                load_admin_all_loads_view();
-            } catch(e) {}
-        }
-        
-        function openBulkSetTimeModal() {
-            const selectedLoads = $('.load-checkbox:checked').map((i, el) => $(el).closest('tr').data('load-id')).get();
-            if (selectedLoads.length === 0) {
-                return showToast('Please select at least one load to set time.', 'warning');
-            }
-            $('#bulk-set-time-count').text(selectedLoads.length);
-            $('#bulkSetTimeStartTime').val('');
-            bulkSetTimeModal.show();
-        }
-
-        async function handleBulkSetTimeSubmit() {
-            const loadIds = $('.load-checkbox:checked').map((i, el) => $(el).closest('tr').data('load-id')).get();
-            const startTimeStr = $('#bulkSetTimeStartTime').val();
-            const durationMinutes = parseInt($('#bulkSetTimeDuration').val(), 10);
-
-            if (!startTimeStr) {
-                return showToast('Please select a Bidding Start Time.', 'error');
-            }
-            
-            const startTime = new Date(startTimeStr);
-            const endTime = new Date(startTime.getTime() + durationMinutes * 60000);
-
-            const formattedEndTime = endTime.getFullYear() + '-' +
-                ('0' + (endTime.getMonth() + 1)).slice(-2) + '-' +
-                ('0' + endTime.getDate()).slice(-2) + 'T' +
-                ('0' + endTime.getHours()).slice(-2) + ':' +
-                ('0' + endTime.getMinutes()).slice(-2);
-
-            try {
-                const result = await apiCall('/admin/loads/bulk-bidding-time', 'PUT', { loadIds, startTime: startTimeStr, endTime: formattedEndTime });
-                showToast(result.message, 'success');
-                bulkSetTimeModal.hide();
-                load_admin_all_loads_view();
-            } catch (e) {}
-        }
-
+        async function load_admin_pending_loads_view() { const container = $('#pending-loads-accordion-container'); try { renderEmptyState(container, 'Loading...', 'fa-spinner fa-spin'); const result = await apiCall('/loads/pending'); if (!result.data || result.data.groupedReqs.length === 0) return renderEmptyState(container, 'No loads are pending approval.', 'fa-inbox'); const { groupedReqs, pendingLoads, allTruckers } = result.data; const accordion = $('<div class="accordion"></div>'); groupedReqs.forEach(req => { const reqLoads = pendingLoads.filter(load => load.requisition_id == req.requisition_id); if (reqLoads.length === 0) return; const loadsHTML = reqLoads.map(load => `<li class="list-group-item"><input class="form-check-input me-2 load-check-box" type="checkbox" value="${load.load_id}" checked><label class="form-check-label"><strong>${load.item_name}</strong> from ${load.loading_point_address} to ${load.unloading_point_address}<small class="text-muted d-block">Vehicle: ${load.truck_name} | Weight: ${load.approx_weight_tonnes}T | Date: ${formatDate(load.requirement_date)}</small></label></li>`).join(''); const truckersHTML = allTruckers.map(v => `<div class="form-check form-check-inline col-md-3"><input class="form-check-input trucker-assign-check" type="checkbox" value="${v.user_id}" id="v-${req.requisition_id}-${v.user_id}"><label class="form-check-label" for="v-${req.requisition_id}-${v.user_id}">${v.full_name}</label></div>`).join(''); accordion.append(`<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${req.requisition_id}">TRN: REQ-${req.requisition_id} (By: ${req.creator}) - ${reqLoads.length} Load(s)</button></h2><div id="collapse-${req.requisition_id}" class="accordion-collapse collapse"><div class="accordion-body"><h6>Select loads to approve:</h6><ul class="list-group mb-3">${loadsHTML}</ul><h6 class="mt-3">Set Bidding Window (Optional)</h6><div class="row"><div class="col-6"><label class="form-label small">Bidding Start Time</label><input type="datetime-local" class="form-control form-control-sm bidding-start-time-input"></div><div class="col-6"><label class="form-label small">Bidding End Time</label><input type="datetime-local" class="form-control form-control-sm bidding-end-time-input"></div></div><h6 class="d-flex justify-content-between mt-3"><span>Assign Truckers:</span><div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" onchange="$(this).closest('.accordion-body').find('.trucker-assign-check').prop('checked', this.checked);"><label>Select All</label></div></h6><div class="border rounded p-3 row">${truckersHTML}</div><div class="mt-3"><button class="btn btn-success" onclick="handleBulkApproval('${req.requisition_id}')">Process Selected Loads</button></div></div></div></div>`); }); container.html(accordion); } catch (e) {} }
+        async function handleBulkApproval(reqId) { const c = $(`#collapse-${reqId}`), loads = c.find('.load-check-box:checked').map((i, el) => $(el).val()).get(), truckers = c.find('.trucker-assign-check:checked').map((i, el) => $(el).val()).get(), biddingStartTime = c.find('.bidding-start-time-input').val(), biddingEndTime = c.find('.bidding-end-time-input').val(); if (loads.length === 0) return showToast('Select at least one load.', 'error'); if (truckers.length === 0) return showToast('Assign at least one trucker.', 'error'); try { await apiCall('/loads/approve', 'POST', { approvedLoadIds: loads, truckerAssignments: truckers, requisitionId: reqId, biddingStartTime, biddingEndTime }); showToast('Loads processed!', 'success'); load_admin_pending_loads_view(); } catch (e) {} }
+        async function load_admin_all_loads_view() { const tbody = $('#admin-loads-tbody'), empty = $('#admin-loads-empty-state'); try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().hide(); const filters = { status: $('#admin-loads-filter-status').val(), startDate: $('#admin-loads-filter-start-date').val(), endDate: $('#admin-loads-filter-end-date').val() }; const result = await apiCall('/admin/all-loads', 'GET', filters); if (result.data.length === 0) { tbody.parent().show(); return renderEmptyState(empty, 'No loads found for the selected filters.');} tbody.html(result.data.map(l => `<tr data-load-id="${l.load_id}" data-load-times='${JSON.stringify({start: l.bidding_start_time, end: l.bidding_end_time})}'><td><input type="checkbox" class="form-check-input load-checkbox"></td><td>${l.load_id}</td><td>${l.loading_point_address}</td><td>${l.unloading_point_address}</td><td>${l.item_name}</td><td>${l.truck_name}</td><td>${l.approx_weight_tonnes}T</td><td>${formatDate(l.requirement_date)}</td><td><span class="badge bg-${getBadgeColor(l.status)}">${l.status}</span></td><td>${l.l1_bid ? formatCurrency(l.l1_bid) : '-'}</td><td><div class="btn-group btn-group-sm"><button class="btn btn-info" title="View Bids" onclick="openViewBidsModal(${l.load_id})"><i class="fas fa-gavel"></i></button><button class="btn btn-primary" title="Edit Load" onclick="openEditLoadModal(${l.load_id})"><i class="fas fa-edit"></i></button><button class="btn btn-danger" title="Delete Load" onclick="handleDeleteLoad(${l.load_id})"><i class="fas fa-trash"></i></button><button class="btn btn-secondary" title="Assign Truckers" onclick="openAssignTruckersModal(${l.requisition_id})"><i class="fas fa-users"></i></button><button class="btn btn-warning" title="Set Time" onclick="openSetBiddingTimeModal(${l.load_id})"><i class="fas fa-clock"></i></button></div></td></tr>`).join('')); tbody.parent().show(); empty.empty(); } catch (e) {} }
+        async function load_admin_bidding_history_view() { const tbody = $('#admin-bids-tbody'), empty = $('#admin-bids-empty-state'); try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().hide(); const filters = { startDate: $('#admin-bids-filter-start-date').val(), endDate: $('#admin-bids-filter-end-date').val() }; const result = await apiCall('/admin/bidding-history', 'GET', filters); if (result.data.length === 0) { tbody.parent().show(); return renderEmptyState(empty, 'No bidding history found.'); } tbody.html(result.data.map(b => `<tr><td>${b.load_id}</td><td>${b.loading_point_address}</td><td>${b.unloading_point_address}</td><td>${b.item_name}</td><td>${b.truck_name}</td><td>${formatDate(b.requirement_date)}</td><td>${b.trucker_name}</td><td><strong>${formatCurrency(b.bid_amount)}</strong></td><td>${formatDate(b.submitted_at, true)}</td></tr>`).join('')); tbody.parent().show(); empty.empty(); } catch (e) {} }
+        async function load_admin_awarded_contracts_view() { const tbody = $('#admin-awarded-tbody'), empty = $('#admin-awarded-empty-state'); try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().hide(); const filters = { startDate: $('#admin-awarded-filter-start-date').val(), endDate: $('#admin-awarded-filter-end-date').val() }; const result = await apiCall('/admin/awarded-contracts', 'GET', filters); if (result.data.length === 0) { tbody.parent().show(); return renderEmptyState(empty, 'No contracts awarded yet.', 'fa-trophy'); } tbody.html(result.data.map(c => `<tr><td><input type="checkbox" class="form-check-input awarded-load-checkbox" data-load-id="${c.load_id}"></td><td>${c.requisition_id}</td><td>${c.load_id}</td><td>${c.trucker_name}</td><td><small>${c.trucker_email || ''}<br>${c.trucker_contact || ''}</small></td><td><small>${c.loading_point_address} to ${c.unloading_point_address}</small></td><td>${c.item_name || 'N/A'}</td><td>${c.truck_name || 'N/A'}</td><td>${c.requirement_date ? formatDate(c.requirement_date) : 'N/A'}</td><td><strong>${formatCurrency(c.awarded_amount)}</strong></td><td>${formatDate(c.awarded_date)}</td></tr>`).join('')); tbody.parent().show(); empty.empty(); } catch (e) {} }
+        async function load_admin_reports_view() { const kpiContainer = $('#report-kpis'), tableBody = $('#detailed-report-table tbody'); try { kpiContainer.html(renderEmptyState(null, 'Loading...', 'fa-spinner fa-spin')); tableBody.empty(); const result = await apiCall('/admin/reports-data', 'POST', { startDate: $('#report-start-date').val(), endDate: $('#report-end-date').val() }); const { kpis, detailedReport, chartsData } = result.data; const awardedLoadsCount = kpis.awardedLoads || 0; kpiContainer.html(`<div class="col-md-6"><div class="card card-body"><h6>Total Spend</h6><h3 class="fw-bold">${formatCurrency(kpis.totalSpend)}</h3></div></div><div class="col-md-6"><div class="card card-body"><h6>Total Loads Awarded</h6><h3 class="fw-bold">${awardedLoadsCount}</h3></div></div>`); if (detailedReport.length === 0) { tableBody.html(`<tr><td colspan="10" class="text-center text-muted">No data for this period.</td></tr>`); } else { tableBody.html(detailedReport.map(r => `<tr><td>${r.load_id}</td><td>${r.loading_point_address}</td><td>${r.unloading_point_address}</td><td>${r.item_name}</td><td>${r.truck_name}</td><td>${r.approx_weight_tonnes}T</td><td>${formatDate(r.requirement_date)}</td><td>${r.trucker_name}</td><td>${formatCurrency(r.awarded_amount)}</td><td>${formatDate(r.awarded_date)}</td></tr>`).join('')); } if(chartsData) { createChart('top-truckers-chart', 'pie', { labels: chartsData.topTruckers.labels, datasets: [{ data: chartsData.topTruckers.data, backgroundColor: ['#5E72E4', '#2DCE89', '#FB6340', '#11CDEF', '#F5365C'] }] }); createChart('spend-material-chart', 'bar', { labels: chartsData.spendByMaterial.labels, datasets: [{ label: 'Spend', data: chartsData.spendByMaterial.data, backgroundColor: '#FB6340' }] }); createChart('spend-time-chart', 'line', { labels: chartsData.spendOverTime.labels, datasets: [{ label: 'Total Spend', data: chartsData.spendOverTime.data, borderColor: '#5E72E4', tension: 0.1 }] }); } } catch (e) {} }
+        function openSetBiddingTimeModal(loadId) { const row = $(`tr[data-load-id="${loadId}"]`); const times = row.data('load-times'); $('#setTimeLoadId').val(loadId); $('#setTimeLoadName').text(loadId); const formatForInput = (dateString) => dateString ? dateString.slice(0, 16).replace(' ', 'T') : ''; $('#setTimeStartTime').val(formatForInput(times.start)); setBiddingTimeModal.show(); }
+        async function handleSetBiddingTimeSubmit() { const loadId = $('#setTimeLoadId').val(); const startTimeStr = $('#setTimeStartTime').val(); const durationMinutes = parseInt($('#setTimeDuration').val(), 10); if (!startTimeStr) { return showToast('Please select a Bidding Start Time.', 'error'); } const startTime = new Date(startTimeStr); const endTime = new Date(startTime.getTime() + durationMinutes * 60000); const formattedEndTime = endTime.getFullYear() + '-' + ('0' + (endTime.getMonth() + 1)).slice(-2) + '-' + ('0' + endTime.getDate()).slice(-2) + 'T' + ('0' + endTime.getHours()).slice(-2) + ':' + ('0' + endTime.getMinutes()).slice(-2); try { await apiCall('/admin/loads/bidding-time', 'PUT', { loadId, startTime: startTimeStr, endTime: formattedEndTime }); showToast('Bidding time updated!', 'success'); setBiddingTimeModal.hide(); load_admin_all_loads_view(); } catch(e) {} }
+        function openBulkSetTimeModal() { const selectedLoads = $('.load-checkbox:checked').map((i, el) => $(el).closest('tr').data('load-id')).get(); if (selectedLoads.length === 0) { return showToast('Please select at least one load to set time.', 'warning'); } $('#bulk-set-time-count').text(selectedLoads.length); $('#bulkSetTimeStartTime').val(''); bulkSetTimeModal.show(); }
+        async function handleBulkSetTimeSubmit() { const loadIds = $('.load-checkbox:checked').map((i, el) => $(el).closest('tr').data('load-id')).get(); const startTimeStr = $('#bulkSetTimeStartTime').val(); const durationMinutes = parseInt($('#bulkSetTimeDuration').val(), 10); if (!startTimeStr) { return showToast('Please select a Bidding Start Time.', 'error'); } const startTime = new Date(startTimeStr); const endTime = new Date(startTime.getTime() + durationMinutes * 60000); const formattedEndTime = endTime.getFullYear() + '-' + ('0' + (endTime.getMonth() + 1)).slice(-2) + '-' + ('0' + endTime.getDate()).slice(-2) + 'T' + ('0' + endTime.getHours()).slice(-2) + ':' + ('0' + endTime.getMinutes()).slice(-2); try { const result = await apiCall('/admin/loads/bulk-bidding-time', 'PUT', { loadIds, startTime: startTimeStr, endTime: formattedEndTime }); showToast(result.message, 'success'); bulkSetTimeModal.hide(); load_admin_all_loads_view(); } catch (e) {} }
         function showToast(m, t = 'info') { const c = $('#toast-container'), e = $(`<div><i class="fas ${t === 'success' ? 'fa-check-circle' : 'fa-times-circle'} me-2"></i><span>${m}</span></div>`).addClass(`toast-notification ${t}`); c.append(e); setTimeout(() => e.remove(), 4000); }
         function showLoader() { $('#loader-overlay').removeClass('hidden'); }
         function hideLoader() { $('#loader-overlay').addClass('hidden'); }
         function renderEmptyState(container, message, iconClass = 'fa-folder-open') { const html = `<div class="empty-state w-100"><i class="fas ${iconClass}"></i><p>${message}</p></div>`; if (container) $(container).html(html); return html; }
         function formatCurrency(v) { const n = parseFloat(v); return isNaN(n) ? '₹0' : `₹${n.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`; }
-        
-        function formatDate(d, includeTime = false) { 
-            if (!d) return 'N/A';
-            const date = new Date(d.replace(' ', 'T') + 'Z'); 
-            const options = { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }; 
-            if (includeTime) { 
-                options.hour = 'numeric'; 
-                options.minute = '2-digit';
-                options.hour12 = true;
-            } 
-            return new Intl.DateTimeFormat('en-IN', options).format(date); 
-        }
-
-        function formatMessageTime(d) {
-             if (!d) return '';
-            const date = new Date(d.replace(' ', 'T') + 'Z');
-            return date.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' });
-        }
-
+        function formatDate(d, includeTime = false) { if (!d) return 'N/A'; const date = new Date(d.replace(' ', 'T') + 'Z'); const options = { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }; if (includeTime) { options.hour = 'numeric'; options.minute = '2-digit'; options.hour12 = true; } return new Intl.DateTimeFormat('en-IN', options).format(date); }
+        function formatMessageTime(d) { if (!d) return ''; const date = new Date(d.replace(' ', 'T') + 'Z'); return date.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' }); }
         function getBadgeColor(s) { return { 'Awarded': 'primary', 'Active': 'success', 'Pending Approval': 'warning', 'Submitted': 'info', 'Rejected': 'danger', 'Processed': 'secondary', 'Admin': 'info', 'Super Admin': 'danger', 'Trucker': 'success', 'Shipper': 'secondary' }[s] || 'dark'; }
         function createChart(chartId, type, data, options = {}) { if (charts[chartId]) charts[chartId].destroy(); const ctx = document.getElementById(chartId)?.getContext('2d'); if (!ctx) return; charts[chartId] = new Chart(ctx, { type, data, options: { responsive: true, maintainAspectRatio: false, ...options } }); }
         async function fetchSidebarCounts() { try { const result = await apiCall('/sidebar-counts', 'GET', null, false, false); if (result.success) { $('#badge-unread-messages').text(result.data.unreadMessages > 0 ? result.data.unreadMessages : '').toggle(result.data.unreadMessages > 0); $('#badge-pending-loads').text(result.data.pendingLoads > 0 ? result.data.pendingLoads : '').toggle(result.data.pendingLoads > 0); $('#badge-pending-users').text(result.data.pendingUsers > 0 ? result.data.pendingUsers : '').toggle(result.data.pendingUsers > 0); if(result.data.unreadMessages > 0) { $('#notification-bell-badge').removeClass('visually-hidden'); } else { $('#notification-bell-badge').addClass('visually-hidden'); } } } catch (e) {} }
-        
         async function openViewBidsModal(loadId) { $('#viewBidsModalTitle').text(`Bids for Load #${loadId}`); $('#viewBidsModalBody').html(renderEmptyState(null, 'Loading bids...', 'fa-spinner fa-spin')); viewBidsModal.show(); try { const result = await apiCall(`/admin/loads/${loadId}/bids`); if (!result.data || !result.data.bids) { throw new Error("Invalid data received for bids."); } if (result.data.bids.length === 0) { $('#viewBidsModalBody').html('<p class="text-center">No bids have been submitted for this load yet.</p>'); return; } const bidsHTML = `<table class="table table-sm"><thead><tr><th>Select</th><th>Rank</th><th>Trucker</th><th>Bid Amount</th><th>Date</th></tr></thead><tbody>` + result.data.bids.map((b, i) => { const bidData = { ...b, ...result.data.loadDetails }; return `<tr><td><input class="form-check-input" type="radio" name="award-radio-${loadId}" value='${JSON.stringify(bidData)}'></td><td><span class="badge bg-info">L${i + 1}</span></td><td>${b.trucker_name}</td><td><strong>${formatCurrency(b.bid_amount)}</strong></td><td>${formatDate(b.submitted_at, true)}</td></tr>` }).join('') + `</tbody></table><div class="mt-3"><label>Remarks</label><textarea class="form-control" id="award-remarks-${loadId}"></textarea><button class="btn btn-success mt-2 float-end" onclick="handleSingleAward(${loadId})">Award Selected</button></div>`; $('#viewBidsModalBody').html(bidsHTML); } catch (e) { $('#viewBidsModalBody').html(renderEmptyState(null, 'Could not load bids. Please try again.', 'fa-exclamation-triangle')); } }
         async function handleSingleAward(loadId) { const remarks = $(`#award-remarks-${loadId}`).val(); if (!remarks) return showToast('Remarks are mandatory.', 'warning'); const selectedBid = $(`input[name="award-radio-${loadId}"]:checked`).val(); if (!selectedBid) return showToast('Please select a bid to award.', 'warning'); const bidData = JSON.parse(selectedBid); bidData.remarks = remarks; try { await apiCall('/contracts/award', 'POST', { bids: [bidData] }); showToast('Load awarded!', 'success'); viewBidsModal.hide(); handleManualRefresh(); } catch (e) {} }
         async function openAssignTruckersModal(requisitionId) { $('#assign-trucker-req-id').val(requisitionId); const checklistDiv = $('#assign-trucker-checklist').html(renderEmptyState(null, 'Loading...', 'fa-spinner fa-spin')); assignTruckersModal.show(); try { const result = await apiCall(`/requisitions/${requisitionId}/assignments`); const { allTruckers, assignedTruckerIds } = result.data; const truckersHtml = allTruckers.map(t => `<div class="form-check"><input class="form-check-input assign-trucker-checkbox" type="checkbox" value="${t.user_id}" ${assignedTruckerIds.includes(t.user_id) ? 'checked' : ''}><label class="form-check-label">${t.full_name}</label></div>`).join(''); checklistDiv.html(truckersHtml || '<p class="text-muted">No active truckers found.</p>'); } catch (e) {} }
@@ -742,7 +369,7 @@
         function downloadBulkTemplate(type) { let data, filename; if (type === 'load') { data = [{ "LoadingPoint": "City A", "UnloadingPoint": "City B", "MaterialName": "STEEL ITEMS", "TruckName": "10 Wheeler Truck", "WeightInTonnes": 15, "RequirementDate": "2025-10-25" }]; filename = "Bulk_Load_Template.xlsx"; } else { data = [{ "Name": `Sample ${type === 'item' ? 'Material' : 'Truck'}` }]; filename = `Bulk_${type}_Template.xlsx`; } const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Template"); XLSX.writeFile(wb, filename); }
         function downloadReport() { const table = document.getElementById("detailed-report-table"); if (!table || $(table).find('tbody tr').length === 0 || $(table).find('tbody td').length <= 1) return showToast('No data to download.', 'warning'); const wb = XLSX.utils.table_to_book(table, { sheet: "Report" }); XLSX.writeFile(wb, "Awarded_Loads_Report.xlsx"); }
         async function load_messaging_view() { const chatList = $('#chat-list'); try { renderEmptyState(chatList, 'Loading...', 'fa-spinner fa-spin'); const result = await apiCall('/conversations'); if (result.data.length === 0) return renderEmptyState(chatList, 'No users to chat with.'); chatList.html(result.data.map(u => `<a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" onclick="openChat(${u.user_id}, '${u.full_name}')"><div class="chat-list-item"><strong class="chat-user-name">${u.full_name}</strong><div class="last-message">${u.last_message || `Role: ${u.role}`}</div></div><div class="text-end"><span class="badge bg-success rounded-pill">${u.unread_count > 0 ? u.unread_count : ''}</span><div class="message-info">${u.last_message_timestamp ? formatDate(u.last_message_timestamp, true) : ''}</div></div></a>`).join('')); } catch (e) {} }
-        async function openChat(id, name) { if (chatPollingInterval) clearInterval(chatPollingInterval); $('#chat-welcome').addClass('d-none'); $('#chat-window').removeClass('d-none'); $('#chat-with-name').text(name); $('#message-form').off('submit').on('submit', (e) => { e.preventDefault(); handleSendMessage(id); }); const fetchAndRender = async () => { const messagesDiv = $('#chat-messages'); const currentUser = JSON.parse(sessionStorage.getItem('loggedInUser')); const result = await apiCall(`/messages/${id}`, 'GET', null, false, false); if (!result.success) return; const isScrolledToBottom = messagesDiv.scrollTop() + messagesDiv.innerHeight() >= messagesDiv[0].scrollHeight - 50; messagesDiv.html(''); result.data.forEach(msg => { const isSent = msg.sender_id == currentUser.user_id; const wrapperClass = isSent ? 'sent' : 'received'; const ticksHtml = isSent ? `<span class="message-ticks ${msg.status === 'read' ? 'read' : ''}">✓✓</span>` : ''; const messageHtml = ` <div class="message-wrapper ${wrapperClass}"> <div class="message-bubble"> <div class="message-text">${msg.message_body.replace(/\n/g, '<br>')}</div> <div class="message-meta"> <span class="timestamp">${formatMessageTime(msg.timestamp)}</span> ${ticksHtml} </div> </div> </div>`; messagesDiv.append(messageHtml); }); if (isScrolledToBottom || messagesDiv.html() === '') { messagesDiv.scrollTop(messagesDiv[0].scrollHeight); } }; await fetchAndRender(); chatPollingInterval = setInterval(fetchAndRender, 7000); }
+        async function openChat(id, name) { if (chatPollingInterval) clearInterval(chatPollingInterval); $('#chat-welcome').addClass('d-none'); $('#chat-window').removeClass('d-none'); $('#chat-with-name').text(name); $('#message-form').off('submit').on('submit', (e) => { e.preventDefault(); handleSendMessage(id); }); const fetchAndRender = async () => { const messagesDiv = $('#chat-messages'); const currentUser = JSON.parse(sessionStorage.getItem('loggedInUser')); const result = await apiCall(`/messages/${id}`, 'GET', null, false, false); if (!result.success) return; const isScrolledToBottom = messagesDiv.scrollTop() + messagesDiv.innerHeight() >= messagesDiv[0].scrollHeight - 50; messagesDiv.html(''); result.data.forEach(msg => { const isSent = msg.sender_id == currentUser.user_id; const wrapperClass = isSent ? 'sent' : 'received'; const ticksHtml = isSent ? `<span class="message-ticks ${msg.status === 'read' ? 'read' : ''}">✓✓</span>` : ''; const messageHtml = `<div class="message-wrapper ${wrapperClass}"><div class="message-bubble"><div class="message-text">${msg.message_body.replace(/\n/g, '<br>')}</div><div class="message-meta"><span class="timestamp">${formatMessageTime(msg.timestamp)}</span> ${ticksHtml}</div></div></div>`; messagesDiv.append(messageHtml); }); if (isScrolledToBottom || messagesDiv.html() === '') { messagesDiv.scrollTop(messagesDiv[0].scrollHeight); } }; await fetchAndRender(); chatPollingInterval = setInterval(fetchAndRender, 7000); }
         async function handleSendMessage(id) { const input = $('#message-input'); if (!input.val()) return; try { await apiCall('/messages', 'POST', { recipientId: id, messageBody: input.val() }, false, false); input.val(''); openChat(id, $('#chat-with-name').text()); } catch (e) {} }
         function downloadTableData(tableId, filename) { const table = document.getElementById(tableId); if (!table || $(table).find('tbody tr').length === 0 || $(table).find('tbody td').length <= 1) return showToast('No data to download.', 'warning'); const clonedTable = table.cloneNode(true); $(clonedTable).find('th:last-child, td:last-child').remove(); const wb = XLSX.utils.table_to_book(clonedTable, { sheet: "Report" }); XLSX.writeFile(wb, filename); }
         async function openAdvancedBulkAwardModal() { const loadIds = $('.load-checkbox:checked').map((i, el) => $(el).closest('tr').data('load-id')).get(); if (loadIds.length === 0) return showToast('Please select loads to award.', 'warning'); try { const result = await apiCall('/admin/bids-for-loads', 'POST', { loadIds }); if (!result.success) return; const accordionContainer = $('#advanced-bulk-award-modal-body').html(''); result.data.forEach((loadData, index) => { let bidsTableHtml = '<p class="text-center text-muted">No bids submitted.</p>'; if (loadData.bids && loadData.bids.length > 0) { bidsTableHtml = `<div class="table-responsive"><table class="table table-sm table-striped"><thead><tr><th>Select</th><th>Rank</th><th>Trucker</th><th>Amount (₹)</th></tr></thead><tbody>${loadData.bids.map((bid, rankIndex) => { const bidDataForAward = { ...bid, ...loadData, trucker_name: bid.trucker_name, trucker_email: bid.trucker_email }; return `<tr><td><input class="form-check-input" type="radio" name="award-radio-${loadData.load_id}" value='${JSON.stringify(bidDataForAward)}'></td><td><span class="badge bg-info">L${rankIndex + 1}</span></td><td>${bid.trucker_name}</td><td><strong>${formatCurrency(bid.bid_amount)}</strong></td></tr>`; }).join('')}</tbody></table></div>`; } accordionContainer.append(`<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button ${index > 0 ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-award-${loadData.load_id}"><strong>Load #${loadData.load_id}:</strong> ${loadData.loading_point_address} to ${loadData.unloading_point_address}</button></h2><div id="collapse-award-${loadData.load_id}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" data-bs-parent="#advanced-bulk-award-modal-body"><div class="accordion-body">${bidsTableHtml}</div></div></div>`); }); $('#advanced-bulk-award-remarks').val(''); advancedBulkAwardModal.show(); } catch (e) { advancedBulkAwardModal.hide(); showToast('Failed to load data for bulk award. Please try again.', 'error'); } }
