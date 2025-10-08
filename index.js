@@ -826,11 +826,11 @@ app.delete('/api/loads/:id', authenticateToken, isAdmin, async (req, res, next) 
 app.get('/api/loads/:id', authenticateToken, isAdmin, async (req, res, next) => {
     try {
         const { id } = req.params;
-        const [[load]] = await dbPool.query("SELECT * FROM truck_loads WHERE load_id = ?", [id]);
-        if (!load) {
+        const [rows] = await dbPool.query("SELECT * FROM truck_loads WHERE load_id = ?", [id]);
+        if (rows.length === 0) {
             return res.status(404).json({ success: false, message: 'Load not found.' });
         }
-        res.json({ success: true, data: load });
+        res.json({ success: true, data: rows[0] });
     } catch (error) {
         next(error);
     }
