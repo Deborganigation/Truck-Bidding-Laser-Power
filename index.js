@@ -261,6 +261,66 @@ app.post('/api/messages', authenticateToken, async (req, res, next) => {
 });
 
 
+// --- Contract Award API (UPDATED TO BE MORE ROBUST) ---
+app.post('/api/contracts/award', authenticateToken, isAdmin, async (req, res, next) => {
+    let connection;
+    try {
+        connection = await dbPool.getConnection();
+        const { bids } = req.body; // Bids from frontend
+
+        if (!bids || bids.length === 0) {
+            return res.status(400).json({ success: false, message: 'No bids provided to award.' });
+        }
+
+        // ===== FIX STARTS HERE =====
+        // Step 1: Frontend se aaye hue bids se saare unique vendor IDs nikaalo
+        const vendorIds = [...new Set(bids.map(b => b.vendor_id))];
+
+        // Step 2: Un IDs ke liye database se user ki details (naam aur email) fetch karo
+        const [users] = await dbPool.query(
+            'SELECT user_id, full_name, email FROM users WHERE user_id IN (?)', 
+            [vendorIds]
+        );
+
+        // Step 3: Ek map banao taaki vendor_id se details aasani se mil jaaye
+        const vendorInfoMap = new Map(users.map(user => [user.user_id, {
+            trucker_name: user.full_name,
+            trucker_email: user.email
+        }]));
+
+        // Step 4: Ek naya array banao jismein frontend se aayi bid info + database se nikali user info ho
+        const bidsForEmail = bids.map(bid => ({
+            ...bid,
+            ...vendorInfoMap.get(bid.vendor_id)
+        }));
+        // ===== FIX ENDS HERE =====
+
+
+        // Database operations pehle jaise hi rahenge
+        await connection.beginTransaction();
+        for (const bid of bids) {
+            await connection.query("DELETE FROM awarded_contracts WHERE load_id = ?", [bid.load_id]);
+            await connection.query(
+                "INSERT INTO awarded_contracts (load_id, requisition_id, vendor_id, awarded_amount, remarks, awarded_date) VALUES (?, ?, ?, ?, ?, NOW())",
+                [bid.load_id, bid.requisition_id, bid.vendor_id, bid.bid_amount, bid.remarks]
+            );
+            await connection.query("UPDATE truck_loads SET status = 'Awarded' WHERE load_id = ?", [bid.load_id]);
+        }
+        await connection.commit();
+        
+        // Email function ko naya, poori details wala array pass karo
+        sendAwardNotificationEmails(bidsForEmail).catch(err => console.error("Email sending failed after award:", err));
+
+        res.json({ success: true, message: 'Contract(s) awarded successfully.' });
+    } catch (error) {
+        if (connection) await connection.rollback();
+        next(error);
+    } finally {
+        if (connection) connection.release();
+    }
+});
+
+
 // Baaki sabhi APIs... (All other APIs remain the same and are correct)
 // =========================================================================
 
@@ -650,32 +710,6 @@ app.put('/api/admin/loads/bulk-bidding-time', authenticateToken, isAdmin, async 
         res.json({ success: true, message: `${loadIds.length} load(s) have been updated with the new bidding time.` });
     } catch (error) {
         next(error);
-    }
-});
-app.post('/api/contracts/award', authenticateToken, isAdmin, async (req, res, next) => {
-    let connection;
-    try {
-        connection = await dbPool.getConnection();
-        const { bids } = req.body;
-        await connection.beginTransaction();
-        for (const bid of bids) {
-            await connection.query("DELETE FROM awarded_contracts WHERE load_id = ?", [bid.load_id]);
-            await connection.query(
-                "INSERT INTO awarded_contracts (load_id, requisition_id, vendor_id, awarded_amount, remarks, awarded_date) VALUES (?, ?, ?, ?, ?, NOW())",
-                [bid.load_id, bid.requisition_id, bid.vendor_id, bid.bid_amount, bid.remarks]
-            );
-            await connection.query("UPDATE truck_loads SET status = 'Awarded' WHERE load_id = ?", [bid.load_id]);
-        }
-        await connection.commit();
-        
-        sendAwardNotificationEmails(bids).catch(err => console.error("Email sending failed after award:", err));
-
-        res.json({ success: true, message: 'Contract(s) awarded successfully.' });
-    } catch (error) {
-        if (connection) await connection.rollback();
-        next(error);
-    } finally {
-        if (connection) connection.release();
     }
 });
 app.post('/api/admin/reports-data', authenticateToken, isAdmin, async (req, res, next) => {
