@@ -350,15 +350,16 @@
 
         function renderBidInput(load) {
             const now = new Date();
-            // ✅ *** FIX APPLIED HERE: Using 'Z' for UTC interpretation *** ✅
-            const startTime = load.bidding_start_time ? new Date(load.bidding_start_time.replace(' ', 'T') + 'Z') : null;
-            const endTime = load.bidding_end_time ? new Date(load.bidding_end_time.replace(' ', 'T') + 'Z') : null;
+            // ✅ *** FIX APPLIED HERE: Removed '+ 'Z'' to prevent UTC to IST conversion *** ✅
+            const startTime = load.bidding_start_time ? new Date(load.bidding_start_time.replace(' ', 'T')) : null;
+            const endTime = load.bidding_end_time ? new Date(load.bidding_end_time.replace(' ', 'T')) : null;
             
             if (endTime && now > endTime) {
                 return `<span class="text-danger fw-bold small"><i class="fas fa-clock me-1"></i>Bidding Closed</span>`;
             }
             if (startTime && now < startTime) {
-                return `<span class="text-info fw-bold small countdown-timer" data-start-time="${load.bidding_start_time}">Starts in...</span>`;
+                // ✅ *** FIX APPLIED HERE: Changed data attribute to avoid confusion and use the non-converted time *** ✅
+                return `<span class="text-info fw-bold small countdown-timer" data-start-time-raw="${load.bidding_start_time}">Starts in...</span>`;
             }
             return `<div class="input-group input-group-sm">
                         <span class="input-group-text">₹</span>
@@ -371,10 +372,10 @@
             biddingTimers = [];
             $('.countdown-timer').each(function() {
                 const timerElement = $(this);
-                const startTimeString = timerElement.data('start-time');
+                const startTimeString = timerElement.data('start-time-raw');
                 if (!startTimeString) return;
-                // ✅ *** FIX APPLIED HERE: Using 'Z' for UTC interpretation *** ✅
-                const startTime = new Date(startTimeString.replace(' ', 'T') + 'Z');
+                // ✅ *** FIX APPLIED HERE: Removed '+ 'Z'' to prevent UTC to IST conversion *** ✅
+                const startTime = new Date(startTimeString.replace(' ', 'T'));
 
                 const interval = setInterval(() => {
                     const now = new Date();
@@ -604,7 +605,7 @@
         
         function formatDate(d, includeTime = false) { 
             if (!d) return 'N/A';
-            // ✅ *** FIX APPLIED HERE: Using 'Z' for UTC interpretation *** ✅
+            // ✅ *** NOTE: This function remains UNCHANGED to correctly show IST everywhere else. *** ✅
             // Append 'Z' to tell JS that the incoming string is in UTC.
             // JS will then automatically convert it to the user's local timezone for display.
             const date = new Date(d.replace(' ', 'T') + 'Z'); 
