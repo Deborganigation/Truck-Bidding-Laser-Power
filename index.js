@@ -583,6 +583,40 @@ app.get('/api/admin/dashboard-stats', authenticateToken, isAdmin, async (req, re
     }
 });
 
+app.post('/api/loads/approve', authenticateToken, isAdmin, async (req, res, next) => {
+    let connection;
+    try {
+        connection = await dbPool.getConnection();
+        const { approvedLoadIds, truckerAssignments, requisitionId, biddingStartTime, biddingEndTime } = req.body;
+        
+        const startTime = biddingStartTime ? biddingStartTime : null;
+        const endTime = biddingEndTime ? biddingEndTime : null;
+
+        await connection.beginTransaction();
+        
+        if (approvedLoadIds && approvedLoadIds.length > 0) {
+            await connection.query(
+                "UPDATE truck_loads SET status = 'Active', bidding_start_time = ?, bidding_end_time = ? WHERE load_id IN (?)",
+                [startTime, endTime, approvedLoadIds]
+            );
+        }
+        await connection.query("UPDATE requisitions SET status = 'Processed', approved_at = NOW() WHERE requisition_id = ?", [requisitionId]);
+        
+        if (truckerAssignments && truckerAssignments.length > 0) {
+            await connection.query('DELETE FROM trucker_assignments WHERE requisition_id = ?', [requisitionId]);
+            const values = truckerAssignments.map(vId => [requisitionId, vId, new Date()]);
+            await connection.query('INSERT INTO trucker_assignments (requisition_id, vendor_id, assigned_at) VALUES ?', [values]);
+        }
+        await connection.commit();
+        res.json({ success: true, message: 'Load requests processed successfully!' });
+    } catch (error) {
+        if (connection) await connection.rollback();
+        next(error);
+    } finally {
+        if (connection) connection.release();
+    }
+});
+
 
 app.get('/api/admin/awarded-contracts', authenticateToken, isAdmin, async (req, res, next) => {
     try {
@@ -872,51 +906,7 @@ app.put('/api/loads/:id', authenticateToken, isAdmin, async (req, res, next) => 
     }
 });
 
-// ############ FIX START: YEH WALA FUNCTION THEEK KIYA GAYA HAI ############
-app.post('/api/loads/bulk-upload', authenticateToken, isAdmin, upload.single('bulkFile'), async (req, res, next) => {
-    if (!req.file) {
-        return res.status(400).json({ success: false, message: 'No Excel file uploaded.' });
-    }
-    let connection;
-    try {
-        connection = await dbPool.getConnection();
-        const workbook = xlsx.read(req.file.buffer, { type: 'buffer', cellDates: true });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const jsonData = xlsx.utils.sheet_to_json(sheet);
-        if (jsonData.length === 0) {
-            return res.status(400).json({ success: false, message: 'Excel file is empty.' });
-        }
-        const [itemRows] = await connection.query('SELECT item_id, item_name FROM item_master');
-        const [truckRows] = await connection.query('SELECT truck_type_id, truck_name FROM truck_type_master');
-        const itemMap = new Map(itemRows.map(i => [i.item_name.toLowerCase(), i.item_id]));
-        const truckMap = new Map(truckRows.map(t => [t.truck_name.toLowerCase(), t.truck_type_id]));
-        await connection.beginTransaction();
-        const [reqResult] = await connection.query("INSERT INTO requisitions (created_by, status, created_at) VALUES (?, 'Pending Approval', NOW())", [req.user.userId]);
-        const reqId = reqResult.insertId;
-        for (const row of jsonData) {
-            const itemId = itemMap.get(String(row.MaterialName).toLowerCase());
-            const truckTypeId = truckMap.get(String(row.TruckName).toLowerCase());
-            if (!itemId || !truckTypeId) {
-                console.warn(`Skipping row, master data not found for: ${row.MaterialName} or ${row.TruckName}`);
-                continue;
-            }
-            // ## YEH LINE FIX KI GAYI HAI. isme 'truckTypeId' add kiya gaya hai ##
-            await connection.query(
-                `INSERT INTO truck_loads (requisition_id, created_by, loading_point_address, unloading_point_address, item_id, approx_weight_tonnes, truck_type_id, requirement_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending Approval')`,
-                [reqId, req.user.userId, row.LoadingPoint, row.UnloadingPoint, itemId, row.WeightInTonnes, truckTypeId, row.RequirementDate]
-            );
-        }
-        await connection.commit();
-        res.status(201).json({ success: true, message: 'Bulk upload processed successfully.' });
-    } catch (error) {
-        if (connection) await connection.rollback();
-        next(error);
-    } finally {
-        if (connection) connection.release();
-    }
-});
-// ############ FIX END ############
-
+app.post('/api/loads/bulk-upload', authenticateToken, isAdmin, upload.single('bulkFile'), async (req, res, next) => { if (!req.file) return res.status(400).json({ success: false, message: 'No Excel file uploaded.' }); let connection; try { connection = await dbPool.getConnection(); const workbook = xlsx.read(req.file.buffer, { type: 'buffer', cellDates: true }); const sheet = workbook.Sheets[workbook.SheetNames[0]]; const jsonData = xlsx.utils.sheet_to_json(sheet); if (jsonData.length === 0) return res.status(400).json({ success: false, message: 'Excel file is empty.' }); const [itemRows] = await connection.query('SELECT item_id, item_name FROM item_master'); const [truckRows] = await connection.query('SELECT truck_type_id, truck_name FROM truck_type_master'); const itemMap = new Map(itemRows.map(i => [i.item_name.toLowerCase(), i.item_id])); const truckMap = new Map(truckRows.map(t => [t.truck_name.toLowerCase(), t.truck_type_id])); await connection.beginTransaction(); const [reqResult] = await connection.query("INSERT INTO requisitions (created_by, status, created_at) VALUES (?, 'Pending Approval', NOW())", [req.user.userId]); const reqId = reqResult.insertId; for (const row of jsonData) { const itemId = itemMap.get(String(row.MaterialName).toLowerCase()); const truckTypeId = truckMap.get(String(row.TruckName).toLowerCase()); if (!itemId || !truckTypeId) { console.warn(`Skipping row, master data not found for: ${row.MaterialName} or ${row.TruckName}`); continue; } await connection.query( `INSERT INTO truck_loads (requisition_id, created_by, loading_point_address, unloading_point_address, item_id, approx_weight_tonnes, truck_type_id, requirement_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending Approval')`, [reqId, req.user.userId, row.LoadingPoint, row.UnloadingPoint, itemId, row.WeightInTonnes, row.RequirementDate] ); } await connection.commit(); res.status(201).json({ success: true, message: 'Bulk upload processed successfully.' }); } catch (error) { if (connection) await connection.rollback(); next(error); } finally { if (connection) connection.release(); }});
 app.get('/api/admin/loads/:id/bids', authenticateToken, isAdmin, async (req, res, next) => { try { const [bids] = await dbPool.query(`SELECT b.*, u.full_name as trucker_name FROM bids b JOIN users u ON b.vendor_id = u.user_id WHERE b.load_id = ? ORDER BY b.bid_amount ASC`, [req.params.id]); const [[loadDetails]] = await dbPool.query('SELECT * FROM truck_loads WHERE load_id = ?', [req.params.id]); res.json({ success: true, data: { bids, loadDetails } }); } catch (error) { next(error); }});
 app.post('/api/admin/bids-for-loads', authenticateToken, isAdmin, async (req, res, next) => { try { const { loadIds } = req.body; if (!loadIds || loadIds.length === 0) { return res.status(400).json({ success: false, message: 'No load IDs provided.' }); } const results = []; for (const loadId of loadIds) { const [bids] = await dbPool.query(`SELECT b.*, u.full_name as trucker_name, u.email as trucker_email, u.contact_number as trucker_contact FROM bids b JOIN users u ON b.vendor_id = u.user_id WHERE b.load_id = ? ORDER BY b.bid_amount ASC`, [loadId]); const [[loadDetails]] = await dbPool.query('SELECT tl.*, im.item_name FROM truck_loads tl JOIN item_master im ON tl.item_id = im.item_id WHERE tl.load_id = ?', [loadId]); results.push({ ...loadDetails, bids }); } res.json({ success: true, data: results }); } catch (error) { next(error); }});
 app.get('/api/requisitions/:id/assignments', authenticateToken, isAdmin, async (req, res, next) => { try { const [allTruckers] = await dbPool.query("SELECT user_id, full_name FROM users WHERE role = 'Vendor' AND is_active = 1 ORDER BY full_name"); const [assignedResult] = await dbPool.query("SELECT vendor_id FROM trucker_assignments WHERE requisition_id = ?", [req.params.id]); const assignedTruckerIds = assignedResult.map(a => a.vendor_id); res.json({ success: true, data: { allTruckers, assignedTruckerIds } }); } catch (error) { next(error); }});
