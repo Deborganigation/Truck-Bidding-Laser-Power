@@ -480,8 +480,8 @@ app.get('/api/trucker/awarded-contracts', authenticateToken, async (req, res, ne
             im.item_name, ttm.truck_name
         FROM awarded_contracts ac 
         JOIN truck_loads tl ON ac.load_id = tl.load_id 
-        JOIN item_master im ON tl.item_id = im.item_id
-        JOIN truck_type_master ttm ON tl.truck_type_id = ttm.truck_type_id
+        LEFT JOIN item_master im ON tl.item_id = im.item_id
+        LEFT JOIN truck_type_master ttm ON tl.truck_type_id = ttm.truck_type_id
         WHERE ac.vendor_id = ?`;
         
         const params = [vendorId];
@@ -498,6 +498,38 @@ app.get('/api/trucker/awarded-contracts', authenticateToken, async (req, res, ne
 
         const [contracts] = await dbPool.query(query, params);
         res.json({ success: true, data: contracts });
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.get('/api/loads/pending', authenticateToken, isAdmin, async (req, res, next) => {
+    try {
+        const [groupedReqs] = await dbPool.query(`
+            SELECT 
+                r.requisition_id, 
+                r.created_at, 
+                COALESCE(u.full_name, 'Deleted User') as creator 
+            FROM requisitions r 
+            LEFT JOIN users u ON r.created_by = u.user_id 
+            WHERE r.status = 'Pending Approval' 
+            ORDER BY r.requisition_id DESC
+        `);
+
+        const [pendingLoads] = await dbPool.query(`
+            SELECT 
+                tl.*, 
+                COALESCE(im.item_name, 'N/A') as item_name, 
+                COALESCE(ttm.truck_name, 'N/A') as truck_name 
+            FROM truck_loads tl 
+            LEFT JOIN item_master im ON tl.item_id = im.item_id 
+            LEFT JOIN truck_type_master ttm ON tl.truck_type_id = ttm.truck_type_id 
+            WHERE tl.status = 'Pending Approval'
+        `);
+        
+        const [allTruckers] = await dbPool.query("SELECT user_id, full_name FROM users WHERE role = 'Vendor' AND is_active = 1");
+        
+        res.json({ success: true, data: { groupedReqs, pendingLoads, allTruckers } });
     } catch (error) {
         next(error);
     }
@@ -565,8 +597,8 @@ app.get('/api/admin/awarded-contracts', authenticateToken, isAdmin, async (req, 
         FROM awarded_contracts ac 
         JOIN users u ON ac.vendor_id = u.user_id 
         JOIN truck_loads tl ON ac.load_id = tl.load_id
-        JOIN item_master im ON tl.item_id = im.item_id
-        JOIN truck_type_master ttm ON tl.truck_type_id = ttm.truck_type_id`;
+        LEFT JOIN item_master im ON tl.item_id = im.item_id
+        LEFT JOIN truck_type_master ttm ON tl.truck_type_id = ttm.truck_type_id`;
         
         const params = [];
         const whereClauses = [];
