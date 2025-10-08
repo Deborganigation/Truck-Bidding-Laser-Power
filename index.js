@@ -71,15 +71,43 @@ const isAdmin = (req, res, next) => {
     next();
 };
 
-// ================== EMAIL HELPER FUNCTION ==================
+// ================== EMAIL HELPER FUNCTION (UPDATED FOR FULL DETAILS) ==================
 const sendAwardNotificationEmails = async (awardedBids) => {
     if (!process.env.SENDGRID_API_KEY || !process.env.SENDER_EMAIL) {
-        console.error("Email sending skipped: SendGrid API Key or Sender Email is not configured in .env file.");
+        console.error("Email sending skipped: SendGrid API Key or Sender Email is not configured.");
         return;
     }
+    if (!awardedBids || awardedBids.length === 0) {
+        return; // Agar koi bid nahi hai toh kuch mat karo
+    }
 
+    // Step 1: Saare load IDs collect karo
+    const loadIds = awardedBids.map(b => b.load_id);
+
+    // Step 2: Database se saare loads ki full details fetch karo
+    const [loadDetailsRows] = await dbPool.query(
+        `SELECT
+            tl.load_id, tl.loading_point_address, tl.unloading_point_address,
+            tl.approx_weight_tonnes, tl.requirement_date,
+            im.item_name, ttm.truck_name
+        FROM truck_loads tl
+        JOIN item_master im ON tl.item_id = im.item_id
+        JOIN truck_type_master ttm ON tl.truck_type_id = ttm.truck_type_id
+        WHERE tl.load_id IN (?)`,
+        [loadIds]
+    );
+
+    const loadDetailsMap = new Map(loadDetailsRows.map(row => [row.load_id, row]));
+
+    // Step 3: Har bid ke saath uski full details jodo
+    const fullAwardedBids = awardedBids.map(bid => ({
+        ...bid,
+        ...loadDetailsMap.get(bid.load_id)
+    }));
+
+    // Step 4: Har vendor ke liye notifications group karo
     const notificationsByVendor = {};
-    for (const bid of awardedBids) {
+    for (const bid of fullAwardedBids) {
         if (!notificationsByVendor[bid.vendor_id]) {
             notificationsByVendor[bid.vendor_id] = {
                 vendorName: bid.trucker_name,
@@ -95,14 +123,58 @@ const sendAwardNotificationEmails = async (awardedBids) => {
     const [adminRows] = await dbPool.query("SELECT email FROM users WHERE role IN ('Admin', 'Super Admin') AND is_active = 1");
     const adminEmails = adminRows.map(a => a.email);
 
+    // Step 5: Har vendor ko detailed email bhejo
     for (const vendorId in notificationsByVendor) {
         const notification = notificationsByVendor[vendorId];
         const subject = `Congratulations! You've been awarded ${notification.loads.length} new load(s) from DEB'S LOGISTICS`;
-        const loadsHtml = notification.loads.map(load =>
-            `<tr><td style="padding: 10px; border-bottom: 1px solid #dee2e6;">Load #${load.load_id}<br><small style="color: #555;">${load.loading_point_address} to ${load.unloading_point_address}</small></td><td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: right; vertical-align: middle;">₹${parseFloat(load.bid_amount).toLocaleString('en-IN')}</td></tr>`
-        ).join('');
 
-        const htmlBody = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 8px;"><div style="background-color: #172B4D; color: white; padding: 20px; text-align: center;"><h1 style="margin: 0;">Contract Awarded</h1></div><div style="padding: 20px;"><p>Dear ${notification.vendorName},</p><p>Congratulations! We are pleased to inform you that you have been awarded the following load(s):</p><table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;"><thead><tr><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Load Details</th><th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Awarded Amount</th></tr></thead><tbody>${loadsHtml}</tbody><tfoot><tr style="font-weight: bold; background-color: #f8f9fa;"><td style="padding: 10px; text-align: right;">Total Value:</td><td style="padding: 10px; text-align: right;">₹${notification.totalValue.toLocaleString('en-IN')}</td></tr></tfoot></table><p style="margin-top: 25px;">Our team will contact you shortly regarding the next steps. Thank you for your participation.</p><p>Sincerely,<br/><b>The DEB'S LOGISTICS Team</b></p></div></div>`;
+        const loadsHtml = notification.loads.map(load => {
+            const reqDate = new Date(load.requirement_date).toLocaleDateString('en-IN', {
+                day: 'numeric', month: 'short', year: 'numeric'
+            });
+            return `<tr>
+                <td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: center;">${load.load_id}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #dee2e6;">${load.loading_point_address} to ${load.unloading_point_address}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #dee2e6;">${load.item_name}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #dee2e6;">${load.truck_name}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: right;">${parseFloat(load.approx_weight_tonnes).toFixed(2)}T</td>
+                <td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: center;">${reqDate}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: right; font-weight: bold;">₹${parseFloat(load.bid_amount).toLocaleString('en-IN')}</td>
+            </tr>`;
+        }).join('');
+
+        const htmlBody = `
+        <div style="font-family: Arial, sans-serif; max-width: 800px; margin: auto; border: 1px solid #ddd; border-radius: 8px;">
+            <div style="background-color: #172B4D; color: white; padding: 20px; text-align: center; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+                <h1 style="margin: 0;">Contract Awarded</h1>
+            </div>
+            <div style="padding: 20px;">
+                <p>Dear ${notification.vendorName},</p>
+                <p>Congratulations! We are pleased to inform you that you have been awarded the following load(s):</p>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;">
+                    <thead style="background-color: #f8f9fa;">
+                        <tr>
+                            <th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6;">Load ID</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Route</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Material</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Truck</th>
+                            <th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Weight</th>
+                            <th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6;">Req. Date</th>
+                            <th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Your Awarded Bid</th>
+                        </tr>
+                    </thead>
+                    <tbody>${loadsHtml}</tbody>
+                    <tfoot>
+                        <tr style="font-weight: bold; background-color: #f8f9fa;">
+                            <td colspan="6" style="padding: 10px; text-align: right;">Total Value:</td>
+                            <td style="padding: 10px; text-align: right;">₹${notification.totalValue.toLocaleString('en-IN')}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <p style="margin-top: 25px;">Our team will contact you shortly regarding the next steps. Thank you for your participation.</p>
+                <p>Sincerely,<br/><b>The DEB'S LOGISTICS Team</b></p>
+            </div>
+        </div>`;
         
         try {
             await sgMail.send({ to: notification.vendorEmail, from: { name: "DEB'S LOGISTICS", email: process.env.SENDER_EMAIL }, cc: adminEmails, subject: subject, html: htmlBody });
@@ -126,11 +198,7 @@ app.post('/api/bids', authenticateToken, async (req, res, next) => {
         
         for (const bid of bids) {
             const vendorId = req.user.userId;
-
-            // ================== FIX YAHAN KIYA GAYA HAI ==================
-            // Hum ab CONVERT_TZ ka istemal kar rahe hain taaki NOW() hamesha IST me hi compare ho.
-            // 'SYSTEM' ka matlab hai database server ka current timezone.
-            // '+05:30' ka matlab hai Indian Standard Time.
+            
             const [[loadDetails]] = await connection.query(
                 `SELECT 
                     status,
