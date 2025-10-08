@@ -16,13 +16,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 if (process.env.SENDGRID_API_KEY) {
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    console.log('✅ SendGrid API Key configured.');
-} else {
-    console.warn('⚠️ SENDGRID_API_KEY not found in .env file. Email notifications will be disabled.');
 }
-
-app.use(express.static(path.join(__dirname)));
-app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')); });
 
 const dbPool = mysql.createPool({
     host: process.env.DB_HOST,
@@ -67,7 +61,6 @@ const isAdmin = (req, res, next) => {
 
 const sendAwardNotificationEmails = async (awardedBids) => {
     if (!process.env.SENDGRID_API_KEY || !process.env.SENDER_EMAIL) {
-        console.error("Email sending skipped: SendGrid API Key or Sender Email is not configured in .env file.");
         return;
     }
     const notificationsByVendor = {};
@@ -94,7 +87,6 @@ const sendAwardNotificationEmails = async (awardedBids) => {
         const htmlBody = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 8px;"><div style="background-color: #172B4D; color: white; padding: 20px; text-align: center;"><h1 style="margin: 0;">Contract Awarded</h1></div><div style="padding: 20px;"><p>Dear ${notification.vendorName},</p><p>Congratulations! We are pleased to inform you that you have been awarded the following load(s):</p><table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;"><thead><tr><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Load Details</th><th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Awarded Amount</th></tr></thead><tbody>${loadsHtml}</tbody><tfoot><tr style="font-weight: bold; background-color: #f8f9fa;"><td style="padding: 10px; text-align: right;">Total Value:</td><td style="padding: 10px; text-align: right;">₹${notification.totalValue.toLocaleString('en-IN')}</td></tr></tfoot></table><p style="margin-top: 25px;">Our team will contact you shortly regarding the next steps. Thank you for your participation.</p><p>Sincerely,<br/><b>The DEB'S LOGISTICS Team</b></p></div></div>`;
         try {
             await sgMail.send({ to: notification.vendorEmail, from: { name: "DEB'S LOGISTICS", email: process.env.SENDER_EMAIL }, cc: adminEmails, subject: subject, html: htmlBody });
-            console.log(`✅ Award notification email sent to ${notification.vendorEmail}`);
         } catch (error) {
             console.error(`❌ Failed to send award email to ${notification.vendorEmail}:`, error.response ? error.response.body : error);
         }
@@ -300,76 +292,94 @@ app.delete('/api/users/:id', authenticateToken, isAdmin, async (req, res, next) 
 app.post('/api/master-data/:type', authenticateToken, isAdmin, async (req, res, next) => { try { const { type } = req.params; const { name } = req.body; const table = type === 'items' ? 'item_master' : 'truck_type_master'; const column = type === 'items' ? 'item_name' : 'truck_name'; await dbPool.query(`INSERT INTO ${table} (${column}) VALUES (?)`, [name]); res.status(201).json({ success: true, message: `${type.slice(0, -1)} added` }); } catch (e) { next(e) } });
 app.put('/api/master-data/:type/:id', authenticateToken, isAdmin, async (req, res, next) => { try { const { type, id } = req.params; const { name, is_active } = req.body; const table = type === 'items' ? 'item_master' : 'truck_type_master'; const nameColumn = type === 'items' ? 'item_name' : 'truck_name'; const idColumn = type === 'items' ? 'item_id' : 'truck_type_id'; await dbPool.query(`UPDATE ${table} SET ${nameColumn}=?, is_active=? WHERE ${idColumn}=?`, [name, is_active, id]); res.json({ success: true, message: `${type.slice(0, -1)} updated` }); } catch (e) { next(e) } });
 app.post('/api/master-data/:type/bulk-upload', authenticateToken, isAdmin, upload.single('bulkFile'), async (req, res, next) => { if (!req.file) return res.status(400).json({ success: false, message: 'No Excel file provided.' }); try { const { type } = req.params; const table = type === 'items' ? 'item_master' : 'truck_type_master'; const column = type === 'items' ? 'item_name' : 'truck_name'; const workbook = xlsx.read(req.file.buffer, { type: 'buffer' }); const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]); const values = jsonData.map(row => [row.Name]); if (values.length > 0) { await dbPool.query(`INSERT INTO ${table} (${column}) VALUES ?`, [values]); } res.json({ success: true, message: 'Bulk upload successful.' }); } catch (e) { next(e); } });
+
+// --- MESSAGING & NOTIFICATIONS ---
 app.get('/api/conversations', authenticateToken, async (req, res, next) => {
-    try {
-        const myId = req.user.userId;
-        const [users] = await dbPool.query('SELECT user_id, full_name, role FROM users WHERE user_id != ? AND is_active = 1', [myId]);
-        if (users.length === 0) return res.json({ success: true, data: [] });
-        const userMap = new Map(users.map(u => [u.user_id, {
-            user_id: u.user_id,
-            full_name: u.full_name,
-            role: u.role === 'Vendor' ? 'Trucker' : (u.role === 'User' ? 'Shipper' : u.role),
-            last_message: null,
-            last_message_timestamp: null,
-            last_message_status: null,
-            last_message_sender: null,
-            unread_count: 0
-        }]));
-        const otherUserIds = Array.from(userMap.keys());
-        const lastMessagesQuery = `SELECT * FROM messages m WHERE m.message_id IN ( SELECT MAX(message_id) FROM messages WHERE (sender_id = ? AND recipient_id IN (?)) OR (recipient_id = ? AND sender_id IN (?)) GROUP BY LEAST(sender_id, recipient_id), GREATEST(sender_id, recipient_id) )`;
-        const [lastMessages] = await dbPool.query(lastMessagesQuery, [myId, otherUserIds, myId, otherUserIds]);
-        const unreadQuery = `SELECT sender_id, COUNT(*) as count FROM messages WHERE recipient_id = ? AND status != 'read' GROUP BY sender_id`;
-        const [unreadCounts] = await dbPool.query(unreadQuery, [myId]);
-        lastMessages.forEach(msg => {
-            const otherUserId = msg.sender_id == myId ? msg.recipient_id : msg.sender_id;
-            if (userMap.has(otherUserId)) {
-                const user = userMap.get(otherUserId);
-                user.last_message = msg.message_body;
-                user.last_message_timestamp = msg.timestamp;
-                user.last_message_status = msg.status;
-                user.last_message_sender = msg.sender_id;
-            }
-        });
-        unreadCounts.forEach(uc => {
-            if (userMap.has(uc.sender_id)) {
-                userMap.get(uc.sender_id).unread_count = uc.count;
-            }
-        });
-        const sortedUsers = Array.from(userMap.values()).sort((a, b) => (new Date(b.last_message_timestamp) || 0) - (new Date(a.last_message_timestamp) || 0));
-        res.json({ success: true, data: sortedUsers });
-    } catch (e) {
-        next(e);
-    }
+    try {
+        const myId = req.user.userId;
+        const [users] = await dbPool.query('SELECT user_id, full_name, role FROM users WHERE user_id != ? AND is_active = 1', [myId]);
+        if (users.length === 0) return res.json({ success: true, data: [] });
+
+        const userMap = new Map(users.map(u => [u.user_id, {
+            user_id: u.user_id,
+            full_name: u.full_name,
+            role: u.role === 'Vendor' ? 'Trucker' : (u.role === 'User' ? 'Shipper' : u.role),
+            last_message: null,
+            last_message_timestamp: null,
+            last_message_status: null,
+            last_message_sender: null,
+            unread_count: 0
+        }]));
+
+        const otherUserIds = Array.from(userMap.keys());
+
+        const lastMessagesQuery = `SELECT * FROM messages m WHERE m.message_id IN (
+            SELECT MAX(message_id) FROM messages
+            WHERE (sender_id = ? AND recipient_id IN (?)) OR (recipient_id = ? AND sender_id IN (?))
+            GROUP BY LEAST(sender_id, recipient_id), GREATEST(sender_id, recipient_id)
+        )`;
+        const [lastMessages] = await dbPool.query(lastMessagesQuery, [myId, otherUserIds, myId, otherUserIds]);
+        
+        const unreadQuery = `SELECT sender_id, COUNT(*) as count FROM messages WHERE recipient_id = ? AND status != 'read' GROUP BY sender_id`;
+        const [unreadCounts] = await dbPool.query(unreadQuery, [myId]);
+
+        lastMessages.forEach(msg => {
+            const otherUserId = msg.sender_id == myId ? msg.recipient_id : msg.sender_id;
+            if (userMap.has(otherUserId)) {
+                const user = userMap.get(otherUserId);
+                user.last_message = msg.message_body;
+                user.last_message_timestamp = msg.timestamp;
+                user.last_message_status = msg.status;
+                user.last_message_sender = msg.sender_id;
+            }
+        });
+
+        unreadCounts.forEach(uc => {
+            if (userMap.has(uc.sender_id)) {
+                userMap.get(uc.sender_id).unread_count = uc.count;
+            }
+        });
+
+        const sortedUsers = Array.from(userMap.values()).sort((a, b) => (new Date(b.last_message_timestamp) || 0) - (new Date(a.last_message_timestamp) || 0));
+        res.json({ success: true, data: sortedUsers });
+    } catch (e) {
+        next(e);
+    }
 });
 app.get('/api/messages/:otherUserId', authenticateToken, async (req, res, next) => {
-    let connection;
-    try {
-        connection = await dbPool.getConnection();
-        const { otherUserId } = req.params;
-        const myId = req.user.userId;
-        await connection.beginTransaction();
-        const [messages] = await connection.query('SELECT * FROM messages WHERE (sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?) ORDER BY timestamp ASC', [myId, otherUserId, otherUserId, myId]);
-        await connection.query("UPDATE messages SET status = 'read' WHERE recipient_id = ? AND sender_id = ? AND status != 'read'", [myId, otherUserId]);
-        await connection.commit();
-        res.json({ success: true, data: messages });
-    } catch (e) {
-        if (connection) await connection.rollback();
-        next(e);
-    } finally {
-        if (connection) connection.release();
-    }
-});
-app.get('/api/sidebar-counts', authenticateToken, async (req, res, next) => { try { let counts = { unreadMessages: 0, pendingLoads: 0, pendingUsers: 0 }; const [[msgCount]] = await dbPool.query("SELECT COUNT(*) as count FROM messages WHERE recipient_id = ? AND status != 'read'", [req.user.userId]); counts.unreadMessages = msgCount.count; if (req.user.role === 'Admin' || req.user.role === 'Super Admin') { const [[pendingUsers]] = await dbPool.query("SELECT COUNT(*) as count FROM pending_users"); counts.pendingUsers = pendingUsers.count; const [[pendingLoads]] = await dbPool.query("SELECT COUNT(*) as count FROM truck_loads WHERE status = 'Pending Approval'"); counts.pendingLoads = pendingLoads.count; } res.json({ success: true, data: counts }); } catch (e) { next(e) } });
+    let connection;
+    try {
+        connection = await dbPool.getConnection();
+        const { otherUserId } = req.params;
+        const myId = req.user.userId;
 
+        await connection.beginTransaction();
+        const [messages] = await connection.query('SELECT * FROM messages WHERE (sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?) ORDER BY timestamp ASC', [myId, otherUserId, otherUserId, myId]);
+        
+        await connection.query("UPDATE messages SET status = 'read' WHERE recipient_id = ? AND sender_id = ? AND status != 'read'", [myId, otherUserId]);
+        await connection.commit();
+
+        res.json({ success: true, data: messages });
+    } catch(e) {
+        if(connection) await connection.rollback();
+        next(e);
+    } finally {
+        if(connection) connection.release();
+    }
+});
+app.get('/api/sidebar-counts', authenticateToken, async (req, res, next) => { try { let counts = { unreadMessages: 0, pendingLoads: 0, pendingUsers: 0 }; const [[msgCount]] = await dbPool.query("SELECT COUNT(*) as count FROM messages WHERE recipient_id = ? AND status != 'read'", [req.user.userId]); counts.unreadMessages = msgCount.count; if(req.user.role === 'Admin' || req.user.role === 'Super Admin') { const [[pendingUsers]] = await dbPool.query("SELECT COUNT(*) as count FROM pending_users"); counts.pendingUsers = pendingUsers.count; const [[pendingLoads]] = await dbPool.query("SELECT COUNT(*) as count FROM truck_loads WHERE status = 'Pending Approval'"); counts.pendingLoads = pendingLoads.count; } res.json({ success: true, data: counts }); } catch(e){next(e)} });
+
+// ================== GLOBAL ERROR HANDLER ==================
 app.use((err, req, res, next) => {
-    console.error("====== GLOBAL ERROR HANDLER CAUGHT AN ERROR ======");
-    console.error("ROUTE: ", req.method, req.originalUrl);
-    console.error(err);
-    res.status(500).send({
-        success: false,
-        message: err.message || 'Something went wrong!'
-    });
+    console.error("====== GLOBAL ERROR HANDLER CAUGHT AN ERROR ======");
+    console.error("ROUTE: ", req.method, req.originalUrl);
+    console.error(err);
+    res.status(500).send({
+        success: false,
+        message: err.message || 'Something went wrong!'
+    });
 });
 
+// ================== SERVER START ==================
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server is running on http://localhost:${PORT}`));
