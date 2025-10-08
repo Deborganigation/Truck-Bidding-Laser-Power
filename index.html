@@ -112,43 +112,7 @@
     <div class="modal fade" id="assignTruckersModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="assignTruckersModalTitle">Assign Truckers</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="assign-trucker-req-id"><div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" onchange="$(this).closest('.modal-body').find('.assign-trucker-checkbox').prop('checked', this.checked)"><label class="form-check-label">Select All Truckers</label></div><hr><div id="assign-trucker-checklist" class="border rounded p-3" style="max-height: 250px; overflow-y: auto;"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-primary" onclick="handleUpdateTruckerAssignments()">Save Changes</button></div></div></div></div>
     <div class="modal fade" id="advancedBulkAwardModal" tabindex="-1"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Advanced Bulk Award</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><p class="text-muted">Select one winning bid for each load you wish to award.</p><div class="accordion" id="advanced-bulk-award-modal-body"></div></div><div class="modal-footer"><div class="w-100"><div class="mb-2"><label class="form-label">Remarks (Mandatory)</label><textarea id="advanced-bulk-award-remarks" class="form-control" rows="2" placeholder="e.g., Awarded based on best price."></textarea></div><div class="d-flex justify-content-end"><button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-success" onclick="handleSubmitAdvancedBulkAward()">Submit Awards</button></div></div></div></div></div></div>
     <div class="modal fade" id="reopenBiddingModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-warning"><h5 class="modal-title">Re-open Bidding</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="reopen-load-ids"><div class="mb-3"><label class="form-label"><strong>Remarks (Mandatory)</strong></label><textarea id="reopen-remarks" class="form-control" rows="2"></textarea></div><div class="mb-3"><label class="form-label d-flex justify-content-between"><span>Select Truckers for New Bidding Round</span><div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" onchange="$(this).closest('.modal-body').find('.reopen-trucker-checkbox').prop('checked', this.checked)"><label class="form-check-label small">Select All</label></div></label><div id="reopen-trucker-checklist" class="border rounded p-3" style="max-height: 200px; overflow-y: auto;"></div></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-warning" onclick="submitReopenBidding()">Confirm & Re-open</button></div></div></div></div>
-    
-    <div class="modal fade" id="setBiddingTimeModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Set/Update Bidding Time</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" id="setTimeLoadId">
-                    <p><strong>Load ID:</strong> <span id="setTimeLoadName"></span></p>
-                    <div class="mb-3">
-                        <label class="form-label">Bidding Start Time</label>
-                        <input type="datetime-local" id="setTimeStartTime" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Bidding Duration</label>
-                        <select id="setTimeDuration" class="form-select">
-                            <option value="5">5 Minutes</option>
-                            <option value="10">10 Minutes</option>
-                            <option value="15">15 Minutes</option>
-                            <option value="30">30 Minutes</option>
-                            <option value="60">60 Minutes</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Bidding End Time (Auto-calculated)</label>
-                        <input type="text" id="setTimeEndTimeDisplay" class="form-control" disabled>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="handleSetBiddingTimeSubmit()">Save Changes</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div class="modal fade" id="setBiddingTimeModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Set/Update Bidding Time</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="setTimeLoadId"><p><strong>Load ID:</strong> <span id="setTimeLoadName"></span></p><div class="mb-3"><label class="form-label">Bidding Start Time</label><input type="datetime-local" id="setTimeStartTime" class="form-control"></div><div class="mb-3"><label class="form-label">Bidding End Time</label><input type="datetime-local" id="setTimeEndTime" class="form-control"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-primary" onclick="handleSetBiddingTimeSubmit()">Save Changes</button></div></div></div></div>
     
     <div class="modal fade" id="bulkSetTimeModal" tabindex="-1">
         <div class="modal-dialog">
@@ -164,18 +128,8 @@
                         <input type="datetime-local" id="bulkSetTimeStartTime" class="form-control">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Bidding Duration</label>
-                        <select id="bulkSetTimeDuration" class="form-select">
-                            <option value="5">5 Minutes</option>
-                            <option value="10">10 Minutes</option>
-                            <option value="15">15 Minutes</option>
-                            <option value="30">30 Minutes</option>
-                            <option value="60">60 Minutes</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Bidding End Time (Auto-calculated)</label>
-                        <input type="text" id="bulkSetTimeEndTimeDisplay" class="form-control" disabled>
+                        <label class="form-label">Bidding End Time</label>
+                        <input type="datetime-local" id="bulkSetTimeEndTime" class="form-control">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -198,6 +152,7 @@
         let registerModal, editUserModal, addUserModal, bulkUploadModal, masterDataModal, viewBidsModal, assignTruckersModal, advancedBulkAwardModal, reopenBiddingModal, setBiddingTimeModal, bulkSetTimeModal;
         let charts = {};
         let truckerLoadsCache = [];
+        let chatPollingInterval = null;
         let biddingTimers = [];
 
         const views = {
@@ -263,50 +218,6 @@
                     $(this).toggle(name.includes(searchTerm));
                 });
             });
-
-            // Set Bidding Time Modal - Duration Logic
-            $('#setBiddingTimeModal').on('show.bs.modal', function() {
-                const now = new Date();
-                const nowLocal = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-                $('#setTimeStartTime').val(nowLocal);
-                updateSetBiddingEndTime();
-            });
-
-            $('#setTimeStartTime, #setTimeDuration').on('change', updateSetBiddingEndTime);
-
-            function updateSetBiddingEndTime() {
-                const startTimeStr = $('#setTimeStartTime').val();
-                if (!startTimeStr) {
-                    $('#setTimeEndTimeDisplay').val('');
-                    return;
-                }
-                const startTime = new Date(startTimeStr);
-                const duration = parseInt($('#setTimeDuration').val(), 10);
-                const endTime = new Date(startTime.getTime() + duration * 60000);
-                $('#setTimeEndTimeDisplay').val(formatDate(endTime.toISOString().slice(0, 19).replace('T', ' '), true));
-            }
-
-            // Bulk Set Time Modal - Duration Logic
-            $('#bulkSetTimeModal').on('show.bs.modal', function() {
-                const now = new Date();
-                const nowLocal = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-                $('#bulkSetTimeStartTime').val(nowLocal);
-                updateBulkSetBiddingEndTime();
-            });
-
-            $('#bulkSetTimeStartTime, #bulkSetTimeDuration').on('change', updateBulkSetBiddingEndTime);
-
-            function updateBulkSetBiddingEndTime() {
-                const startTimeStr = $('#bulkSetTimeStartTime').val();
-                if (!startTimeStr) {
-                    $('#bulkSetTimeEndTimeDisplay').val('');
-                    return;
-                }
-                const startTime = new Date(startTimeStr);
-                const duration = parseInt($('#bulkSetTimeDuration').val(), 10);
-                const endTime = new Date(startTime.getTime() + duration * 60000);
-                $('#bulkSetTimeEndTimeDisplay').val(formatDate(endTime.toISOString().slice(0, 19).replace('T', ' '), true));
-            }
         });
 
         async function apiCall(endpoint, method = 'GET', body = null, isFormData = false, showLoaderFlag = true) {
@@ -431,28 +342,29 @@
             biddingTimers.forEach(timer => clearInterval(timer));
             biddingTimers = [];
             const container = $('#trucker-bidding-table-container'); 
-            const tableHTML = `<div class="table-responsive p-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Load ID</th><th>Loading Point</th><th>Unloading Point</th><th>Material</th><th>Weight</th><th>Vehicle</th><th>Req. Date</th><th>History</th><th>My Rank</th><th>My Bid / Status</th></tr></thead><tbody>${loads.map(load => { const history = (load.my_bid_history || []).map((b, i) => `<li>Bid ${i + 1}: <strong>${formatCurrency(b.bid_amount)}</strong> (Rank: L${b.rank || 'N/A'})</li>`).join(''); return `<tr data-load-id="${load.load_id}"><td>${load.load_id}</td><td><small>${load.loading_point_address}</small></td><td><small>${load.unloading_point_address}</small></td><td><small>${load.item_name}</small></td><td><small>${load.approx_weight_tonnes}T</small></td><td><small>${load.truck_name}</small></td><td><small>${formatDate(load.requirement_date)}</small></td><td><button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="popover" data-bs-html="true" title="My Bidding History" data-bs-content="${history || 'No past bids.'}"><i class="fas fa-history"></i></button></td><td><span class="badge bg-${load.my_rank ? 'primary' : 'secondary'}">${load.my_rank ? `L${load.my_rank}` : 'N/A'}</span></td><td class="bidding-status-cell" data-start-time="${load.bidding_start_time}" data-end-time="${load.bidding_end_time}">${renderBidStatusOrInput(load)}</td></tr>` }).join('')}</tbody></table></div>`; 
+            const tableHTML = `<div class="table-responsive p-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Load ID</th><th>Loading Point</th><th>Unloading Point</th><th>Material</th><th>Weight</th><th>Vehicle</th><th>Req. Date</th><th>History</th><th>My Rank</th><th>My Bid / Status</th></tr></thead><tbody>${loads.map(load => { const history = (load.my_bid_history || []).map((b, i) => `<li>Bid ${i + 1}: <strong>${formatCurrency(b.bid_amount)}</strong> (Rank: L${b.rank || 'N/A'})</li>`).join(''); return `<tr data-load-id="${load.load_id}"><td>${load.load_id}</td><td><small>${load.loading_point_address}</small></td><td><small>${load.unloading_point_address}</small></td><td><small>${load.item_name}</small></td><td><small>${load.approx_weight_tonnes}T</small></td><td><small>${load.truck_name}</small></td><td><small>${formatDate(load.requirement_date)}</small></td><td><button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="popover" data-bs-html="true" title="My Bidding History" data-bs-content="${history || 'No past bids.'}"><i class="fas fa-history"></i></button></td><td><span class="badge bg-${load.my_rank ? 'primary' : 'secondary'}">${load.my_rank ? `L${load.my_rank}` : 'N/A'}</span></td><td class="bidding-status-cell" data-start-time="${load.bidding_start_time}" data-end-time="${load.bidding_end_time}">${renderBidInput(load)}</td></tr>` }).join('')}</tbody></table></div>`; 
             container.html(tableHTML); 
             $('[data-bs-toggle="popover"]').popover({ trigger: 'hover focus' }); 
             updateBiddingTimers();
         }
 
-        function renderBidStatusOrInput(load) {
+        function renderBidInput(load) {
             const now = new Date();
-            const startTime = load.bidding_start_time ? new Date(load.bidding_start_time.replace(' ', 'T') + 'Z') : null;
-            const endTime = load.bidding_end_time ? new Date(load.bidding_end_time.replace(' ', 'T') + 'Z') : null;
+            // ✅ *** FIX APPLIED HERE: Removed '+ 'Z'' to prevent UTC to IST conversion *** ✅
+            const startTime = load.bidding_start_time ? new Date(load.bidding_start_time.replace(' ', 'T')) : null;
+            const endTime = load.bidding_end_time ? new Date(load.bidding_end_time.replace(' ', 'T')) : null;
             
             if (endTime && now > endTime) {
                 return `<span class="text-danger fw-bold small"><i class="fas fa-clock me-1"></i>Bidding Closed</span>`;
             }
             if (startTime && now < startTime) {
-                return `<span class="text-info fw-bold small countdown-timer" data-end-time-raw="${load.bidding_start_time}">Starts in...</span>`;
+                // ✅ *** FIX APPLIED HERE: Changed data attribute to avoid confusion and use the non-converted time *** ✅
+                return `<span class="text-info fw-bold small countdown-timer" data-start-time-raw="${load.bidding_start_time}">Starts in...</span>`;
             }
-            // Live bidding
-            if (endTime && now < endTime) {
-                return `<div class="d-flex flex-column align-items-center"><span class="text-success fw-bold small countdown-timer" data-end-time-raw="${load.bidding_end_time}">Closes in...</span><div class="input-group input-group-sm mt-1"><span class="input-group-text">₹</span><input type="number" class="form-control bid-amount-input" placeholder="Amount"></div></div>`;
-            }
-            return `<div class="input-group input-group-sm"><span class="input-group-text">₹</span><input type="number" class="form-control bid-amount-input" placeholder="Amount"></div>`;
+            return `<div class="input-group input-group-sm">
+                        <span class="input-group-text">₹</span>
+                        <input type="number" class="form-control bid-amount-input" placeholder="Amount">
+                    </div>`;
         }
         
         function updateBiddingTimers() {
@@ -460,23 +372,25 @@
             biddingTimers = [];
             $('.countdown-timer').each(function() {
                 const timerElement = $(this);
-                const endTimeString = timerElement.data('end-time-raw');
-                if (!endTimeString) return;
-                const endTime = new Date(endTimeString.replace(' ', 'T') + 'Z');
+                const startTimeString = timerElement.data('start-time-raw');
+                if (!startTimeString) return;
+                // ✅ *** FIX APPLIED HERE: Removed '+ 'Z'' to prevent UTC to IST conversion *** ✅
+                const startTime = new Date(startTimeString.replace(' ', 'T'));
 
                 const interval = setInterval(() => {
                     const now = new Date();
-                    const diff = endTime - now;
+                    const diff = startTime - now;
                     if (diff <= 0) {
                         clearInterval(interval);
                         const loadId = timerElement.closest('tr').data('load-id');
                         const load = truckerLoadsCache.find(l => l.load_id == loadId);
-                        if(load) timerElement.parent().html(renderBidStatusOrInput(load));
+                        if(load) timerElement.parent().html(renderBidInput(load));
                     } else {
+                        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
                         const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                         const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                         const s = Math.floor((diff % (1000 * 60)) / 1000);
-                        timerElement.html(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+                        timerElement.html(`${d}d ${h}h ${m}m ${s}s`);
                     }
                 }, 1000);
                 biddingTimers.push(interval);
@@ -519,7 +433,7 @@
                 empty.empty(); 
             } catch (e) {} 
         }
-
+        
         async function load_admin_dashboard_view() { try { const result = await apiCall('/admin/dashboard-stats'); const data = result.data; $('#stats-active-loads').text(data.activeLoads || '0'); $('#stats-pending-users').text(data.pendingUsers || '0'); $('#stats-pending-loads').text(data.pendingLoads || '0'); $('#stats-awarded-contracts').text(data.awardedContracts || '0'); createChart('adminLoadChart', 'bar', { labels: data.charts.loadTrends.labels, datasets: [{ label: 'Loads Created', data: data.charts.loadTrends.data, backgroundColor: '#5E72E4' }] }); createChart('adminTruckerBiddingChart', 'doughnut', { labels: data.charts.biddingActivity.labels, datasets: [{ data: data.charts.biddingActivity.data, backgroundColor: ['#5E72E4', '#2DCE89', '#FB6340', '#11CDEF', '#F5365C'] }] }); } catch (e) {} }
         
         async function load_admin_pending_loads_view() { 
@@ -535,38 +449,21 @@
                     if (reqLoads.length === 0) return; 
                     const loadsHTML = reqLoads.map(load => `<li class="list-group-item"><input class="form-check-input me-2 load-check-box" type="checkbox" value="${load.load_id}" checked><label class="form-check-label"><strong>${load.item_name}</strong> from ${load.loading_point_address} to ${load.unloading_point_address}<small class="text-muted d-block">Vehicle: ${load.truck_name} | Weight: ${load.approx_weight_tonnes}T | Date: ${formatDate(load.requirement_date)}</small></label></li>`).join(''); 
                     const truckersHTML = allTruckers.map(v => `<div class="form-check form-check-inline col-md-3"><input class="form-check-input trucker-assign-check" type="checkbox" value="${v.user_id}" id="v-${req.requisition_id}-${v.user_id}"><label class="form-check-label" for="v-${req.requisition_id}-${v.user_id}">${v.full_name}</label></div>`).join(''); 
-                    accordion.append(`<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${req.requisition_id}">TRN: REQ-${req.requisition_id} (By: ${req.creator}) - ${reqLoads.length} Load(s)</button></h2><div id="collapse-${req.requisition_id}" class="accordion-collapse collapse"><div class="accordion-body"><h6>Select loads to approve:</h6><ul class="list-group mb-3">${loadsHTML}</ul><h6 class="mt-3">Set Bidding Window (Optional)</h6><div class="row"><div class="col-6"><label class="form-label small">Bidding Start Time</label><input type="datetime-local" class="form-control form-control-sm bidding-start-time-input"></div><div class="col-6"><label class="form-label small">Bidding Duration</label><select class="form-select form-select-sm bidding-duration-input"><option value="5">5 Minutes</option><option value="10">10 Minutes</option><option value="15">15 Minutes</option><option value="30">30 Minutes</option><option value="60">60 Minutes</option></select></div></div><h6 class="d-flex justify-content-between mt-3"><span>Assign Truckers:</span><div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" onchange="$(this).closest('.accordion-body').find('.trucker-assign-check').prop('checked', this.checked);"><label>Select All</label></div></h6><div class="border rounded p-3 row">${truckersHTML}</div><div class="mt-3"><button class="btn btn-success" onclick="handleBulkApproval('${req.requisition_id}')">Process Selected Loads</button></div></div></div></div>`); 
+                    accordion.append(`<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${req.requisition_id}">TRN: REQ-${req.requisition_id} (By: ${req.creator}) - ${reqLoads.length} Load(s)</button></h2><div id="collapse-${req.requisition_id}" class="accordion-collapse collapse"><div class="accordion-body"><h6>Select loads to approve:</h6><ul class="list-group mb-3">${loadsHTML}</ul><h6 class="mt-3">Set Bidding Window (Optional)</h6><div class="row"><div class="col-6"><label class="form-label small">Bidding Start Time</label><input type="datetime-local" class="form-control form-control-sm bidding-start-time-input"></div><div class="col-6"><label class="form-label small">Bidding End Time</label><input type="datetime-local" class="form-control form-control-sm bidding-end-time-input"></div></div><h6 class="d-flex justify-content-between mt-3"><span>Assign Truckers:</span><div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" onchange="$(this).closest('.accordion-body').find('.trucker-assign-check').prop('checked', this.checked);"><label>Select All</label></div></h6><div class="border rounded p-3 row">${truckersHTML}</div><div class="mt-3"><button class="btn btn-success" onclick="handleBulkApproval('${req.requisition_id}')">Process Selected Loads</button></div></div></div></div>`); 
                 }); 
                 container.html(accordion); 
-                // Add change listeners for duration inputs in the accordion
-                $('.bidding-start-time-input, .bidding-duration-input').on('change', function() {
-                    const parentRow = $(this).closest('.accordion-body');
-                    const startTimeStr = parentRow.find('.bidding-start-time-input').val();
-                    const duration = parseInt(parentRow.find('.bidding-duration-input').val(), 10);
-                    if (startTimeStr) {
-                        const startTime = new Date(startTimeStr);
-                        const endTime = new Date(startTime.getTime() + duration * 60000);
-                        parentRow.find('.bidding-end-time-input').val(endTime.toISOString().slice(0, 16));
-                    }
-                });
             } catch (e) {} 
         }
-        
         async function handleBulkApproval(reqId) { 
             const c = $(`#collapse-${reqId}`), 
                     loads = c.find('.load-check-box:checked').map((i, el) => $(el).val()).get(), 
                     truckers = c.find('.trucker-assign-check:checked').map((i, el) => $(el).val()).get(),
-                    biddingStartTime = c.find('.bidding-start-time-input').val();
-            
+                    biddingStartTime = c.find('.bidding-start-time-input').val(),
+                    biddingEndTime = c.find('.bidding-end-time-input').val();
             if (loads.length === 0) return showToast('Select at least one load.', 'error'); 
-            if (truckers.length === 0) return showToast('Assign at least one trucker.', 'error');
-            
-            const startTime = new Date(biddingStartTime);
-            const duration = parseInt(c.find('.bidding-duration-input').val(), 10);
-            const endTime = new Date(startTime.getTime() + duration * 60000).toISOString().slice(0, 19).replace('T', ' ');
-
+            if (truckers.length === 0) return showToast('Assign at least one trucker.', 'error'); 
             try { 
-                await apiCall('/loads/approve', 'POST', { approvedLoadIds: loads, truckerAssignments: truckers, requisitionId: reqId, biddingStartTime, biddingEndTime: endTime }); 
+                await apiCall('/loads/approve', 'POST', { approvedLoadIds: loads, truckerAssignments: truckers, requisitionId: reqId, biddingStartTime, biddingEndTime }); 
                 showToast('Loads processed!', 'success'); 
                 load_admin_pending_loads_view(); 
             } catch (e) {} 
@@ -656,49 +553,17 @@
             const times = row.data('load-times');
             $('#setTimeLoadId').val(loadId);
             $('#setTimeLoadName').text(loadId);
-            
-            const formatForInput = (dateString) => {
-                if (!dateString) return '';
-                // Convert UTC string to local time to pre-fill the input
-                const date = new Date(dateString.replace(' ', 'T') + 'Z');
-                return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-            };
+            const formatForInput = (dateString) => dateString ? dateString.slice(0, 16).replace(' ', 'T') : '';
             $('#setTimeStartTime').val(formatForInput(times.start));
-            
-            // Set default duration if it exists, otherwise use 5 minutes
-            let duration = 5;
-            if (times.start && times.end) {
-                const startTime = new Date(times.start.replace(' ', 'T') + 'Z');
-                const endTime = new Date(times.end.replace(' ', 'T') + 'Z');
-                const diffMinutes = Math.round((endTime - startTime) / 60000);
-                if (diffMinutes >= 5 && diffMinutes <= 60 && diffMinutes % 5 === 0) {
-                    duration = diffMinutes;
-                }
-            }
-            $('#setTimeDuration').val(duration);
-            updateSetBiddingEndTime();
-            
+            $('#setTimeEndTime').val(formatForInput(times.end));
             setBiddingTimeModal.show();
         }
-        
         async function handleSetBiddingTimeSubmit() {
             const loadId = $('#setTimeLoadId').val();
-            const startTimeStr = $('#setTimeStartTime').val();
-            const duration = parseInt($('#setTimeDuration').val(), 10);
-            
-            if (!startTimeStr) {
-                return showToast('Bidding Start Time is mandatory.', 'error');
-            }
-            
-            const startTime = new Date(startTimeStr);
-            const endTime = new Date(startTime.getTime() + duration * 60000);
-            
+            const startTime = $('#setTimeStartTime').val();
+            const endTime = $('#setTimeEndTime').val();
             try {
-                // Convert to ISO string in IST for backend
-                const startTimeDB = new Date(startTime.getTime()).toISOString().slice(0, 19).replace('T', ' ');
-                const endTimeDB = new Date(endTime.getTime()).toISOString().slice(0, 19).replace('T', ' ');
-                
-                await apiCall('/admin/loads/bidding-time', 'PUT', { loadId, startTime: startTimeDB, endTime: endTimeDB });
+                await apiCall('/admin/loads/bidding-time', 'PUT', { loadId, startTime, endTime });
                 showToast('Bidding time updated!', 'success');
                 setBiddingTimeModal.hide();
                 load_admin_all_loads_view();
@@ -711,31 +576,21 @@
                 return showToast('Please select at least one load to set time.', 'warning');
             }
             $('#bulk-set-time-count').text(selectedLoads.length);
-            const now = new Date();
-            const nowLocal = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-            $('#bulkSetTimeStartTime').val(nowLocal);
-            $('#bulkSetTimeDuration').val(5);
-            updateBulkSetBiddingEndTime();
+            $('#bulkSetTimeStartTime').val('');
+            $('#bulkSetTimeEndTime').val('');
             bulkSetTimeModal.show();
         }
-
         async function handleBulkSetTimeSubmit() {
             const loadIds = $('.load-checkbox:checked').map((i, el) => $(el).closest('tr').data('load-id')).get();
-            const startTimeStr = $('#bulkSetTimeStartTime').val();
-            const duration = parseInt($('#bulkSetTimeDuration').val(), 10);
+            const startTime = $('#bulkSetTimeStartTime').val();
+            const endTime = $('#bulkSetTimeEndTime').val();
 
-            if (!startTimeStr) {
-                return showToast('Bidding Start Time is mandatory.', 'error');
+            if (!startTime && !endTime) {
+                return showToast('Please provide at least a start or end time.', 'error');
             }
 
-            const startTime = new Date(startTimeStr);
-            const endTime = new Date(startTime.getTime() + duration * 60000);
-
             try {
-                const startTimeDB = new Date(startTime.getTime()).toISOString().slice(0, 19).replace('T', ' ');
-                const endTimeDB = new Date(endTime.getTime()).toISOString().slice(0, 19).replace('T', ' ');
-
-                const result = await apiCall('/admin/loads/bulk-bidding-time', 'PUT', { loadIds, startTime: startTimeDB, endTime: endTimeDB });
+                const result = await apiCall('/admin/loads/bulk-bidding-time', 'PUT', { loadIds, startTime, endTime });
                 showToast(result.message, 'success');
                 bulkSetTimeModal.hide();
                 load_admin_all_loads_view();
@@ -750,6 +605,9 @@
         
         function formatDate(d, includeTime = false) { 
             if (!d) return 'N/A';
+            // ✅ *** NOTE: This function remains UNCHANGED to correctly show IST everywhere else. *** ✅
+            // Append 'Z' to tell JS that the incoming string is in UTC.
+            // JS will then automatically convert it to the user's local timezone for display.
             const date = new Date(d.replace(' ', 'T') + 'Z'); 
             const options = { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }; 
             if (includeTime) { 
@@ -783,7 +641,7 @@
         function openBulkUploadModal(type) { $('#bulk-upload-modal-title').text(`Bulk Upload ${type === 'item' ? 'Materials' : (type === 'truck' ? 'Truck Types' : 'Loads')}`); $('#download-template-link').off('click').on('click', () => downloadBulkTemplate(type)); $('#bulk-upload-type').val(type); bulkUploadModal.show(); }
         async function handleBulkUpload(e) { e.preventDefault(); const file = $('#bulk-upload-file')[0].files[0]; if (!file) return showToast('Please select a file.', 'error'); const type = $('#bulk-upload-type').val(); const endpoint = type === 'load' ? '/loads/bulk-upload' : `/master-data/${type}s/bulk-upload`; const formData = new FormData(); formData.append('bulkFile', file); try { await apiCall(endpoint, 'POST', formData, true); showToast('File uploaded and processed.', 'success'); bulkUploadModal.hide(); if (type !== 'load') load_admin_master_data_view(); else navigateTo('admin-pending-loads-view'); } catch (e) {} }
         function downloadBulkTemplate(type) { let data, filename; if (type === 'load') { data = [{ "LoadingPoint": "City A", "UnloadingPoint": "City B", "MaterialName": "STEEL ITEMS", "TruckName": "10 Wheeler Truck", "WeightInTonnes": 15, "RequirementDate": "2025-10-25" }]; filename = "Bulk_Load_Template.xlsx"; } else { data = [{ "Name": `Sample ${type === 'item' ? 'Material' : 'Truck'}` }]; filename = `Bulk_${type}_Template.xlsx`; } const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Template"); XLSX.writeFile(wb, filename); }
-        function downloadReport() { const table = document.getElementById("detailed-report-table"); if (!table || $(table).find('tbody tr').length === 0 || $(table).find('tbody td').length <= 1) return showToast('No data to download.', 'warning'); const clonedTable = table.cloneNode(true); $(clonedTable).find('th:last-child, td:last-child').remove(); const wb = XLSX.utils.table_to_book(clonedTable, { sheet: "Report" }); XLSX.writeFile(wb, "Awarded_Loads_Report.xlsx"); }
+        function downloadReport() { const table = document.getElementById("detailed-report-table"); if (!table || $(table).find('tbody tr').length === 0 || $(table).find('tbody td').length <= 1) return showToast('No data to download.', 'warning'); const wb = XLSX.utils.table_to_book(table, { sheet: "Report" }); XLSX.writeFile(wb, "Awarded_Loads_Report.xlsx"); }
         async function load_messaging_view() { const chatList = $('#chat-list'); try { renderEmptyState(chatList, 'Loading...', 'fa-spinner fa-spin'); const result = await apiCall('/conversations'); if (result.data.length === 0) return renderEmptyState(chatList, 'No users to chat with.'); chatList.html(result.data.map(u => `<a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" onclick="openChat(${u.user_id}, '${u.full_name}')"><div class="chat-list-item"><strong class="chat-user-name">${u.full_name}</strong><div class="last-message">${u.last_message || `Role: ${u.role}`}</div></div><div class="text-end"><span class="badge bg-success rounded-pill">${u.unread_count > 0 ? u.unread_count : ''}</span><div class="message-info">${u.last_message_timestamp ? formatDate(u.last_message_timestamp, true) : ''}</div></div></a>`).join('')); } catch (e) {} }
         async function openChat(id, name) { if (chatPollingInterval) clearInterval(chatPollingInterval); $('#chat-welcome').addClass('d-none'); $('#chat-window').removeClass('d-none'); $('#chat-with-name').text(name); $('#message-form').off('submit').on('submit', (e) => { e.preventDefault(); handleSendMessage(id); }); const fetchAndRender = async () => { const messagesDiv = $('#chat-messages'); const currentUser = JSON.parse(sessionStorage.getItem('loggedInUser')); const result = await apiCall(`/messages/${id}`, 'GET', null, false, false); if (!result.success) return; const isScrolledToBottom = messagesDiv.scrollTop() + messagesDiv.innerHeight() >= messagesDiv[0].scrollHeight - 50; messagesDiv.html(''); result.data.forEach(msg => { const isSent = msg.sender_id == currentUser.user_id; const ticksHtml = isSent ? `<span class="message-ticks ${msg.status === 'read' ? 'read' : ''}">✓✓</span>` : ''; messagesDiv.append(`<div class="message-bubble ${isSent ? 'sent' : 'received'}"><div>${msg.message_body.replace(/\n/g, '<br>')}</div><div class="message-meta"><span class="timestamp">${formatDate(msg.timestamp, true)}</span>${ticksHtml}</div></div>`); }); if (isScrolledToBottom || messagesDiv.html() === '') { messagesDiv.scrollTop(messagesDiv[0].scrollHeight); } }; await fetchAndRender(); chatPollingInterval = setInterval(fetchAndRender, 7000); }
         async function handleSendMessage(id) { const input = $('#message-input'); if (!input.val()) return; try { await apiCall('/messages', 'POST', { recipientId: id, messageBody: input.val() }, false, false); input.val(''); openChat(id, $('#chat-with-name').text()); } catch (e) {} }
