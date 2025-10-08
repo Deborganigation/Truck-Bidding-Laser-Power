@@ -68,7 +68,6 @@ const isAdmin = (req, res, next) => {
 
 const sendAwardNotificationEmails = async (awardedBids) => {
     if (!process.env.SENDGRID_API_KEY || !process.env.SENDER_EMAIL) {
-        console.error("Email sending skipped: SendGrid API Key or Sender Email is not configured.");
         return;
     }
     if (!awardedBids || awardedBids.length === 0) {
@@ -167,7 +166,6 @@ const sendAwardNotificationEmails = async (awardedBids) => {
         
         try {
             await sgMail.send({ to: notification.vendorEmail, from: { name: "DEB'S LOGISTICS", email: process.env.SENDER_EMAIL }, cc: adminEmails, subject: subject, html: htmlBody });
-            console.log(`✅ Award notification email sent to ${notification.vendorEmail}`);
         } catch (error) {
             console.error(`❌ Failed to send award email to ${notification.vendorEmail}:`, error.response ? error.response.body : error);
         }
@@ -827,11 +825,16 @@ app.get('/api/loads/:id', authenticateToken, isAdmin, async (req, res, next) => 
     try {
         const { id } = req.params;
         const [rows] = await dbPool.query("SELECT * FROM truck_loads WHERE load_id = ?", [id]);
-        if (rows.length === 0) {
-            return res.status(404).json({ success: false, message: 'Load not found.' });
+        
+        if (!rows || rows.length === 0) {
+            return res.status(404).json({ success: false, message: `Load with ID ${id} not found.` });
         }
-        res.json({ success: true, data: rows[0] });
+        
+        const load = rows[0];
+        res.json({ success: true, data: load });
+
     } catch (error) {
+        console.error(`Error fetching load with ID ${req.params.id}:`, error);
         next(error);
     }
 });
