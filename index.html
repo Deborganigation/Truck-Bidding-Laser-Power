@@ -657,9 +657,13 @@
             $('#setTimeLoadId').val(loadId);
             $('#setTimeLoadName').text(loadId);
             
-            const now = new Date();
-            const nowLocal = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-            $('#setTimeStartTime').val(nowLocal);
+            const formatForInput = (dateString) => {
+                if (!dateString) return '';
+                // Convert UTC string to local time to pre-fill the input
+                const date = new Date(dateString.replace(' ', 'T') + 'Z');
+                return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            };
+            $('#setTimeStartTime').val(formatForInput(times.start));
             
             // Set default duration if it exists, otherwise use 5 minutes
             let duration = 5;
@@ -691,9 +695,9 @@
             
             try {
                 // Convert to ISO string in IST for backend
-                const startTimeDB = new Date(startTime.getTime() + 330 * 60000).toISOString().slice(0, 19).replace('T', ' ');
-                const endTimeDB = new Date(endTime.getTime() + 330 * 60000).toISOString().slice(0, 19).replace('T', ' ');
-
+                const startTimeDB = new Date(startTime.getTime()).toISOString().slice(0, 19).replace('T', ' ');
+                const endTimeDB = new Date(endTime.getTime()).toISOString().slice(0, 19).replace('T', ' ');
+                
                 await apiCall('/admin/loads/bidding-time', 'PUT', { loadId, startTime: startTimeDB, endTime: endTimeDB });
                 showToast('Bidding time updated!', 'success');
                 setBiddingTimeModal.hide();
@@ -728,8 +732,8 @@
             const endTime = new Date(startTime.getTime() + duration * 60000);
 
             try {
-                const startTimeDB = new Date(startTime.getTime() + 330 * 60000).toISOString().slice(0, 19).replace('T', ' ');
-                const endTimeDB = new Date(endTime.getTime() + 330 * 60000).toISOString().slice(0, 19).replace('T', ' ');
+                const startTimeDB = new Date(startTime.getTime()).toISOString().slice(0, 19).replace('T', ' ');
+                const endTimeDB = new Date(endTime.getTime()).toISOString().slice(0, 19).replace('T', ' ');
 
                 const result = await apiCall('/admin/loads/bulk-bidding-time', 'PUT', { loadIds, startTime: startTimeDB, endTime: endTimeDB });
                 showToast(result.message, 'success');
