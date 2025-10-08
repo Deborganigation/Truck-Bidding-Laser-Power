@@ -198,7 +198,6 @@
         let registerModal, editUserModal, addUserModal, bulkUploadModal, masterDataModal, viewBidsModal, assignTruckersModal, advancedBulkAwardModal, reopenBiddingModal, setBiddingTimeModal, bulkSetTimeModal;
         let charts = {};
         let truckerLoadsCache = [];
-        let chatPollingInterval = null;
         let biddingTimers = [];
 
         const views = {
@@ -520,7 +519,7 @@
                 empty.empty(); 
             } catch (e) {} 
         }
-        
+
         async function load_admin_dashboard_view() { try { const result = await apiCall('/admin/dashboard-stats'); const data = result.data; $('#stats-active-loads').text(data.activeLoads || '0'); $('#stats-pending-users').text(data.pendingUsers || '0'); $('#stats-pending-loads').text(data.pendingLoads || '0'); $('#stats-awarded-contracts').text(data.awardedContracts || '0'); createChart('adminLoadChart', 'bar', { labels: data.charts.loadTrends.labels, datasets: [{ label: 'Loads Created', data: data.charts.loadTrends.data, backgroundColor: '#5E72E4' }] }); createChart('adminTruckerBiddingChart', 'doughnut', { labels: data.charts.biddingActivity.labels, datasets: [{ data: data.charts.biddingActivity.data, backgroundColor: ['#5E72E4', '#2DCE89', '#FB6340', '#11CDEF', '#F5365C'] }] }); } catch (e) {} }
         
         async function load_admin_pending_loads_view() { 
@@ -657,13 +656,10 @@
             const times = row.data('load-times');
             $('#setTimeLoadId').val(loadId);
             $('#setTimeLoadName').text(loadId);
-            const formatForInput = (dateString) => {
-                if (!dateString) return '';
-                // Convert UTC string to local time to pre-fill the input
-                const date = new Date(dateString.replace(' ', 'T') + 'Z');
-                return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-            };
-            $('#setTimeStartTime').val(formatForInput(times.start));
+            
+            const now = new Date();
+            const nowLocal = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            $('#setTimeStartTime').val(nowLocal);
             
             // Set default duration if it exists, otherwise use 5 minutes
             let duration = 5;
@@ -694,12 +690,9 @@
             const endTime = new Date(startTime.getTime() + duration * 60000);
             
             try {
-                // Convert to IST and then to string format for backend
-                const startTimeIST = new Date(startTime.getTime());
-                const endTimeIST = new Date(endTime.getTime());
-                
-                const startTimeDB = startTimeIST.toISOString().slice(0, 19).replace('T', ' ');
-                const endTimeDB = endTimeIST.toISOString().slice(0, 19).replace('T', ' ');
+                // Convert to ISO string in IST for backend
+                const startTimeDB = new Date(startTime.getTime() + 330 * 60000).toISOString().slice(0, 19).replace('T', ' ');
+                const endTimeDB = new Date(endTime.getTime() + 330 * 60000).toISOString().slice(0, 19).replace('T', ' ');
 
                 await apiCall('/admin/loads/bidding-time', 'PUT', { loadId, startTime: startTimeDB, endTime: endTimeDB });
                 showToast('Bidding time updated!', 'success');
@@ -735,8 +728,8 @@
             const endTime = new Date(startTime.getTime() + duration * 60000);
 
             try {
-                const startTimeDB = startTime.toISOString().slice(0, 19).replace('T', ' ');
-                const endTimeDB = endTime.toISOString().slice(0, 19).replace('T', ' ');
+                const startTimeDB = new Date(startTime.getTime() + 330 * 60000).toISOString().slice(0, 19).replace('T', ' ');
+                const endTimeDB = new Date(endTime.getTime() + 330 * 60000).toISOString().slice(0, 19).replace('T', ' ');
 
                 const result = await apiCall('/admin/loads/bulk-bidding-time', 'PUT', { loadIds, startTime: startTimeDB, endTime: endTimeDB });
                 showToast(result.message, 'success');
