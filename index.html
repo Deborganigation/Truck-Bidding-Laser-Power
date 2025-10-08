@@ -348,18 +348,18 @@
             updateBiddingTimers();
         }
 
-        // ✅ Function 1: UPDATED
         function renderBidInput(load) {
             const now = new Date();
-            // Re-added 'Z' to correctly interpret server time as UTC
-            const startTime = load.bidding_start_time ? new Date(load.bidding_start_time.replace(' ', 'T') + 'Z') : null;
-            const endTime = load.bidding_end_time ? new Date(load.bidding_end_time.replace(' ', 'T') + 'Z') : null;
+            // ✅ *** FIX APPLIED HERE: Removed '+ 'Z'' to prevent UTC to IST conversion *** ✅
+            const startTime = load.bidding_start_time ? new Date(load.bidding_start_time.replace(' ', 'T')) : null;
+            const endTime = load.bidding_end_time ? new Date(load.bidding_end_time.replace(' ', 'T')) : null;
             
             if (endTime && now > endTime) {
                 return `<span class="text-danger fw-bold small"><i class="fas fa-clock me-1"></i>Bidding Closed</span>`;
             }
             if (startTime && now < startTime) {
-                return `<span class="text-info fw-bold small countdown-timer" data-start-time="${load.bidding_start_time}">Starts in...</span>`;
+                // ✅ *** FIX APPLIED HERE: Changed data attribute to avoid confusion and use the non-converted time *** ✅
+                return `<span class="text-info fw-bold small countdown-timer" data-start-time-raw="${load.bidding_start_time}">Starts in...</span>`;
             }
             return `<div class="input-group input-group-sm">
                         <span class="input-group-text">₹</span>
@@ -367,16 +367,15 @@
                     </div>`;
         }
         
-        // ✅ Function 2: UPDATED
         function updateBiddingTimers() {
             biddingTimers.forEach(timer => clearInterval(timer));
             biddingTimers = [];
             $('.countdown-timer').each(function() {
                 const timerElement = $(this);
-                const startTimeString = timerElement.data('start-time');
+                const startTimeString = timerElement.data('start-time-raw');
                 if (!startTimeString) return;
-                // Re-added 'Z' to correctly interpret server time as UTC
-                const startTime = new Date(startTimeString.replace(' ', 'T') + 'Z');
+                // ✅ *** FIX APPLIED HERE: Removed '+ 'Z'' to prevent UTC to IST conversion *** ✅
+                const startTime = new Date(startTimeString.replace(' ', 'T'));
 
                 const interval = setInterval(() => {
                     const now = new Date();
@@ -554,35 +553,17 @@
             const times = row.data('load-times');
             $('#setTimeLoadId').val(loadId);
             $('#setTimeLoadName').text(loadId);
-            const formatForInput = (dateString) => {
-                if (!dateString) return '';
-                // Create a date object interpreting the UTC string correctly
-                const date = new Date(dateString.replace(' ', 'T') + 'Z');
-                // Format it to local time for the input field
-                const year = date.getFullYear();
-                const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                const day = date.getDate().toString().padStart(2, '0');
-                const hours = date.getHours().toString().padStart(2, '0');
-                const minutes = date.getMinutes().toString().padStart(2, '0');
-                return `${year}-${month}-${day}T${hours}:${minutes}`;
-            };
+            const formatForInput = (dateString) => dateString ? dateString.slice(0, 16).replace(' ', 'T') : '';
             $('#setTimeStartTime').val(formatForInput(times.start));
             $('#setTimeEndTime').val(formatForInput(times.end));
             setBiddingTimeModal.show();
         }
-
-        // ✅ Function 3: UPDATED
         async function handleSetBiddingTimeSubmit() {
             const loadId = $('#setTimeLoadId').val();
-            const localStartTime = $('#setTimeStartTime').val();
-            const localEndTime = $('#setTimeEndTime').val();
-
-            // Convert local time from input to UTC ISO string before sending
-            const startTimeUTC = localStartTime ? new Date(localStartTime).toISOString() : null;
-            const endTimeUTC = localEndTime ? new Date(localEndTime).toISOString() : null;
-
+            const startTime = $('#setTimeStartTime').val();
+            const endTime = $('#setTimeEndTime').val();
             try {
-                await apiCall('/admin/loads/bidding-time', 'PUT', { loadId, startTime: startTimeUTC, endTime: endTimeUTC });
+                await apiCall('/admin/loads/bidding-time', 'PUT', { loadId, startTime, endTime });
                 showToast('Bidding time updated!', 'success');
                 setBiddingTimeModal.hide();
                 load_admin_all_loads_view();
@@ -599,23 +580,17 @@
             $('#bulkSetTimeEndTime').val('');
             bulkSetTimeModal.show();
         }
-
-        // ✅ Function 4: UPDATED
         async function handleBulkSetTimeSubmit() {
             const loadIds = $('.load-checkbox:checked').map((i, el) => $(el).closest('tr').data('load-id')).get();
-            const localStartTime = $('#bulkSetTimeStartTime').val();
-            const localEndTime = $('#bulkSetTimeEndTime').val();
+            const startTime = $('#bulkSetTimeStartTime').val();
+            const endTime = $('#bulkSetTimeEndTime').val();
 
-            if (!localStartTime && !localEndTime) {
+            if (!startTime && !endTime) {
                 return showToast('Please provide at least a start or end time.', 'error');
             }
-            
-            // Convert local time from input to UTC ISO string before sending
-            const startTimeUTC = localStartTime ? new Date(localStartTime).toISOString() : null;
-            const endTimeUTC = localEndTime ? new Date(localEndTime).toISOString() : null;
 
             try {
-                const result = await apiCall('/admin/loads/bulk-bidding-time', 'PUT', { loadIds, startTime: startTimeUTC, endTime: endTimeUTC });
+                const result = await apiCall('/admin/loads/bulk-bidding-time', 'PUT', { loadIds, startTime, endTime });
                 showToast(result.message, 'success');
                 bulkSetTimeModal.hide();
                 load_admin_all_loads_view();
@@ -630,14 +605,15 @@
         
         function formatDate(d, includeTime = false) { 
             if (!d) return 'N/A';
-            // This logic is correct for converting UTC from server to local IST for display
+            // ✅ *** NOTE: This function remains UNCHANGED to correctly show IST everywhere else. *** ✅
+            // Append 'Z' to tell JS that the incoming string is in UTC.
+            // JS will then automatically convert it to the user's local timezone for display.
             const date = new Date(d.replace(' ', 'T') + 'Z'); 
-            const options = { day: 'numeric', month: 'short', year: 'numeric' }; 
+            const options = { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }; 
             if (includeTime) { 
                 options.hour = 'numeric'; 
                 options.minute = '2-digit';
                 options.hour12 = true;
-                options.timeZone = 'Asia/Kolkata'; // Explicitly set timezone for display
             } 
             return new Intl.DateTimeFormat('en-IN', options).format(date); 
         }
