@@ -38,7 +38,6 @@ const dbPool = mysql.createPool({
     queueLimit: 0,
     connectTimeout: 20000,
     dateStrings: true,
-    // 'timezone' setting kaam nahi kar rahi thi, isliye use hata diya hai.
     
     // YEH NAYA AUR GUARANTEED SOLUTION HAI
     // Har naye connection ke baad yeh function chalega aur timezone set karega.
@@ -133,6 +132,7 @@ app.post('/api/bids', authenticateToken, async (req, res, next) => {
         for (const bid of bids) {
             const vendorId = req.user.userId;
 
+            // `NOW()` will correctly use IST because of the `afterConnect` setting
             const [[loadDetails]] = await connection.query(
                 `SELECT 
                     status,
@@ -412,8 +412,10 @@ app.post('/api/loads/approve', authenticateToken, isAdmin, async (req, res, next
         
         if (approvedLoadIds && approvedLoadIds.length > 0) {
             // ✅ *** FIX APPLIED HERE *** ✅
+            // Removed CONVERT_TZ. The incoming datetime-local string will be correctly interpreted as IST
+            // by MySQL because the session timezone is set to '+05:30'.
             await connection.query(
-                "UPDATE truck_loads SET status = 'Active', bidding_start_time = CONVERT_TZ(?, '+00:00', '+05:30'), bidding_end_time = CONVERT_TZ(?, '+00:00', '+05:30') WHERE load_id IN (?)",
+                "UPDATE truck_loads SET status = 'Active', bidding_start_time = ?, bidding_end_time = ? WHERE load_id IN (?)",
                 [biddingStartTime || null, biddingEndTime || null, approvedLoadIds]
             );
         }
@@ -563,8 +565,9 @@ app.put('/api/admin/loads/bidding-time', authenticateToken, isAdmin, async (req,
         const { loadId, startTime, endTime } = req.body; 
         if (!loadId) { return res.status(400).json({ success: false, message: 'Load ID is required.' }); } 
         // ✅ *** FIX APPLIED HERE *** ✅
+        // Removed CONVERT_TZ for single update
         await dbPool.query(
-            "UPDATE truck_loads SET bidding_start_time = CONVERT_TZ(?, '+00:00', '+05:30'), bidding_end_time = CONVERT_TZ(?, '+00:00', '+05:30') WHERE load_id = ?",
+            "UPDATE truck_loads SET bidding_start_time = ?, bidding_end_time = ? WHERE load_id = ?",
             [startTime || null, endTime || null, loadId]
         ); 
         res.json({ success: true, message: 'Bidding time updated successfully.' }); 
@@ -579,8 +582,9 @@ app.put('/api/admin/loads/bulk-bidding-time', authenticateToken, isAdmin, async 
             return res.status(400).json({ success: false, message: 'Please select at least one load.' });
         }
         // ✅ *** FIX APPLIED HERE *** ✅
+        // Removed CONVERT_TZ for bulk update
         await dbPool.query(
-            "UPDATE truck_loads SET bidding_start_time = CONVERT_TZ(?, '+00:00', '+05:30'), bidding_end_time = CONVERT_TZ(?, '+00:00', '+05:30') WHERE load_id IN (?)",
+            "UPDATE truck_loads SET bidding_start_time = ?, bidding_end_time = ? WHERE load_id IN (?)",
             [startTime || null, endTime || null, loadIds]
         );
         res.json({ success: true, message: `${loadIds.length} load(s) have been updated with the new bidding time.` });
