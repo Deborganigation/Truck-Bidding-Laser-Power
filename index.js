@@ -79,7 +79,7 @@ const sendAwardNotificationEmails = async (awardedBids) => {
             notificationsByVendor[bid.vendor_id] = { vendorName: bid.trucker_name, vendorEmail: bid.trucker_email, loads: [], totalValue: 0 };
         }
         notificationsByVendor[bid.vendor_id].loads.push(bid);
-        notificationsByVendor[bid.vendor_id].totalValue += parseFloat(bid.bid_amount);
+        notificationsByVendor[bid.vendor_id].totalValue += parseFloat(bid.final_amount); // Use final_amount
     }
     const [adminRows] = await dbPool.query("SELECT email FROM users WHERE role IN ('Admin', 'Super Admin') AND is_active = 1");
     const adminEmails = adminRows.map(a => a.email);
@@ -88,7 +88,7 @@ const sendAwardNotificationEmails = async (awardedBids) => {
         const subject = `Congratulations! You've been awarded ${notification.loads.length} new load(s) from DEB'S LOGISTICS`;
         const loadsHtml = notification.loads.map(load => {
             const reqDate = new Date(load.requirement_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-            return `<tr><td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: center;">${load.load_id}</td><td style="padding: 8px; border-bottom: 1px solid #dee2e6;">${load.loading_point_address} to ${load.unloading_point_address}</td><td style="padding: 8px; border-bottom: 1px solid #dee2e6;">${load.item_name}</td><td style="padding: 8px; border-bottom: 1px solid #dee2e6;">${load.truck_name}</td><td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: right;">${parseFloat(load.approx_weight_tonnes).toFixed(2)}T</td><td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: center;">${reqDate}</td><td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: right; font-weight: bold;">₹${parseFloat(load.bid_amount).toLocaleString('en-IN')}</td></tr>`;
+            return `<tr><td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: center;">${load.load_id}</td><td style="padding: 8px; border-bottom: 1px solid #dee2e6;">${load.loading_point_address} to ${load.unloading_point_address}</td><td style="padding: 8px; border-bottom: 1px solid #dee2e6;">${load.item_name}</td><td style="padding: 8px; border-bottom: 1px solid #dee2e6;">${load.truck_name}</td><td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: right;">${parseFloat(load.approx_weight_tonnes).toFixed(2)}T</td><td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: center;">${reqDate}</td><td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: right; font-weight: bold;">₹${parseFloat(load.final_amount).toLocaleString('en-IN')}</td></tr>`;
         }).join('');
         const htmlBody = `<div style="font-family: Arial, sans-serif; max-width: 800px; margin: auto; border: 1px solid #ddd; border-radius: 8px;"><div style="background-color: #172B4D; color: white; padding: 20px; text-align: center; border-top-left-radius: 8px; border-top-right-radius: 8px;"><h1 style="margin: 0;">Contract Awarded</h1></div><div style="padding: 20px;"><p>Dear ${notification.vendorName},</p><p>Congratulations! We are pleased to inform you that you have been awarded the following load(s):</p><table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;"><thead style="background-color: #f8f9fa;"><tr><th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6;">Load ID</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Route</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Material</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Truck</th><th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Weight</th><th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6;">Req. Date</th><th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Your Awarded Bid</th></tr></thead><tbody>${loadsHtml}</tbody><tfoot><tr style="font-weight: bold; background-color: #f8f9fa;"><td colspan="6" style="padding: 10px; text-align: right;">Total Value:</td><td style="padding: 10px; text-align: right;">₹${notification.totalValue.toLocaleString('en-IN')}</td></tr></tfoot></table><p style="margin-top: 25px;">Our team will contact you shortly regarding the next steps. Thank you for your participation.</p><p>Sincerely,<br/><b>The DEB'S LOGISTICS Team</b></p></div></div>`;
         try {
@@ -99,7 +99,6 @@ const sendAwardNotificationEmails = async (awardedBids) => {
     }
 };
 
-// YAHAN SE CHANGES HAIN
 const apiRouter = express.Router();
 
 apiRouter.post('/bids', authenticateToken, async (req, res, next) => {
@@ -144,7 +143,8 @@ apiRouter.post('/contracts/award', authenticateToken, isAdmin, async (req, res, 
         await connection.beginTransaction();
         for (const bid of bids) {
             await connection.query("DELETE FROM awarded_contracts WHERE load_id = ?", [bid.load_id]);
-            await connection.query("INSERT INTO awarded_contracts (load_id, requisition_id, vendor_id, awarded_amount, remarks, awarded_date) VALUES (?, ?, ?, ?, ?, NOW())", [bid.load_id, bid.requisition_id, bid.vendor_id, bid.bid_amount, bid.remarks]);
+            // <!-- FIX: Negotiation Rate (final_amount) save karne ke liye logic update kiya gaya -->
+            await connection.query("INSERT INTO awarded_contracts (load_id, requisition_id, vendor_id, awarded_amount, remarks, awarded_date) VALUES (?, ?, ?, ?, ?, NOW())", [bid.load_id, bid.requisition_id, bid.vendor_id, bid.final_amount, bid.remarks]);
             await connection.query("UPDATE truck_loads SET status = 'Awarded' WHERE load_id = ?", [bid.load_id]);
         }
         await connection.commit();
@@ -203,7 +203,9 @@ apiRouter.post('/loads', authenticateToken, async (req, res, next) => {
         const reqId = reqResult.insertId;
         const parsedLoads = JSON.parse(items);
         for (const load of parsedLoads) {
-            await connection.query(`INSERT INTO truck_loads (requisition_id, created_by, loading_point_address, unloading_point_address, item_id, approx_weight_tonnes, truck_type_id, requirement_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending Approval')`, [reqId, req.user.userId, load.loading_point_address, load.unloading_point_address, load.item_id, load.approx_weight_tonnes, load.truck_type_id, load.requirement_date]);
+            // <!-- FIX: Naye fields (Inhouse Req No & Remarks) save karne ke liye logic update kiya gaya -->
+            await connection.query(`INSERT INTO truck_loads (requisition_id, created_by, loading_point_address, unloading_point_address, item_id, approx_weight_tonnes, truck_type_id, requirement_date, status, inhouse_req_no, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending Approval', ?, ?)`, 
+                [reqId, req.user.userId, load.loading_point_address, load.unloading_point_address, load.item_id, load.approx_weight_tonnes, load.truck_type_id, load.requirement_date, load.inhouse_req_no, load.remarks]);
         }
         await connection.commit();
         res.status(201).json({ success: true, message: 'Load request submitted successfully!' });
@@ -451,7 +453,61 @@ apiRouter.put('/loads/:id', authenticateToken, isAdmin, async (req, res, next) =
     }
 });
 
-apiRouter.post('/loads/bulk-upload', authenticateToken, isAdmin, upload.single('bulkFile'), async (req, res, next) => { if (!req.file) return res.status(400).json({ success: false, message: 'No Excel file uploaded.' }); let connection; try { connection = await dbPool.getConnection(); const workbook = xlsx.read(req.file.buffer, { type: 'buffer', cellDates: true }); const sheet = workbook.Sheets[workbook.SheetNames[0]]; const jsonData = xlsx.utils.sheet_to_json(sheet); if (jsonData.length === 0) return res.status(400).json({ success: false, message: 'Excel file is empty.' }); const [itemRows] = await connection.query('SELECT item_id, item_name FROM item_master'); const [truckRows] = await connection.query('SELECT truck_type_id, truck_name FROM truck_type_master'); const itemMap = new Map(itemRows.map(i => [i.item_name.toLowerCase(), i.item_id])); const truckMap = new Map(truckRows.map(t => [t.truck_name.toLowerCase(), t.truck_type_id])); await connection.beginTransaction(); const [reqResult] = await connection.query("INSERT INTO requisitions (created_by, status, created_at) VALUES (?, 'Pending Approval', NOW())", [req.user.userId]); const reqId = reqResult.insertId; for (const row of jsonData) { const itemId = itemMap.get(String(row.MaterialName).toLowerCase()); const truckTypeId = truckMap.get(String(row.TruckName).toLowerCase()); if (!itemId || !truckTypeId) { console.warn(`Skipping row, master data not found for: ${row.MaterialName} or ${row.TruckName}`); continue; } await connection.query( `INSERT INTO truck_loads (requisition_id, created_by, loading_point_address, unloading_point_address, item_id, approx_weight_tonnes, truck_type_id, requirement_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending Approval')`, [reqId, req.user.userId, row.LoadingPoint, row.UnloadingPoint, itemId, row.WeightInTonnes, row.RequirementDate] ); } await connection.commit(); res.status(201).json({ success: true, message: 'Bulk upload processed successfully.' }); } catch (error) { if (connection) await connection.rollback(); next(error); } finally { if (connection) connection.release(); }});
+// <!-- FIX: BULK UPLOAD SQL SYNTAX ERROR THEEK KIYA GAYA -->
+apiRouter.post('/loads/bulk-upload', authenticateToken, isAdmin, upload.single('bulkFile'), async (req, res, next) => {
+    if (!req.file) return res.status(400).json({ success: false, message: 'No Excel file uploaded.' });
+    let connection;
+    try {
+        connection = await dbPool.getConnection();
+        const workbook = xlsx.read(req.file.buffer, { type: 'buffer', cellDates: true });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = xlsx.utils.sheet_to_json(sheet);
+        if (jsonData.length === 0) return res.status(400).json({ success: false, message: 'Excel file is empty.' });
+        
+        const [itemRows] = await connection.query('SELECT item_id, item_name FROM item_master');
+        const [truckRows] = await connection.query('SELECT truck_type_id, truck_name FROM truck_type_master');
+        const itemMap = new Map(itemRows.map(i => [String(i.item_name).toLowerCase(), i.item_id]));
+        const truckMap = new Map(truckRows.map(t => [String(t.truck_name).toLowerCase(), t.truck_type_id]));
+
+        await connection.beginTransaction();
+        const [reqResult] = await connection.query("INSERT INTO requisitions (created_by, status, created_at) VALUES (?, 'Pending Approval', NOW())", [req.user.userId]);
+        const reqId = reqResult.insertId;
+
+        for (const row of jsonData) {
+            const itemId = itemMap.get(String(row.MaterialName).toLowerCase());
+            const truckTypeId = truckMap.get(String(row.TruckName).toLowerCase());
+
+            if (!itemId || !truckTypeId) {
+                console.warn(`Skipping row, master data not found for: ${row.MaterialName} or ${row.TruckName}`);
+                continue;
+            }
+
+            await connection.query(
+                `INSERT INTO truck_loads (requisition_id, created_by, loading_point_address, unloading_point_address, item_id, approx_weight_tonnes, truck_type_id, requirement_date, status, inhouse_req_no, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending Approval', ?, ?)`,
+                [
+                    reqId,
+                    req.user.userId,
+                    row.LoadingPoint,
+                    row.UnloadingPoint,
+                    itemId,
+                    row.WeightInTonnes,
+                    truckTypeId, // This parameter was missing and caused the error
+                    row.RequirementDate,
+                    row.InhouseRequestionNo,
+                    row.Remarks
+                ]
+            );
+        }
+        await connection.commit();
+        res.status(201).json({ success: true, message: 'Bulk upload processed successfully.' });
+    } catch (error) {
+        if (connection) await connection.rollback();
+        next(error);
+    } finally {
+        if (connection) connection.release();
+    }
+});
+
 apiRouter.get('/admin/loads/:id/bids', authenticateToken, isAdmin, async (req, res, next) => { try { const [bids] = await dbPool.query(`SELECT b.*, u.full_name as trucker_name FROM bids b JOIN users u ON b.vendor_id = u.user_id WHERE b.load_id = ? ORDER BY b.bid_amount ASC`, [req.params.id]); const [[loadDetails]] = await dbPool.query('SELECT * FROM truck_loads WHERE load_id = ?', [req.params.id]); res.json({ success: true, data: { bids, loadDetails } }); } catch (error) { next(error); }});
 apiRouter.post('/admin/bids-for-loads', authenticateToken, isAdmin, async (req, res, next) => { try { const { loadIds } = req.body; if (!loadIds || loadIds.length === 0) { return res.status(400).json({ success: false, message: 'No load IDs provided.' }); } const results = []; for (const loadId of loadIds) { const [bids] = await dbPool.query(`SELECT b.*, u.full_name as trucker_name, u.email as trucker_email, u.contact_number as trucker_contact FROM bids b JOIN users u ON b.vendor_id = u.user_id WHERE b.load_id = ? ORDER BY b.bid_amount ASC`, [loadId]); const [[loadDetails]] = await dbPool.query('SELECT tl.*, im.item_name FROM truck_loads tl JOIN item_master im ON tl.item_id = im.item_id WHERE tl.load_id = ?', [loadId]); results.push({ ...loadDetails, bids }); } res.json({ success: true, data: results }); } catch (error) { next(error); }});
 apiRouter.get('/requisitions/:id/assignments', authenticateToken, isAdmin, async (req, res, next) => { try { const [allTruckers] = await dbPool.query("SELECT user_id, full_name FROM users WHERE role = 'Vendor' AND is_active = 1 ORDER BY full_name"); const [assignedResult] = await dbPool.query("SELECT vendor_id FROM trucker_assignments WHERE requisition_id = ?", [req.params.id]); const assignedTruckerIds = assignedResult.map(a => a.vendor_id); res.json({ success: true, data: { allTruckers, assignedTruckerIds } }); } catch (error) { next(error); }});
