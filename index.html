@@ -12,88 +12,74 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
     <style>
         :root {
-            --primary-color: #5E72E4; --secondary-color: #F4F5F7; --success-color: #2DCE89;
+            --primary-color: #5E72E4; --secondary-color: #f4f5f7; --success-color: #2DCE89;
             --info-color: #11CDEF; --warning-color: #FB6340; --danger-color: #F5365C;
-            --sidebar-bg: #172B4D; --sidebar-text: #8898AA; --sidebar-hover-bg: #1F3866;
-            --sidebar-active-text: #ffffff; --content-bg: #F8F9FE; --card-bg: #ffffff;
-            --text-dark: #32325D; --text-muted: #8898AA; --border-color: #E9ECEF;
-            --whatsapp-bg: #E5DDD5; --whatsapp-sent-bg: #DCF8C6;
+            --sidebar-bg: #172B4D; --sidebar-text: #8898AA; --sidebar-hover-bg: #1f3866;
+            --sidebar-active-text: #ffffff; --content-bg: #f8f9fe; --card-bg: #ffffff;
+            --text-dark: #32325d; --text-muted: #8898aa; --border-color: #dee2e6;
         }
         body { font-family: 'Poppins', sans-serif; background-color: var(--content-bg); }
         .hidden { display: none !important; }
-        .view { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .view { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
         #loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); z-index: 10002; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 10003; }
-        .toast-notification { padding: 15px 20px; color: white; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 7px 14px rgba(50,50,93,.1), 0 3px 6px rgba(0,0,0,.08); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; }
+        .toast-notification { padding: 1rem 1.5rem; color: white; border-radius: 0.5rem; margin-bottom: 10px; box-shadow: 0 7px 14px rgba(50,50,93,.1), 0 3px 6px rgba(0,0,0,.08); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; }
         .toast-notification.success { background: linear-gradient(87deg, #2dce89 0, #2dcecc 100%) !important; }
         .toast-notification.error { background: linear-gradient(87deg, #f5365c 0, #f56036 100%) !important; }
         .toast-notification.info { background: linear-gradient(87deg, #11cdef 0, #1171ef 100%) !important; }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
         #login-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #172B4D; }
         #login-video-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; filter: brightness(0.4); }
-        #login-container { width: 100%; max-width: 420px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.2); color: white; }
+        #login-container { width: 100%; max-width: 420px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.2); color: white; }
         #login-container .form-control { background-color: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; }
         #login-container .form-control::placeholder { color: rgba(255,255,255,0.7); }
-        #login-container a { color: var(--info-color); }
         .password-container { position: relative; }
         .password-container .toggle-password { position: absolute; top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer; color: rgba(255,255,255,0.7); }
-        .wrapper { display: flex; }
-        .sidebar { width: 260px; background: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 1001; transition: all 0.3s ease-in-out; box-shadow: 0 0 2rem 0 rgba(136,152,170,.15); }
-        .sidebar .logo { font-size: 1.2rem; font-weight: 600; text-align: center; color: white; padding: 22px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+
+        .wrapper { display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 260px; background: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; z-index: 1001; transition: all 0.3s ease-in-out; flex-shrink: 0; }
+        .sidebar .logo { font-size: 1.2rem; font-weight: 600; text-align: center; color: white; padding: 20px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .sidebar .logo i { color: var(--info-color); }
         .sidebar .nav-link { color: var(--sidebar-text); padding: 12px 25px; border-radius: .375rem; margin: 0 1rem 5px; transition: all 0.2s ease; white-space: nowrap; cursor: pointer; display: flex; align-items: center; justify-content: space-between;}
         .sidebar .nav-link:hover { background-color: var(--sidebar-hover-bg); color: var(--sidebar-active-text); }
-        .sidebar .nav-link.active { background: linear-gradient(87deg, #5e72e4 0, #825ee4 100%) !important; color: var(--sidebar-active-text); font-weight: 500; box-shadow: 0 7px 14px rgba(50,50,93,.1), 0 3px 6px rgba(0,0,0,.08); }
+        .sidebar .nav-link.active { background: linear-gradient(87deg, #5e72e4 0, #825ee4 100%) !important; color: var(--sidebar-active-text); font-weight: 500; box-shadow: 0 4px 6px rgba(50,50,93,.11), 0 1px 3px rgba(0,0,0,.08); }
         .sidebar .nav-link .nav-link-text { display: flex; align-items: center; }
-        .sidebar .nav-link .nav-link-text i { margin-right: 15px; width: 20px; text-align: center; font-size: .95rem; }
-        .sidebar .user-profile { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding: 15px 10px; text-align: center; }
-        .main-content { width: 100%; padding: 30px; margin-left: 260px; transition: margin-left 0.3s ease-in-out; }
-        .top-header { display: flex; justify-content: space-between; align-items: center; background: transparent; padding: 0; margin-bottom: 30px; }
-        .stat-card { border: none; border-radius: .5rem; color: white; padding: 25px; box-shadow: 0 15px 35px rgba(50,50,93,.1), 0 5px 15px rgba(0,0,0,.07) !important; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .stat-card:hover { transform: translateY(-5px); }
-        .stat-card .display-4 { font-weight: 600; }
-        .stat-card i.stat-icon { font-size: 3.5rem; opacity: 0.3; transform: rotate(-15deg); }
-        .bg-gradient-primary { background: linear-gradient(87deg, #5e72e4 0, #825ee4 100%) !important; }
-        .bg-gradient-success { background: linear-gradient(87deg, #2dce89 0, #2dcecc 100%) !important; }
-        .bg-gradient-warning { background: linear-gradient(87deg, #fb6340 0, #fbb140 100%) !important; }
-        .bg-gradient-info { background: linear-gradient(87deg, #11cdef 0, #1171ef 100%) !important; }
-        .card { border: none; border-radius: .5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .card-header { background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); font-weight: 600; padding: 1.25rem 1.5rem; }
-        .card-body { padding: 1.5rem; }
-        .table-hover>tbody>tr:hover>* { background-color: #f6f9fc; cursor: pointer; }
+        .sidebar .nav-link .nav-link-text i { margin-right: 15px; width: 20px; text-align: center; font-size: 1rem; }
         
-        /* --- CHANGE: Auto wrap ke liye CSS add kiya gaya --- */
-        .table th, .table td { 
-            white-space: normal !important; 
-            vertical-align: middle; 
-            word-break: break-word;
+        .main-content-wrapper { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .top-header { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 0.75rem 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); z-index: 1000; flex-shrink: 0; }
+        .main-content { padding: 1.5rem; overflow-y: auto; flex-grow: 1; }
+        #sidebar-toggle { font-size: 1.5rem; cursor: pointer; color: var(--text-dark); }
+        #header-title { font-size: 1.25rem; font-weight: 600; color: var(--text-dark); margin: 0; }
+        .user-dropdown .dropdown-toggle::after { display: none; }
+        .user-dropdown .dropdown-menu { border-radius: .5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05); border: 1px solid var(--border-color); }
+        
+        .card { border: none; border-radius: .5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .table { white-space: normal !important; word-break: break-word; }
+        .table th, .table td { vertical-align: middle; }
+
+        .wrapper.sidebar-collapsed .sidebar { width: 80px; }
+        .wrapper.sidebar-collapsed .sidebar .logo span, .wrapper.sidebar-collapsed .sidebar .nav-link-text span, .wrapper.sidebar-collapsed .sidebar .nav-link .badge { display: none; }
+        .wrapper.sidebar-collapsed .sidebar .nav-link { justify-content: center; }
+        .wrapper.sidebar-collapsed .sidebar .nav-link-text i { margin-right: 0; }
+
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: -260px; top: 0; height: 100vh; }
+            .wrapper.sidebar-mobile-open .sidebar { left: 0; }
+            .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; }
+            .wrapper.sidebar-mobile-open .sidebar-overlay { display: block; }
+            .main-content { padding: 1rem; }
+            .top-header { padding: 0.75rem 1rem; }
         }
 
-        .table th i { margin-right: 8px; color: var(--text-muted); }
-        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
-        .empty-state i { font-size: 2.5rem; margin-bottom: 1rem; }
-        .chart-container { position: relative; height: 350px; width: 100%; }
-        .filters-card { background-color: #f6f9fc; box-shadow: none; border: 1px solid var(--border-color); }
-        #chat-messages { display: flex; flex-direction: column; padding: 20px; background-color: var(--whatsapp-bg); background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAKCAYAAACX8y46AAAAOklEQVQYV2NkQAM3Z85gYGAQYmD4T5h5eHj+169fg4iKEl008uXLl1308/Pz/79//58pLi5GAgA2Xz9RfYd7yQAAAABJRU5ErkJggg==');}
-        .message-wrapper { display: flex; width: 100%; margin-bottom: 15px; }
-        .message-wrapper.sent { justify-content: flex-end; }
-        .message-wrapper.received { justify-content: flex-start; }
-        .message-bubble { padding: 8px 12px; border-radius: 8px; max-width: 75%; word-wrap: break-word; box-shadow: 0 1px 1px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
-        .message-bubble.sent { background-color: var(--whatsapp-sent-bg); border-bottom-right-radius: 2px; }
-        .message-bubble.received { background-color: #fff; border-bottom-left-radius: 2px; }
-        .message-text { margin-bottom: 5px; }
-        .message-meta { display: flex; align-items: center; justify-content: flex-end; }
-        .timestamp { font-size: 0.75rem; color: #999; margin-right: 5px; }
-        .message-ticks { font-size: 1rem; color: #999; }
-        .message-ticks.read { color: #34b7f1; }
     </style>
 </head>
 <body>
-
     <div id="loader-overlay" class="hidden"><div class="spinner-border text-primary" role="status"></div></div>
     <div id="toast-container"></div>
-
     <div id="login-wrapper">
         <video autoplay muted loop id="login-video-bg"> <source src="https://assets.mixkit.co/videos/preview/mixkit-highway-in-the-middle-of-a-mountain-range-4633-large.mp4" type="video/mp4"> </video>
         <div id="login-container" class="p-4 p-md-5">
@@ -110,7 +96,7 @@
             <p class="text-center mt-3 small">Don't have an account? <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Register Now</a></p>
         </div>
     </div>
-
+    
     <div id="app-container" class="wrapper hidden"></div>
 
     <div class="modal fade" id="registerModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Create Account</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="register-form"><div class="mb-3"><select id="reg-role" class="form-select" required><option value="">Register as...</option><option value="Shipper">Shipper (I have loads)</option><option value="Trucker">Trucker (I have trucks)</option></select></div><div class="mb-2"><input type="text" id="reg-fullname" class="form-control" placeholder="Full Name" required></div><div class="mb-2"><input type="email" id="reg-email" class="form-control" placeholder="Email" required></div><div class="mb-2"><input type="password" id="reg-password" class="form-control" placeholder="Password" required></div><div class="mb-2"><input type="text" id="reg-contact" class="form-control" placeholder="Contact Number" required></div><div class="mb-2 hidden" id="reg-company-wrapper"><input type="text" id="reg-company" class="form-control" placeholder="Company Name"></div><div class="mb-3 hidden" id="reg-gstin-wrapper"><input type="text" id="reg-gstin" class="form-control" placeholder="GSTIN (Optional)"></div><button type="submit" class="btn btn-success w-100 fw-bold">Register</button></form></div></div></div></div>
@@ -125,52 +111,7 @@
     <div class="modal fade" id="setBiddingTimeModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Set/Update Bidding Time</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="setTimeLoadId"><p><strong>Load ID:</strong> <span id="setTimeLoadName"></span></p><div class="mb-3"><label class="form-label">Bidding Start Time</label><input type="datetime-local" id="setTimeStartTime" class="form-control"></div><div class="mb-3"><label class="form-label">Bidding Duration</label><select id="setTimeDuration" class="form-select"><option value="5">5 Minutes</option><option value="10">10 Minutes</option><option value="15" selected>15 Minutes</option><option value="20">20 Minutes</option><option value="30">30 Minutes</option><option value="45">45 Minutes</option><option value="60">60 Minutes</option></select></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-primary" onclick="handleSetBiddingTimeSubmit()">Save Changes</button></div></div></div></div>
     <div class="modal fade" id="bulkSetTimeModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-warning"><h5 class="modal-title">Set Bulk Bidding Time</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>You are about to set the bidding time for <strong id="bulk-set-time-count"></strong> selected load(s).</p><div class="mb-3"><label class="form-label">Bidding Start Time</label><input type="datetime-local" id="bulkSetTimeStartTime" class="form-control"></div><div class="mb-3"><label class="form-label">Bidding Duration</label><select id="bulkSetTimeDuration" class="form-select"><option value="5">5 Minutes</option><option value="10">10 Minutes</option><option value="15" selected>15 Minutes</option><option value="20">20 Minutes</option><option value="30">30 Minutes</option><option value="45">45 Minutes</option><option value="60">60 Minutes</option></select></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-warning" onclick="handleBulkSetTimeSubmit()">Save Changes</button></div></div></div></div>
     <div class="modal fade" id="editLoadModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Edit Load Details</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="edit-load-form"><input type="hidden" id="edit-load-id"><div class="mb-3"><label class="form-label">Loading Point</label><input type="text" id="edit-loading-point" class="form-control" required></div><div class="mb-3"><label class="form-label">Unloading Point</label><input type="text" id="edit-unloading-point" class="form-control" required></div><div class="row"><div class="col-md-6 mb-3"><label class="form-label">Material</label><select id="edit-material" class="form-select" required></select></div><div class="col-md-6 mb-3"><label class="form-label">Truck Type</label><select id="edit-truck-type" class="form-select" required></select></div></div><div class="row"><div class="col-md-6 mb-3"><label class="form-label">Weight (Tonnes)</label><input type="number" id="edit-weight" class="form-control" step="0.1" required></div><div class="col-md-6 mb-3"><label class="form-label">Requirement Date</label><input type="date" id="edit-req-date" class="form-control" required></div></div><button type="submit" class="btn btn-primary w-100">Save Changes</button></form></div></div></div></div>
-
-    <div class="modal fade" id="bulkApproveModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title">Bulk Approve & Assign Loads</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>You are about to approve <strong id="bulk-approve-count"></strong> selected "Pending Approval" load(s).</p>
-                    <hr>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Bidding Start Time (Mandatory)</label>
-                        <input type="datetime-local" id="bulkApproveStartTime" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Bidding Duration (Mandatory)</label>
-                        <select id="bulkApproveDuration" class="form-select" required>
-                            <option value="5">5 Minutes</option>
-                            <option value="10">10 Minutes</option>
-                            <option value="15" selected>15 Minutes</option>
-                            <option value="20">20 Minutes</option>
-                            <option value="30">30 Minutes</option>
-                            <option value="45">45 Minutes</option>
-                            <option value="60">60 Minutes</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold d-flex justify-content-between">
-                            <span>Assign Truckers</span>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="checkbox" onchange="$(this).closest('.modal-body').find('.bulk-approve-trucker-checkbox').prop('checked', this.checked)" checked>
-                                <label class="form-check-label small">Select All</label>
-                            </div>
-                        </label>
-                        <div id="bulk-approve-trucker-checklist" class="border rounded p-3" style="max-height: 200px; overflow-y: auto;"></div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-success" onclick="handleBulkApproveSubmit()">Confirm & Approve</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <div class="modal fade" id="bulkApproveModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Bulk Approve & Assign Loads</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>You are about to approve <strong id="bulk-approve-count"></strong> selected "Pending Approval" load(s).</p><hr><div class="mb-3"><label class="form-label fw-bold">Bidding Start Time (Mandatory)</label><input type="datetime-local" id="bulkApproveStartTime" class="form-control" required></div><div class="mb-3"><label class="form-label fw-bold">Bidding Duration (Mandatory)</label><select id="bulkApproveDuration" class="form-select" required><option value="5">5 Minutes</option><option value="10">10 Minutes</option><option value="15" selected>15 Minutes</option><option value="20">20 Minutes</option><option value="30">30 Minutes</option><option value="45">45 Minutes</option><option value="60">60 Minutes</option></select></div><div class="mb-3"><label class="form-label fw-bold d-flex justify-content-between"><span>Assign Truckers</span><div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" onchange="$(this).closest('.modal-body').find('.bulk-approve-trucker-checkbox').prop('checked', this.checked)" checked><label class="form-check-label small">Select All</label></div></label><div id="bulk-approve-trucker-checklist" class="border rounded p-3" style="max-height: 200px; overflow-y: auto;"></div></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-success" onclick="handleBulkApproveSubmit()">Confirm & Approve</button></div></div></div></div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -363,12 +304,53 @@
                 'Admin': `<a class="nav-link" data-view="admin-dashboard-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a><a class="nav-link" data-view="admin-pending-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-inbox"></i> <span>Load Approvals</span></div><span class="badge bg-warning rounded-pill" id="badge-pending-loads"></span></a><a class="nav-link" data-view="admin-all-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-list-alt"></i> <span>All Loads</span></div></a><a class="nav-link" data-view="admin-manage-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-edit"></i> <span>Manage Loads</span></div></a><a class="nav-link" data-view="admin-bidding-history-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-history"></i> <span>Bidding History</span></div></a><a class="nav-link" data-view="admin-awarded-contracts-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>Awarded Contracts</span></div></a><a class="nav-link" data-view="admin-reports-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-chart-line"></i> <span>Reports</span></div></a><a class="nav-link" data-view="admin-master-data-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-database"></i> <span>Master Data</span></div></a><a class="nav-link" data-view="admin-user-approvals-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-user-check"></i> <span>User Approvals</span></div><span class="badge bg-warning rounded-pill" id="badge-pending-users"></span></a><a class="nav-link" data-view="admin-user-control-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-users-cog"></i> <span>User Control</span></div></a><a class="nav-link" data-view="messaging-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-comments"></i> <span>Messages</span></div><span class="badge bg-danger rounded-pill" id="badge-unread-messages"></span></a>`,
             };
             roleNavs['Super Admin'] = roleNavs['Admin'];
-            const appHTML = `<nav class="sidebar" id="sidebar"><div class="logo"><i class="fas fa-truck"></i> <span>DEB'S LOGISTICS</span></div><div id="nav-links" class="flex-grow-1">${roleNavs[user.role] || ''}</div><div class="user-profile"><div><h6 class="mb-0 text-white">${user.full_name}</h6><small class="text-muted">${user.email}</small></div><button onclick="handleLogout()" class="btn btn-sm btn-outline-danger w-100 mt-2"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></button></div></nav><main class="main-content" id="main-content"><div class="top-header"><h1 id="header-title" class="h4 mb-0 fw-bold text-dark"></h1><div class="d-flex align-items-center"><button class="btn btn-sm btn-outline-primary" onclick="handleManualRefresh()"><i class="fas fa-sync-alt me-1"></i>Refresh</button><button class="btn btn-sm btn-outline-secondary ms-2 position-relative" onclick="navigateTo('messaging-view')"><i class="fas fa-bell"></i><span id="notification-bell-badge" class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle visually-hidden"></span></button></div></div><div id="main-view"></div></main>`;
+            const appHTML = `
+                <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+                <nav class="sidebar" id="sidebar">
+                    <div class="logo"><i class="fas fa-truck"></i> <span>DEB'S LOGISTICS</span></div>
+                    <div id="nav-links" class="flex-grow-1">${roleNavs[user.role] || ''}</div>
+                </nav>
+                <div class="main-content-wrapper">
+                    <header class="top-header">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-bars" id="sidebar-toggle" onclick="toggleSidebar()"></i>
+                            <h1 id="header-title" class="h4 mb-0 fw-bold text-dark ms-3"></h1>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <button class="btn btn-sm btn-outline-primary me-2" onclick="handleManualRefresh()"><i class="fas fa-sync-alt"></i></button>
+                            <div class="dropdown user-dropdown">
+                                <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <img src="https://img.icons8.com/color/48/user-male-circle--v1.png" alt="user" width="32" height="32" class="rounded-circle">
+                                </a>
+                                <ul class="dropdown-menu text-small dropdown-menu-end" aria-labelledby="dropdownUser1">
+                                    <li class="px-3 pt-2 pb-1">
+                                        <div class="fw-bold">${user.full_name}</div>
+                                        <div class="text-muted small">${user.email}</div>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" onclick="handleLogout()"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </header>
+                    <main class="main-content" id="main-content">
+                        <div id="main-view"></div>
+                    </main>
+                </div>`;
             appContainer.html(appHTML);
             const defaultViewMap = { 'Shipper': 'shipper-create-load-view', 'Trucker': 'trucker-dashboard-view', 'Admin': 'admin-dashboard-view', 'Super Admin': 'admin-dashboard-view' };
             navigateTo(defaultViewMap[user.role]);
             setInterval(fetchSidebarCounts, 60000);
             fetchSidebarCounts();
+        }
+
+        function toggleSidebar() {
+            const wrapper = document.getElementById('app-container');
+            if (window.innerWidth <= 768) {
+                wrapper.classList.toggle('sidebar-mobile-open');
+            } else {
+                wrapper.classList.toggle('sidebar-collapsed');
+            }
         }
 
         async function handleManualRefresh() { const currentViewLink = $('#nav-links .nav-link.active'); if (currentViewLink.length > 0) { showToast('Refreshing data...', 'info'); navigateTo(currentViewLink.data('view')); } }
