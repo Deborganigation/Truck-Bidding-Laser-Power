@@ -609,8 +609,62 @@
         async function load_admin_bidding_history_view() { const tbody = $('#admin-bids-tbody'), empty = $('#admin-bids-empty-state'); try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().parent().hide(); const filters = { startDate: $('#admin-bids-filter-start-date').val(), endDate: $('#admin-bids-filter-end-date').val() }; const result = await apiCall('/admin/bidding-history', 'GET', filters); if (result.data.length === 0) { tbody.parent().parent().show(); return renderEmptyState(empty, 'No bidding history found.'); } tbody.html(result.data.map(b => `<tr><td>${b.inhouse_requisition_no || '-'}</td><td>${b.load_id}</td><td>${b.loading_point_address}</td><td>${b.unloading_point_address}</td><td>${b.item_name}</td><td>${b.truck_name}</td><td>${formatDate(b.requirement_date)}</td><td>${b.trucker_name}</td><td><strong>${formatCurrency(b.bid_amount)}</strong></td><td>${b.remarks || '-'}</td><td>${formatDate(b.submitted_at, true)}</td></tr>`).join('')); tbody.parent().parent().show(); empty.empty(); } catch (e) {} }
         async function load_admin_awarded_contracts_view() { const tbody = $('#admin-awarded-tbody'), empty = $('#admin-awarded-empty-state'); try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().parent().hide(); const filters = { startDate: $('#admin-awarded-filter-start-date').val(), endDate: $('#admin-awarded-filter-end-date').val() }; const result = await apiCall('/admin/awarded-contracts', 'GET', filters); if (result.data.length === 0) { tbody.parent().parent().show(); return renderEmptyState(empty, 'No contracts awarded yet.', 'fa-trophy'); } tbody.html(result.data.map(c => `<tr><td><input type="checkbox" class="form-check-input awarded-load-checkbox" data-load-id="${c.load_id}"></td><td>${c.inhouse_requisition_no || '-'}</td><td>${c.requisition_id}</td><td>${c.load_id}</td><td>${c.trucker_name}</td><td><small>${c.trucker_email || ''}<br>${c.trucker_contact || ''}</small></td><td><small>${c.loading_point_address} to ${c.unloading_point_address}</small></td><td>${c.item_name || 'N/A'}</td><td>${c.truck_name || 'N/A'}</td><td>${c.requirement_date ? formatDate(c.requirement_date) : 'N/A'}</td><td><strong>${formatCurrency(c.awarded_amount)}</strong></td><td>${c.remarks || '-'}</td><td>${formatDate(c.awarded_date)}</td></tr>`).join('')); tbody.parent().parent().show(); empty.empty(); } catch (e) {} }
         async function load_admin_reports_view() { const kpiContainer = $('#report-kpis'), tableBody = $('#detailed-report-table tbody'); try { kpiContainer.html(renderEmptyState(null, 'Loading...', 'fa-spinner fa-spin')); tableBody.empty(); const result = await apiCall('/admin/reports-data', 'POST', { startDate: $('#report-start-date').val(), endDate: $('#report-end-date').val() }); const { kpis, detailedReport, chartsData } = result.data; const awardedLoadsCount = kpis.awardedLoads || 0; kpiContainer.html(`<div class="col-md-6"><div class="card card-body"><h6>Total Spend</h6><h3 class="fw-bold">${formatCurrency(kpis.totalSpend)}</h3></div></div><div class="col-md-6"><div class="card card-body"><h6>Total Loads Awarded</h6><h3 class="fw-bold">${awardedLoadsCount}</h3></div></div>`); if (detailedReport.length === 0) { tableBody.html(`<tr><td colspan="12" class="text-center text-muted">No data for this period.</td></tr>`); } else { tableBody.html(detailedReport.map(r => `<tr><td>${r.inhouse_requisition_no || '-'}</td><td>${r.load_id}</td><td>${r.loading_point_address}</td><td>${r.unloading_point_address}</td><td>${r.item_name}</td><td>${r.truck_name}</td><td>${r.approx_weight_tonnes}T</td><td>${formatDate(r.requirement_date)}</td><td>${r.trucker_name}</td><td>${formatCurrency(r.awarded_amount)}</td><td>${r.remarks || '-'}</td><td>${formatDate(r.awarded_date)}</td></tr>`).join('')); } if(chartsData) { createChart('top-truckers-chart', 'pie', { labels: chartsData.topTruckers.labels, datasets: [{ data: chartsData.topTruckers.data, backgroundColor: ['#5E72E4', '#2DCE89', '#FB6340', '#11CDEF', '#F5365C'] }] }); createChart('spend-material-chart', 'bar', { labels: chartsData.spendByMaterial.labels, datasets: [{ label: 'Spend', data: chartsData.spendByMaterial.data, backgroundColor: '#FB6340' }] }); createChart('spend-time-chart', 'line', { labels: chartsData.spendOverTime.labels, datasets: [{ label: 'Total Spend', data: chartsData.spendOverTime.data, borderColor: '#5E72E4', tension: 0.1 }] }); } } catch (e) {} }
-        function openSetBiddingTimeModal(loadId) { const row = $(`tr[data-load-id="${loadId}"]`); const times = row.data('load-times'); $('#setTimeLoadId').val(loadId); $('#setTimeLoadName').text(loadId); const formatForInput = (dateString) => dateString ? dateString.slice(0, 16).replace(' ', 'T') : ''; $('#setTimeStartTime').val(formatForInput(times.start)); setBiddingTimeModal.show(); }
-        async function handleSetBiddingTimeSubmit() { const loadId = $('#setTimeLoadId').val(); const startTimeStr = $('#setTimeStartTime').val(); const durationMinutes = parseInt($('#setTimeDuration').val(), 10); if (!startTimeStr) { return showToast('Please select a Bidding Start Time.', 'error'); } const startTime = new Date(startTimeStr); const endTime = new Date(startTime.getTime() + durationMinutes * 60000); try { await apiCall('/admin/loads/bidding-time', 'PUT', { loadId, startTime: startTime.toISOString().slice(0, 19).replace('T', ' '), endTime: endTime.toISOString().slice(0, 19).replace('T', ' ') }); showToast('Bidding time updated!', 'success'); setBiddingTimeModal.hide(); load_admin_all_loads_view(); } catch(e) {} }
+        
+        async function openSetBiddingTimeModal(loadId) {
+            const row = $(`tr[data-load-id="${loadId}"]`);
+            const times = row.data('load-times');
+            $('#setTimeLoadId').val(loadId);
+            $('#setTimeLoadName').text(loadId);
+
+            const formatForInput = (dateString) => dateString ? dateString.slice(0, 16).replace(' ', 'T') : '';
+            $('#setTimeStartTime').val(formatForInput(times.start));
+
+            if (times.start && times.end) {
+                const startTime = new Date(times.start.replace(' ', 'T'));
+                const endTime = new Date(times.end.replace(' ', 'T'));
+                const durationMinutes = (endTime - startTime) / 60000;
+                $('#setTimeDuration').val(durationMinutes);
+            } else {
+                $('#setTimeDuration').val('15'); // Default value
+            }
+
+            setBiddingTimeModal.show();
+        }
+
+        async function handleSetBiddingTimeSubmit() {
+            const loadId = $('#setTimeLoadId').val();
+            const startTimeStr = $('#setTimeStartTime').val(); // e.g., "2025-10-11T09:40"
+            const durationMinutes = parseInt($('#setTimeDuration').val(), 10);
+
+            if (!startTimeStr) {
+                return showToast('Please select a Bidding Start Time.', 'error');
+            }
+
+            // 1. Format start time directly from string to match DB format
+            const formattedStartTime = startTimeStr.replace('T', ' ') + ':00';
+
+            // 2. Calculate end time using Date object for reliable arithmetic
+            const startTimeObj = new Date(startTimeStr);
+            const endTimeObj = new Date(startTimeObj.getTime() + durationMinutes * 60000);
+
+            // 3. Helper to format end time manually to YYYY-MM-DD HH:MM:SS, avoiding timezone conversion
+            const pad = (num) => num.toString().padStart(2, '0');
+            const formattedEndTime = `${endTimeObj.getFullYear()}-${pad(endTimeObj.getMonth() + 1)}-${pad(endTimeObj.getDate())} ${pad(endTimeObj.getHours())}:${pad(endTimeObj.getMinutes())}:${pad(endTimeObj.getSeconds())}`;
+
+            try {
+                await apiCall('/admin/loads/bidding-time', 'PUT', {
+                    loadId,
+                    startTime: formattedStartTime,
+                    endTime: formattedEndTime
+                });
+                showToast('Bidding time updated!', 'success');
+                setBiddingTimeModal.hide();
+                load_admin_all_loads_view();
+            } catch (e) {
+                // Error is shown by apiCall function
+            }
+        }
+
         function openBulkSetTimeModal() { const selectedLoads = $('.load-checkbox:checked').map((i, el) => $(el).closest('tr').data('load-id')).get(); if (selectedLoads.length === 0) { return showToast('Please select at least one load to set time.', 'warning'); } $('#bulk-set-time-count').text(selectedLoads.length); $('#bulkSetTimeStartTime').val(''); bulkSetTimeModal.show(); }
         async function handleBulkSetTimeSubmit() { const loadIds = $('.load-checkbox:checked').map((i, el) => $(el).closest('tr').data('load-id')).get(); const startTimeStr = $('#bulkSetTimeStartTime').val(); const durationMinutes = parseInt($('#bulkSetTimeDuration').val(), 10); if (!startTimeStr) { return showToast('Please select a Bidding Start Time.', 'error'); } const startTime = new Date(startTimeStr); const endTime = new Date(startTime.getTime() + durationMinutes * 60000); try { const result = await apiCall('/admin/loads/bulk-bidding-time', 'PUT', { loadIds, startTime: startTime.toISOString().slice(0, 19).replace('T', ' '), endTime: endTime.toISOString().slice(0, 19).replace('T', ' ') }); showToast(result.message, 'success'); bulkSetTimeModal.hide(); load_admin_all_loads_view(); } catch (e) {} }
         function showToast(m, t = 'info') { const c = $('#toast-container'), e = $(`<div><i class="fas ${t === 'success' ? 'fa-check-circle' : 'fa-times-circle'} me-2"></i><span>${m}</span></div>`).addClass(`toast-notification ${t}`); c.append(e); setTimeout(() => e.remove(), 4000); }
