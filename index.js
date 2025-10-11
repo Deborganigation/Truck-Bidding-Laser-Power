@@ -143,7 +143,6 @@ apiRouter.post('/contracts/award', authenticateToken, isAdmin, async (req, res, 
         await connection.beginTransaction();
         for (const bid of bids) {
             await connection.query("DELETE FROM awarded_contracts WHERE load_id = ?", [bid.load_id]);
-            // <!-- FIX: Negotiation Rate (final_amount) save karne ke liye logic update kiya gaya -->
             await connection.query("INSERT INTO awarded_contracts (load_id, requisition_id, vendor_id, awarded_amount, remarks, awarded_date) VALUES (?, ?, ?, ?, ?, NOW())", [bid.load_id, bid.requisition_id, bid.vendor_id, bid.final_amount, bid.remarks]);
             await connection.query("UPDATE truck_loads SET status = 'Awarded' WHERE load_id = ?", [bid.load_id]);
         }
@@ -203,8 +202,8 @@ apiRouter.post('/loads', authenticateToken, async (req, res, next) => {
         const reqId = reqResult.insertId;
         const parsedLoads = JSON.parse(items);
         for (const load of parsedLoads) {
-            // <!-- FIX: Naye fields (Inhouse Req No & Remarks) save karne ke liye logic update kiya gaya -->
-            await connection.query(`INSERT INTO truck_loads (requisition_id, created_by, loading_point_address, unloading_point_address, item_id, approx_weight_tonnes, truck_type_id, requirement_date, status, inhouse_req_no, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending Approval', ?, ?)`, 
+            // <!-- FIX: Changed inhouse_req_no to inhouse_requisition_no -->
+            await connection.query(`INSERT INTO truck_loads (requisition_id, created_by, loading_point_address, unloading_point_address, item_id, approx_weight_tonnes, truck_type_id, requirement_date, status, inhouse_requisition_no, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending Approval', ?, ?)`, 
                 [reqId, req.user.userId, load.loading_point_address, load.unloading_point_address, load.item_id, load.approx_weight_tonnes, load.truck_type_id, load.requirement_date, load.inhouse_req_no, load.remarks]);
         }
         await connection.commit();
@@ -483,7 +482,7 @@ apiRouter.post('/loads/bulk-upload', authenticateToken, isAdmin, upload.single('
             }
 
             await connection.query(
-                `INSERT INTO truck_loads (requisition_id, created_by, loading_point_address, unloading_point_address, item_id, approx_weight_tonnes, truck_type_id, requirement_date, status, inhouse_req_no, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending Approval', ?, ?)`,
+                `INSERT INTO truck_loads (requisition_id, created_by, loading_point_address, unloading_point_address, item_id, approx_weight_tonnes, truck_type_id, requirement_date, status, inhouse_requisition_no, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending Approval', ?, ?)`,
                 [
                     reqId,
                     req.user.userId,
@@ -589,3 +588,4 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server is running on http://localhost:${PORT}`));
+
