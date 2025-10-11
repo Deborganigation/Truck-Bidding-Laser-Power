@@ -295,7 +295,7 @@
             
             'admin-manage-loads-view': `<div class="view"><div class="card"><div class="card-header"><h5><i class="fas fa-edit me-2"></i>Manage Loads</h5></div><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle" id="admin-manage-loads-table"><thead class="table-light"><tr><th>Inhouse Req No.</th><th>Load ID</th><th>Loading Point</th><th>Unloading Point</th><th>Material</th><th>Truck Type</th><th>Weight</th><th>Req. Date</th><th>Status</th><th>Remarks</th><th>Actions</th></tr></thead><tbody id="admin-manage-loads-tbody"></tbody></table></div><div id="admin-manage-loads-empty-state"></div></div></div></div>`,
             'admin-bidding-history-view': `<div class="view"><div class="card mb-4 filters-card"><div class="card-body"><div class="row g-3 align-items-end"><div class="col-md-4"><label class="form-label form-label-sm">Start Date</label><input type="date" id="admin-bids-filter-start-date" class="form-control form-control-sm"></div><div class="col-md-4"><label class="form-label form-label-sm">End Date</label><input type="date" id="admin-bids-filter-end-date" class="form-control form-control-sm"></div><div class="col-md-4"><button class="btn btn-primary btn-sm w-100" onclick="load_admin_bidding_history_view()">Apply Filters</button></div></div></div></div><div class="card"><div class="card-header d-flex justify-content-between"><h5>Platform Bidding History</h5><button class="btn btn-sm btn-success" onclick="downloadTableData('admin-bids-table', 'Bidding_History.xlsx')"><i class="fas fa-download me-2"></i>Download</button></div><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle" id="admin-bids-table"><thead class="table-light"><tr><th>Inhouse Req No.</th><th>Load ID</th><th>Loading Point</th><th>Unloading Point</th><th>Material</th><th>Truck Type</th><th>Req. Date</th><th>Trucker</th><th>Bid Amount</th><th>Remarks</th><th>Date</th></tr></thead><tbody id="admin-bids-tbody"></tbody></table></div><div id="admin-bids-empty-state"></div></div></div></div>`,
-            'admin-awarded-contracts-view': `<div class="view"><div class="card mb-4 filters-card"><div class="card-body"><div class="row g-3 align-items-end"><div class="col-md-4"><label class="form-label form-label-sm">Start Date</label><input type="date" id="admin-awarded-filter-start-date" class="form-control form-control-sm"></div><div class="col-md-4"><label class="form-label form-label-sm">End Date</label><input type="date" id="admin-awarded-filter-end-date" class="form-control form-control-sm"></div><div class="col-md-4"><button class="btn btn-primary btn-sm w-100" onclick="load_admin_awarded_contracts_view()">Apply Filters</button></div></div></div></div><div class="card"><div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2"><h5>All Awarded Contracts</h5><div><button class="btn btn-sm btn-danger" onclick="openReopenBiddingModal()"><i class="fas fa-history me-2"></i>Re-open Selected</button><button class="btn btn-sm btn-success ms-2" onclick="downloadTableData('admin-awarded-table', 'Awarded_Contracts_Report.xlsx')"><i class="fas fa-download me-2"></i>Download</button></div></div><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle" id="admin-awarded-table"><thead class="table-light"><tr><th><input type="checkbox" onchange="$(this).closest('table').find('.awarded-load-checkbox').prop('checked', this.checked)"></th><th>Inhouse Req No.</th><th>Req ID</th><th>Load ID</th><th>Trucker</th><th>Contact</th><th>Route</th><th>Material</th><th>Truck Type</th><th>Req. Date</th><th>Amount</th><th>Remarks</th><th>Award Date</th></tr></thead><tbody id="admin-awarded-tbody"></tbody></table></div><div id="admin-awarded-empty-state"></div></div></div></div>`,
+            'admin-awarded-contracts-view': `<div class="view"><div class="card mb-4 filters-card"><div class="card-body"><div class="row g-3 align-items-end"><div class="col-md-4"><label class="form-label form-label-sm">Start Date</label><input type="date" id="admin-awarded-filter-start-date" class="form-control form-control-sm"></div><div class="col-md-4"><label class="form-label form-label-sm">End Date</label><input type="date" id="admin-awarded-filter-end-date" class="form-control form-control-sm"></div><div class="col-md-4"><button class="btn btn-primary btn-sm w-100" onclick="load_admin_awarded_contracts_view()">Apply Filters</button></div></div></div></div><div class="card"><div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2"><h5>All Awarded Contracts</h5><div><button class="btn btn-sm btn-danger" onclick="openReopenBiddingModal()"><i class="fas fa-history me-2"></i>Re-open Selected</button><button class="btn btn-sm btn-success ms-2" onclick="downloadTableData('admin-awarded-table', 'Awarded_Contracts_Report.xlsx')"><i class="fas fa-download me-2"></i>Download</button></div></div><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle" id="admin-awarded-table"><thead class="table-light"><tr><th><input type="checkbox" onchange="$(this).closest('table').find('.awarded-load-checkbox').prop('checked', this.checked)"></th><th>Inhouse Req No.</th><th>Load ID</th><th>Trucker</th><th>Contact</th><th>Route</th><th>Material</th><th>Truck Type</th><th>Req. Date</th><th>Amount</th><th>Award Date</th><th>Actions</th></tr></thead><tbody id="admin-awarded-tbody"></tbody></table></div><div id="admin-awarded-empty-state"></div></div></div></div>`,
             'admin-reports-view': `<div class="card view"><div class="card-header d-flex justify-content-between"><h5>Reports & Analytics</h5><button class="btn btn-sm btn-success" onclick="downloadReport()"><i class="fas fa-download me-2"></i>Download Detailed Report</button></div><div class="card-body"><div class="row g-3 align-items-center border p-3 rounded mb-4"><div class="col-md-5"><label class="form-label-sm">Start Date</label><input type="date" id="report-start-date" class="form-control form-control-sm"></div><div class="col-md-5"><label class="form-label-sm">End Date</label><input type="date" id="report-end-date" class="form-control form-control-sm"></div><div class="col-md-2 d-grid"><button id="report-apply-filter" class="btn btn-primary btn-sm mt-md-3">Apply</button></div></div><div class="row g-4" id="report-kpis"></div><hr class="my-4"><div class="row g-5"><div class="col-lg-4"><h5 class="text-center text-muted mb-3">Top 5 Truckers (by Wins)</h5><div class="chart-container" style="height:300px;"><canvas id="top-truckers-chart"></canvas></div></div><div class="col-lg-8"><h5 class="text-center text-muted mb-3">Spend by Material</h5><div class="chart-container" style="height:300px;"><canvas id="spend-material-chart"></canvas></div></div><div class="col-12 mt-4"><h5 class="text-center text-muted mb-3">Total Spend Over Time</h5><div class="chart-container" style="height:300px;"><canvas id="spend-time-chart"></canvas></div></div></div><div class="mt-5"><h5 class="text-center text-muted">Detailed Report</h5><div class="table-responsive"><table class="table table-sm table-striped" id="detailed-report-table"><thead><tr><th>Inhouse Req No.</th><th>Load ID</th><th>Loading Point</th><th>Unloading Point</th><th>Material</th><th>Truck Type</th><th>Weight</th><th>Req. Date</th><th>Trucker</th><th>Awarded Amount</th><th>Remarks</th><th>Award Date</th></tr></thead><tbody></tbody></table></div></div></div></div>`,
             'admin-master-data-view': `<div class="row view"><div class="col-md-6 mb-4 mb-md-0"><div class="card"><div class="card-header d-flex justify-content-between"><span>Material Types</span><div><button class="btn btn-info btn-sm me-2" onclick="openBulkUploadModal('item')"><i class="fas fa-upload"></i></button><button class="btn btn-success btn-sm" onclick="openMasterDataModal('item')"><i class="fas fa-plus"></i></button></div></div><div class="card-body table-responsive p-0"><table class="table table-hover"><tbody id="item-master-tbody"></tbody></table></div></div></div><div class="col-md-6"><div class="card"><div class="card-header d-flex justify-content-between"><span>Truck Types</span><div><button class="btn btn-info btn-sm me-2" onclick="openBulkUploadModal('truck')"><i class="fas fa-upload"></i></button><button class="btn btn-success btn-sm" onclick="openMasterDataModal('truck')"><i class="fas fa-plus"></i></button></div></div><div class="card-body table-responsive p-0"><table class="table table-hover"><tbody id="truck-master-tbody"></tbody></table></div></div></div></div>`,
             'admin-user-approvals-view': `<div class="card view"><div class="card-header"><h5 class="mb-0">Pending User Approvals</h5></div><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Name</th><th>Email</th><th>Role</th><th>Company</th><th>Contact</th><th>Action</th></tr></thead><tbody id="admin-pending-users-tbody"></tbody></table></div><div id="admin-pending-users-empty-state"></div></div></div>`,
@@ -604,10 +604,46 @@
         }
 
         async function handleBulkApproval(reqId) { const c = $(`#collapse-${reqId}`), loads = c.find('.load-check-box:checked').map((i, el) => $(el).val()).get(), truckers = c.find('.trucker-assign-check:checked').map((i, el) => $(el).val()).get(), biddingStartTime = c.find('.bidding-start-time-input').val(), biddingDurationMinutes = c.find('.bidding-duration-input').val(); if (loads.length === 0) return showToast('Select at least one load.', 'error'); if (truckers.length === 0) return showToast('Assign at least one trucker.', 'error'); if (!biddingStartTime) return showToast('Bidding Start Time is mandatory.', 'error'); try { await apiCall('/loads/approve', 'POST', { approvedLoadIds: loads, truckerAssignments: truckers, requisitionId: reqId, biddingStartTime, biddingDurationMinutes }); showToast('Loads processed!', 'success'); load_admin_pending_loads_view(); } catch (e) {} }
+        
         async function load_admin_all_loads_view() { const tbody = $('#admin-loads-tbody'), empty = $('#admin-loads-empty-state'); try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().parent().hide(); const filters = { status: $('#admin-loads-filter-status').val(), startDate: $('#admin-loads-filter-start-date').val(), endDate: $('#admin-loads-filter-end-date').val() }; const result = await apiCall('/admin/all-loads', 'GET', filters); if (result.data.length === 0) { tbody.parent().parent().show(); return renderEmptyState(empty, 'No loads found for the selected filters.');} tbody.html(result.data.map(l => `<tr data-load-id="${l.load_id}" data-load-times='${JSON.stringify({start: l.bidding_start_time, end: l.bidding_end_time})}'><td><input type="checkbox" class="form-check-input load-checkbox"></td><td>${l.inhouse_requisition_no || '-'}</td><td>${l.load_id}</td><td>${l.loading_point_address}</td><td>${l.unloading_point_address}</td><td>${l.item_name}</td><td>${l.truck_name}</td><td>${l.approx_weight_tonnes}T</td><td>${formatDate(l.requirement_date)}</td><td><span class="badge bg-${getBadgeColor(l.status)}">${l.status}</span></td><td>${l.l1_bid ? formatCurrency(l.l1_bid) : '-'}</td><td>${l.remarks || '-'}</td><td><div class="btn-group btn-group-sm"><button class="btn btn-info" title="View Bids" onclick="openViewBidsModal(${l.load_id})"><i class="fas fa-gavel"></i></button><button class="btn btn-secondary" title="Assign Truckers" onclick="openAssignTruckersModal(${l.requisition_id})"><i class="fas fa-users"></i></button><button class="btn btn-warning" title="Set Time" onclick="openSetBiddingTimeModal(${l.load_id})"><i class="fas fa-clock"></i></button></div></td></tr>`).join('')); tbody.parent().parent().show(); empty.empty(); } catch (e) {} }
+        
         async function load_admin_manage_loads_view() { const tbody = $('#admin-manage-loads-tbody'), empty = $('#admin-manage-loads-empty-state'); try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().parent().hide(); const result = await apiCall('/admin/all-loads', 'GET', {}); if (result.data.length === 0) { tbody.parent().parent().show(); return renderEmptyState(empty, 'No loads found.');} tbody.html(result.data.map(l => `<tr><td>${l.inhouse_requisition_no || '-'}</td><td>${l.load_id}</td><td>${l.loading_point_address}</td><td>${l.unloading_point_address}</td><td>${l.item_name}</td><td>${l.truck_name}</td><td>${l.approx_weight_tonnes}T</td><td>${formatDate(l.requirement_date)}</td><td><span class="badge bg-${getBadgeColor(l.status)}">${l.status}</span></td><td>${l.remarks || '-'}</td><td><div class="btn-group btn-group-sm"><button class="btn btn-primary" title="Edit Load" onclick="openEditLoadModal(${l.load_id})"><i class="fas fa-edit"></i></button><button class="btn btn-danger" title="Delete Load" onclick="handleDeleteLoad(${l.load_id})"><i class="fas fa-trash"></i></button></div></td></tr>`).join('')); tbody.parent().parent().show(); empty.empty(); } catch (e) {} }
+        
         async function load_admin_bidding_history_view() { const tbody = $('#admin-bids-tbody'), empty = $('#admin-bids-empty-state'); try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().parent().hide(); const filters = { startDate: $('#admin-bids-filter-start-date').val(), endDate: $('#admin-bids-filter-end-date').val() }; const result = await apiCall('/admin/bidding-history', 'GET', filters); if (result.data.length === 0) { tbody.parent().parent().show(); return renderEmptyState(empty, 'No bidding history found.'); } tbody.html(result.data.map(b => `<tr><td>${b.inhouse_requisition_no || '-'}</td><td>${b.load_id}</td><td>${b.loading_point_address}</td><td>${b.unloading_point_address}</td><td>${b.item_name}</td><td>${b.truck_name}</td><td>${formatDate(b.requirement_date)}</td><td>${b.trucker_name}</td><td><strong>${formatCurrency(b.bid_amount)}</strong></td><td>${b.remarks || '-'}</td><td>${formatDate(b.submitted_at, true)}</td></tr>`).join('')); tbody.parent().parent().show(); empty.empty(); } catch (e) {} }
-        async function load_admin_awarded_contracts_view() { const tbody = $('#admin-awarded-tbody'), empty = $('#admin-awarded-empty-state'); try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().parent().hide(); const filters = { startDate: $('#admin-awarded-filter-start-date').val(), endDate: $('#admin-awarded-filter-end-date').val() }; const result = await apiCall('/admin/awarded-contracts', 'GET', filters); if (result.data.length === 0) { tbody.parent().parent().show(); return renderEmptyState(empty, 'No contracts awarded yet.', 'fa-trophy'); } tbody.html(result.data.map(c => `<tr><td><input type="checkbox" class="form-check-input awarded-load-checkbox" data-load-id="${c.load_id}"></td><td>${c.inhouse_requisition_no || '-'}</td><td>${c.requisition_id}</td><td>${c.load_id}</td><td>${c.trucker_name}</td><td><small>${c.trucker_email || ''}<br>${c.trucker_contact || ''}</small></td><td><small>${c.loading_point_address} to ${c.unloading_point_address}</small></td><td>${c.item_name || 'N/A'}</td><td>${c.truck_name || 'N/A'}</td><td>${c.requirement_date ? formatDate(c.requirement_date) : 'N/A'}</td><td><strong>${formatCurrency(c.awarded_amount)}</strong></td><td>${c.remarks || '-'}</td><td>${formatDate(c.awarded_date)}</td></tr>`).join('')); tbody.parent().parent().show(); empty.empty(); } catch (e) {} }
+
+        async function load_admin_awarded_contracts_view() { 
+            const tbody = $('#admin-awarded-tbody'), empty = $('#admin-awarded-empty-state'); 
+            try { 
+                renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); 
+                tbody.parent().parent().hide(); 
+                const filters = { startDate: $('#admin-awarded-filter-start-date').val(), endDate: $('#admin-awarded-filter-end-date').val() }; 
+                const result = await apiCall('/admin/awarded-contracts', 'GET', filters); 
+                if (result.data.length === 0) { 
+                    tbody.parent().parent().show(); 
+                    return renderEmptyState(empty, 'No contracts awarded yet.', 'fa-trophy'); 
+                } 
+                tbody.html(result.data.map(c => {
+                    const contractJsonString = JSON.stringify(c).replace(/'/g, "\\'"); // Escape single quotes for onclick attribute
+                    return `<tr>
+                        <td><input type="checkbox" class="form-check-input awarded-load-checkbox" data-load-id="${c.load_id}"></td>
+                        <td>${c.inhouse_requisition_no || '-'}</td>
+                        <td>${c.load_id}</td>
+                        <td>${c.trucker_name}</td>
+                        <td><small>${c.trucker_email || ''}<br>${c.trucker_contact || ''}</small></td>
+                        <td><small>${c.loading_point_address} to ${c.unloading_point_address}</small></td>
+                        <td>${c.item_name || 'N/A'}</td>
+                        <td>${c.truck_name || 'N/A'}</td>
+                        <td>${c.requirement_date ? formatDate(c.requirement_date) : 'N/A'}</td>
+                        <td><strong>${formatCurrency(c.awarded_amount)}</strong></td>
+                        <td>${formatDate(c.awarded_date)}</td>
+                        <td><button class="btn btn-sm btn-info" onclick='sendAwardConfirmation(${contractJsonString})'><i class="fas fa-envelope"></i></button></td>
+                    </tr>`;
+                }).join('')); 
+                tbody.parent().parent().show(); 
+                empty.empty(); 
+            } catch (e) {} 
+        }
+
         async function load_admin_reports_view() { const kpiContainer = $('#report-kpis'), tableBody = $('#detailed-report-table tbody'); try { kpiContainer.html(renderEmptyState(null, 'Loading...', 'fa-spinner fa-spin')); tableBody.empty(); const result = await apiCall('/admin/reports-data', 'POST', { startDate: $('#report-start-date').val(), endDate: $('#report-end-date').val() }); const { kpis, detailedReport, chartsData } = result.data; const awardedLoadsCount = kpis.awardedLoads || 0; kpiContainer.html(`<div class="col-md-6"><div class="card card-body"><h6>Total Spend</h6><h3 class="fw-bold">${formatCurrency(kpis.totalSpend)}</h3></div></div><div class="col-md-6"><div class="card card-body"><h6>Total Loads Awarded</h6><h3 class="fw-bold">${awardedLoadsCount}</h3></div></div>`); if (detailedReport.length === 0) { tableBody.html(`<tr><td colspan="12" class="text-center text-muted">No data for this period.</td></tr>`); } else { tableBody.html(detailedReport.map(r => `<tr><td>${r.inhouse_requisition_no || '-'}</td><td>${r.load_id}</td><td>${r.loading_point_address}</td><td>${r.unloading_point_address}</td><td>${r.item_name}</td><td>${r.truck_name}</td><td>${r.approx_weight_tonnes}T</td><td>${formatDate(r.requirement_date)}</td><td>${r.trucker_name}</td><td>${formatCurrency(r.awarded_amount)}</td><td>${r.remarks || '-'}</td><td>${formatDate(r.awarded_date)}</td></tr>`).join('')); } if(chartsData) { createChart('top-truckers-chart', 'pie', { labels: chartsData.topTruckers.labels, datasets: [{ data: chartsData.topTruckers.data, backgroundColor: ['#5E72E4', '#2DCE89', '#FB6340', '#11CDEF', '#F5365C'] }] }); createChart('spend-material-chart', 'bar', { labels: chartsData.spendByMaterial.labels, datasets: [{ label: 'Spend', data: chartsData.spendByMaterial.data, backgroundColor: '#FB6340' }] }); createChart('spend-time-chart', 'line', { labels: chartsData.spendOverTime.labels, datasets: [{ label: 'Total Spend', data: chartsData.spendOverTime.data, borderColor: '#5E72E4', tension: 0.1 }] }); } } catch (e) {} }
         
         async function openSetBiddingTimeModal(loadId) {
@@ -640,14 +676,10 @@
                 return showToast('Please select a Bidding Start Time.', 'error');
             }
 
-            // 1. Format start time directly from string to match DB format
             const formattedStartTime = startTimeStr.replace('T', ' ') + ':00';
-
-            // 2. Calculate end time using Date object for reliable arithmetic
             const startTimeObj = new Date(startTimeStr);
             const endTimeObj = new Date(startTimeObj.getTime() + durationMinutes * 60000);
 
-            // 3. Helper to format end time manually to YYYY-MM-DD HH:MM:SS, avoiding timezone conversion
             const pad = (num) => num.toString().padStart(2, '0');
             const formattedEndTime = `${endTimeObj.getFullYear()}-${pad(endTimeObj.getMonth() + 1)}-${pad(endTimeObj.getDate())} ${pad(endTimeObj.getHours())}:${pad(endTimeObj.getMinutes())}:${pad(endTimeObj.getSeconds())}`;
 
@@ -660,13 +692,50 @@
                 showToast('Bidding time updated!', 'success');
                 setBiddingTimeModal.hide();
                 load_admin_all_loads_view();
-            } catch (e) {
-                // Error is shown by apiCall function
-            }
+            } catch (e) {}
         }
 
-        function openBulkSetTimeModal() { const selectedLoads = $('.load-checkbox:checked').map((i, el) => $(el).closest('tr').data('load-id')).get(); if (selectedLoads.length === 0) { return showToast('Please select at least one load to set time.', 'warning'); } $('#bulk-set-time-count').text(selectedLoads.length); $('#bulkSetTimeStartTime').val(''); bulkSetTimeModal.show(); }
-        async function handleBulkSetTimeSubmit() { const loadIds = $('.load-checkbox:checked').map((i, el) => $(el).closest('tr').data('load-id')).get(); const startTimeStr = $('#bulkSetTimeStartTime').val(); const durationMinutes = parseInt($('#bulkSetTimeDuration').val(), 10); if (!startTimeStr) { return showToast('Please select a Bidding Start Time.', 'error'); } const startTime = new Date(startTimeStr); const endTime = new Date(startTime.getTime() + durationMinutes * 60000); try { const result = await apiCall('/admin/loads/bulk-bidding-time', 'PUT', { loadIds, startTime: startTime.toISOString().slice(0, 19).replace('T', ' '), endTime: endTime.toISOString().slice(0, 19).replace('T', ' ') }); showToast(result.message, 'success'); bulkSetTimeModal.hide(); load_admin_all_loads_view(); } catch (e) {} }
+        function openBulkSetTimeModal() { 
+            const selectedLoads = $('.load-checkbox:checked').map((i, el) => $(el).closest('tr').data('load-id')).get(); 
+            if (selectedLoads.length === 0) { 
+                return showToast('Please select at least one load to set time.', 'warning'); 
+            } 
+            $('#bulk-set-time-count').text(selectedLoads.length); 
+            $('#bulkSetTimeStartTime').val(''); 
+            bulkSetTimeModal.show(); 
+        }
+
+        async function handleBulkSetTimeSubmit() {
+            const loadIds = $('.load-checkbox:checked').map((i, el) => $(el).closest('tr').data('load-id')).get();
+            const startTimeStr = $('#bulkSetTimeStartTime').val();
+            const durationMinutes = parseInt($('#bulkSetTimeDuration').val(), 10);
+
+            if (loadIds.length === 0) {
+                return showToast('Please select at least one load.', 'warning');
+            }
+            if (!startTimeStr) {
+                return showToast('Please select a Bidding Start Time.', 'error');
+            }
+
+            const formattedStartTime = startTimeStr.replace('T', ' ') + ':00';
+            const startTimeObj = new Date(startTimeStr);
+            const endTimeObj = new Date(startTimeObj.getTime() + durationMinutes * 60000);
+            
+            const pad = (num) => num.toString().padStart(2, '0');
+            const formattedEndTime = `${endTimeObj.getFullYear()}-${pad(endTimeObj.getMonth() + 1)}-${pad(endTimeObj.getDate())} ${pad(endTimeObj.getHours())}:${pad(endTimeObj.getMinutes())}:${pad(endTimeObj.getSeconds())}`;
+
+            try {
+                const result = await apiCall('/admin/loads/bulk-bidding-time', 'PUT', {
+                    loadIds,
+                    startTime: formattedStartTime,
+                    endTime: formattedEndTime
+                });
+                showToast(result.message, 'success');
+                bulkSetTimeModal.hide();
+                load_admin_all_loads_view();
+            } catch (e) {}
+        }
+        
         function showToast(m, t = 'info') { const c = $('#toast-container'), e = $(`<div><i class="fas ${t === 'success' ? 'fa-check-circle' : 'fa-times-circle'} me-2"></i><span>${m}</span></div>`).addClass(`toast-notification ${t}`); c.append(e); setTimeout(() => e.remove(), 4000); }
         function showLoader() { $('#loader-overlay').removeClass('hidden'); }
         function hideLoader() { $('#loader-overlay').addClass('hidden'); }
@@ -678,6 +747,40 @@
         function createChart(chartId, type, data, options = {}) { if (charts[chartId]) charts[chartId].destroy(); const ctx = document.getElementById(chartId)?.getContext('2d'); if (!ctx) return; charts[chartId] = new Chart(ctx, { type, data, options: { responsive: true, maintainAspectRatio: false, ...options } }); }
         async function fetchSidebarCounts() { try { const result = await apiCall('/sidebar-counts', 'GET', null, false, false); if (result.success) { $('#badge-unread-messages').text(result.data.unreadMessages > 0 ? result.data.unreadMessages : '').toggle(result.data.unreadMessages > 0); $('#badge-pending-loads').text(result.data.pendingLoads > 0 ? result.data.pendingLoads : '').toggle(result.data.pendingLoads > 0); $('#badge-pending-users').text(result.data.pendingUsers > 0 ? result.data.pendingUsers : '').toggle(result.data.pendingUsers > 0); if(result.data.unreadMessages > 0) { $('#notification-bell-badge').removeClass('visually-hidden'); } else { $('#notification-bell-badge').addClass('visually-hidden'); } } } catch (e) {} }
         
+        // --- EMAIL FUNCTIONS ---
+        function generateAwardMailBody(c) {
+            const body = `Dear ${c.trucker_name},
+
+Congratulations! You have been awarded the following contract:
+
+----------------------------------------
+Inhouse Req No.: ${c.inhouse_requisition_no || 'N/A'}
+Loading Point: ${c.loading_point_address}
+Unloading Point: ${c.unloading_point_address}
+Material: ${c.item_name || 'N/A'}
+Truck: ${c.truck_name || 'N/A'}
+Weight: ${c.approx_weight_tonnes ? c.approx_weight_tonnes + 'T' : 'N/A'}
+Req. Date: ${c.requirement_date ? formatDate(c.requirement_date) : 'N/A'}
+Your Awarded Bid: ${formatCurrency(c.awarded_amount)}
+----------------------------------------
+
+Please proceed with the next steps as per our agreement.
+
+Regards,
+DEB'S LOGISTICS`;
+            return body;
+        }
+
+        function sendAwardConfirmation(contract) {
+          if (!contract.trucker_email) {
+            return showToast('This trucker does not have an email address.', 'error');
+          }
+          const subject = `Contract Award Confirmation - Load ID: ${contract.load_id}`;
+          const body = generateAwardMailBody(contract);
+          const mailtoLink = `mailto:${contract.trucker_email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+          window.location.href = mailtoLink;
+        }
+
         async function openViewBidsModal(loadId) { $('#viewBidsModalTitle').text(`Bids for Load #${loadId}`); $('#viewBidsModalBody').html(renderEmptyState(null, 'Loading bids...', 'fa-spinner fa-spin')); viewBidsModal.show(); try { const result = await apiCall(`/admin/loads/${loadId}/bids`); if (!result.data || !result.data.bids) { throw new Error("Invalid data received for bids."); } if (result.data.bids.length === 0) { $('#viewBidsModalBody').html('<p class="text-center">No bids have been submitted for this load yet.</p>'); return; } const bidsHTML = `<table class="table table-sm"><thead><tr><th>Select</th><th>Rank</th><th>Trucker</th><th>Bid Amount</th><th>Negotiation Rate</th><th>Date</th></tr></thead><tbody>` + result.data.bids.map((b, i) => { const bidData = { ...b, ...result.data.loadDetails }; return `<tr><td><input class="form-check-input" type="radio" name="award-radio-${loadId}" value='${JSON.stringify(bidData)}'></td><td><span class="badge bg-info">L${i + 1}</span></td><td>${b.trucker_name}</td><td><strong>${formatCurrency(b.bid_amount)}</strong></td><td><input type="number" class="form-control form-control-sm negotiation-rate" placeholder="Final Rate"></td><td>${formatDate(b.submitted_at, true)}</td></tr>` }).join('') + `</tbody></table><div class="mt-3"><label>Remarks</label><textarea class="form-control" id="award-remarks-${loadId}"></textarea><button class="btn btn-success mt-2 float-end" onclick="handleSingleAward(${loadId})">Award Selected</button></div>`; $('#viewBidsModalBody').html(bidsHTML); } catch (e) { $('#viewBidsModalBody').html(renderEmptyState(null, 'Could not load bids. Please try again.', 'fa-exclamation-triangle')); } }
         
         async function handleSingleAward(loadId) {
