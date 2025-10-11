@@ -62,7 +62,14 @@
         .card-header { background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); font-weight: 600; padding: 1.25rem 1.5rem; }
         .card-body { padding: 1.5rem; }
         .table-hover>tbody>tr:hover>* { background-color: #f6f9fc; cursor: pointer; }
-        .table th, .table td { white-space: nowrap; vertical-align: middle; }
+        
+        /* --- CHANGE: Auto wrap ke liye CSS add kiya gaya --- */
+        .table th, .table td { 
+            white-space: normal !important; 
+            vertical-align: middle; 
+            word-break: break-word;
+        }
+
         .table th i { margin-right: 8px; color: var(--text-muted); }
         .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
         .empty-state i { font-size: 2.5rem; margin-bottom: 1rem; }
