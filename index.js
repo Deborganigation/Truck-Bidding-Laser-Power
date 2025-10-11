@@ -66,7 +66,7 @@ const isAdmin = (req, res, next) => {
     next();
 };
 
-// FIX: Updates the email template to use separate Loading/Unloading Point columns
+// FIX: Updates the email template for better text wrapping and mobile view
 const sendAwardNotificationEmails = async (awardedBids) => {
     if (!process.env.SENDGRID_API_KEY || !process.env.SENDER_EMAIL) { return; }
     if (!awardedBids || awardedBids.length === 0) { return; }
@@ -82,7 +82,7 @@ const sendAwardNotificationEmails = async (awardedBids) => {
             notificationsByVendor[bid.vendor_id] = { vendorName: bid.trucker_name, vendorEmail: bid.trucker_email, loads: [], totalValue: 0 };
         }
         notificationsByVendor[bid.vendor_id].loads.push(bid);
-        notificationsByVendor[bid.vendor_id].totalValue += parseFloat(bid.final_amount); // Use final_amount
+        notificationsByVendor[bid.vendor_id].totalValue += parseFloat(bid.final_amount);
     }
 
     const [adminRows] = await dbPool.query("SELECT email FROM users WHERE role IN ('Admin', 'Super Admin') AND is_active = 1");
@@ -95,14 +95,14 @@ const sendAwardNotificationEmails = async (awardedBids) => {
         const loadsHtml = notification.loads.map(load => {
             const reqDate = new Date(load.requirement_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
             return `<tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: center;">${load.load_id}</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6;">${load.loading_point_address}</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6;">${load.unloading_point_address}</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6;">${load.item_name}</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6;">${load.truck_name}</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: right;">${parseFloat(load.approx_weight_tonnes).toFixed(2)}T</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: center;">${reqDate}</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: right; font-weight: bold;">₹${parseFloat(load.final_amount).toLocaleString('en-IN')}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: center; word-break: break-word;">${load.load_id}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6; word-break: break-word;">${load.loading_point_address}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6; word-break: break-word;">${load.unloading_point_address}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6; word-break: break-word;">${load.item_name}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6; word-break: break-word;">${load.truck_name}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: right; word-break: break-word;">${parseFloat(load.approx_weight_tonnes).toFixed(2)}T</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: center; word-break: break-word;">${reqDate}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: right; font-weight: bold; word-break: break-word;">₹${parseFloat(load.final_amount).toLocaleString('en-IN')}</td>
                     </tr>`;
         }).join('');
 
@@ -113,27 +113,29 @@ const sendAwardNotificationEmails = async (awardedBids) => {
             <div style="padding: 20px;">
                 <p>Dear ${notification.vendorName},</p>
                 <p>Congratulations! We are pleased to inform you that you have been awarded the following load(s):</p>
-                <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;">
-                    <thead style="background-color: #f8f9fa;">
-                        <tr>
-                            <th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6;">Load ID</th>
-                            <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Loading Point</th>
-                            <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Unloading Point</th>
-                            <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Material</th>
-                            <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Truck</th>
-                            <th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Weight</th>
-                            <th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6;">Req. Date</th>
-                            <th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Your Awarded Bid</th>
-                        </tr>
-                    </thead>
-                    <tbody>${loadsHtml}</tbody>
-                    <tfoot>
-                        <tr style="font-weight: bold; background-color: #f8f9fa;">
-                            <td colspan="7" style="padding: 10px; text-align: right;">Total Value:</td>
-                            <td style="padding: 10px; text-align: right;">₹${notification.totalValue.toLocaleString('en-IN')}</td>
-                        </tr>
-                    </tfoot>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; table-layout: fixed;">
+                        <thead style="background-color: #f8f9fa;">
+                            <tr>
+                                <th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6; width: 50px;">Load ID</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Loading Point</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Unloading Point</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Material</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Truck</th>
+                                <th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Weight</th>
+                                <th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6;">Req. Date</th>
+                                <th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Your Awarded Bid</th>
+                            </tr>
+                        </thead>
+                        <tbody>${loadsHtml}</tbody>
+                        <tfoot>
+                            <tr style="font-weight: bold; background-color: #f8f9fa;">
+                                <td colspan="7" style="padding: 10px; text-align: right;">Total Value:</td>
+                                <td style="padding: 10px; text-align: right;">₹${notification.totalValue.toLocaleString('en-IN')}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
                 <p style="margin-top: 25px;">Our team will contact you shortly regarding the next steps. Thank you for your participation.</p>
                 <p>Sincerely,<br/><b>The DEB'S LOGISTICS Team</b></p>
             </div>
@@ -331,7 +333,7 @@ apiRouter.get('/admin/awarded-contracts', authenticateToken, isAdmin, async (req
                 tl.requirement_date, 
                 tl.approx_weight_tonnes, 
                 tl.inhouse_requisition_no,
-                tl.remarks,
+                ac.remarks,
                 im.item_name, 
                 ttm.truck_name 
             FROM awarded_contracts ac 
@@ -441,7 +443,7 @@ apiRouter.post('/admin/reports-data', authenticateToken, isAdmin, async (req, re
                     ac.awarded_amount, 
                     ac.awarded_date, 
                     tl.requirement_date,
-                    tl.remarks
+                    ac.remarks
                 FROM awarded_contracts ac 
                 JOIN truck_loads tl ON ac.load_id = tl.load_id 
                 JOIN users u ON ac.vendor_id = u.user_id 
@@ -485,7 +487,7 @@ apiRouter.post('/loads/bulk-approve', authenticateToken, isAdmin, async (req, re
         await connection.query("UPDATE truck_loads SET status = 'Active', bidding_start_time = ?, bidding_end_time = ? WHERE load_id IN (?) AND status = 'Pending Approval'", [startTime, endTime, loadIds]);
         
         // Find unique requisition IDs for the approved loads
-        const [reqs] = await connection.query("SELECT DISTINCT requisition_id FROM truck_loads WHERE load_id IN (?)", [loadIds]);
+        const [reqs] = await dbPool.query("SELECT DISTINCT requisition_id FROM truck_loads WHERE load_id IN (?)", [loadIds]);
         const requisitionIds = reqs.map(r => r.requisition_id);
 
         if (requisitionIds.length > 0) {
