@@ -837,7 +837,6 @@
                 showToast('No data available to download for the current filters.', 'info');
                 return;
             }
-
             try {
                 const ws = XLSX.utils.json_to_sheet(dataToDownload);
                 const wb = XLSX.utils.book_new();
