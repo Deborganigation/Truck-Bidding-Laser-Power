@@ -29,7 +29,7 @@ if (process.env.SENDGRID_API_KEY) {
     try {
         await fs.access(ERROR_REPORTS_DIR);
     } catch (e) {
-        await fs.mkdir(ERROR_REPORTS_DIR);
+        await fs.mkdir(ERROR_REPORTS_DIR, { recursive: true });
         console.log(`✅ Created '${ERROR_REPORTS_DIR}' directory.`);
     }
 })();
@@ -130,13 +130,30 @@ async function processBulkUpload(uploadId, jsonData, userId) {
             const truckName = row.TruckName ? String(row.TruckName).trim().toLowerCase() : null;
             const itemId = itemMap.get(materialName);
             const truckTypeId = truckMap.get(truckName);
+            
+            // FIX: Convert JS Date from Excel into a MySQL-friendly 'YYYY-MM-DD' format.
+            let requirementDate = row.RequirementDate;
+            if (requirementDate instanceof Date) {
+                // Adjust for timezone offset to prevent saving the previous day in UTC environments
+                const tzoffset = requirementDate.getTimezoneOffset() * 60000;
+                const localDate = new Date(requirementDate.getTime() - tzoffset);
+                requirementDate = localDate.toISOString().split('T')[0];
+            } else if (typeof requirementDate === 'number') {
+                 // Fallback for Excel serial number if cellDates somehow fails
+                const excelEpoch = new Date(1899, 11, 30);
+                const jsDate = new Date(excelEpoch.getTime() + requirementDate * 86400000);
+                const tzoffset = jsDate.getTimezoneOffset() * 60000;
+                const localDate = new Date(jsDate.getTime() - tzoffset);
+                requirementDate = localDate.toISOString().split('T')[0];
+            }
+
             let errorReason = '';
             if (!row.LoadingPoint) errorReason = 'LoadingPoint is missing.';
             else if (!row.UnloadingPoint) errorReason = 'UnloadingPoint is missing.';
             else if (!itemId) errorReason = `MaterialName '${row.MaterialName}' not found or is inactive.`;
             else if (!truckTypeId) errorReason = `TruckName '${row.TruckName}' not found or is inactive.`;
             else if (!row.WeightInTonnes) errorReason = 'WeightInTonnes is missing.';
-            else if (!row.RequirementDate) errorReason = 'RequirementDate is missing.';
+            else if (!requirementDate) errorReason = 'RequirementDate is missing.';
             if (errorReason) {
                 errors.push({ ...row, ErrorReason: errorReason });
                 continue;
@@ -144,7 +161,7 @@ async function processBulkUpload(uploadId, jsonData, userId) {
             try {
                 await connection.query(
                     `INSERT INTO truck_loads (requisition_id, created_by, loading_point_address, unloading_point_address, item_id, approx_weight_tonnes, truck_type_id, requirement_date, status, inhouse_requisition_no, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending Approval', ?, ?)`,
-                    [reqId, userId, row.LoadingPoint, row.UnloadingPoint, itemId, row.WeightInTonnes, truckTypeId, row.RequirementDate, row.InhouseRequestionNo, row.Remarks]
+                    [reqId, userId, row.LoadingPoint, row.UnloadingPoint, itemId, row.WeightInTonnes, truckTypeId, requirementDate, row.InhouseRequestionNo, row.Remarks]
                 );
                 successCount++;
             } catch (dbError) {
@@ -231,36 +248,29 @@ apiRouter.get('/conversations', authenticateToken, async (req, res, next) => { t
 apiRouter.get('/messages/:otherUserId', authenticateToken, async (req, res, next) => { let connection; try { connection = await dbPool.getConnection(); const { otherUserId } = req.params; const myId = req.user.userId; await connection.beginTransaction(); const [messages] = await connection.query('SELECT * FROM messages WHERE (sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?) ORDER BY timestamp ASC', [myId, otherUserId, otherUserId, myId]); await connection.query("UPDATE messages SET status = 'read' WHERE recipient_id = ? AND sender_id = ? AND status != 'read'", [myId, otherUserId]); await connection.commit(); res.json({ success: true, data: messages }); } catch(e) { if(connection) await connection.rollback(); next(e); } finally { if(connection) connection.release(); }});
 apiRouter.get('/sidebar-counts', authenticateToken, async (req, res, next) => { try { let counts = { unreadMessages: 0, pendingLoads: 0, pendingUsers: 0 }; const [[msgCount]] = await dbPool.query("SELECT COUNT(*) as count FROM messages WHERE recipient_id = ? AND status != 'read'", [req.user.userId]); counts.unreadMessages = msgCount.count; if(req.user.role === 'Admin' || req.user.role === 'Super Admin') { const [[pendingUsers]] = await dbPool.query("SELECT COUNT(*) as count FROM pending_users"); counts.pendingUsers = pendingUsers.count; const [[pendingLoads]] = await dbPool.query("SELECT COUNT(*) as count FROM truck_loads WHERE status = 'Pending Approval'"); counts.pendingLoads = pendingLoads.count; } res.json({ success: true, data: counts }); } catch(e){next(e)} });
 
-// =========================================================================
-// FINAL FIX: Add the missing route for bulk load uploads with 'total_rows' fix
-// =========================================================================
 apiRouter.post('/loads/bulk-upload', authenticateToken, isAdmin, upload.single('bulkFile'), async (req, res, next) => {
     if (!req.file) {
         return res.status(400).json({ success: false, message: 'No Excel file provided.' });
     }
 
     try {
-        // Step 1: Read the file to get row count first
         const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
-        const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+        // FIX: Add { cellDates: true } to correctly parse dates
+        const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { cellDates: true });
         const totalRows = jsonData.length;
 
-        // Step 2: Insert the initial record into the database WITH total_rows
         const [result] = await dbPool.query(
             "INSERT INTO bulk_upload_history (file_name, uploaded_by_user_id, status, started_at, total_rows) VALUES (?, ?, 'PROCESSING', NOW(), ?)",
             [req.file.originalname, req.user.userId, totalRows]
         );
         const uploadId = result.insertId;
 
-        // Step 3: Send an immediate response to the client
         res.status(202).json({ success: true, message: 'File received. Processing has started. Check history for status updates.' });
         
-        // Step 4: Process the actual upload in the background (no 'await' here)
         processBulkUpload(uploadId, jsonData, req.user.userId);
 
     } catch (error) {
         console.error("Error in bulk upload initial handling:", error);
-        // This will be caught by the global error handler
         next(error);
     }
 });
@@ -292,10 +302,9 @@ apiRouter.get('/admin/download-error-file/:uploadId', authenticateToken, isAdmin
         const fileName = path.basename(history.error_file_path);
         const filePath = path.join(ERROR_REPORTS_DIR, fileName);
         
-        // FINAL FIX: Explicitly set the content type header for .xlsx files
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 
-        res.download(filePath, `error_${history.file_name || 'report'}`, (err) => {
+        res.download(filePath, `error_${history.file_name || 'report'}.xlsx`, (err) => {
             if (err) {
                  console.error("Error downloading file:", err);
                  if (!res.headersSent) {
@@ -324,4 +333,3 @@ app.use((err, req, res, next) => {
 });
 
 module.exports = app;
-
