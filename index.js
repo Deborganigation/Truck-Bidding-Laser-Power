@@ -181,9 +181,10 @@ async function processBulkUpload(uploadId, jsonData, userId) {
                 continue;
             }
             try {
+                // FINAL FIX: Changed row.InhouseRequestionNo to row.InhouseRequisitionNo
                 await connection.query(
                     `INSERT INTO truck_loads (requisition_id, created_by, loading_point_address, unloading_point_address, item_id, approx_weight_tonnes, truck_type_id, requirement_date, status, inhouse_requisition_no, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending Approval', ?, ?)`,
-                    [reqId, userId, row.LoadingPoint, row.UnloadingPoint, itemId, row.WeightInTonnes, truckTypeId, requirementDate, row.InhouseRequestionNo, row.Remarks]
+                    [reqId, userId, row.LoadingPoint, row.UnloadingPoint, itemId, row.WeightInTonnes, truckTypeId, requirementDate, row.InhouseRequisitionNo, row.Remarks]
                 );
                 successCount++;
             } catch (dbError) {
