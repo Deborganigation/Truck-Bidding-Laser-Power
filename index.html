@@ -73,163 +73,47 @@
         /* ===== NEW RESPONSIVE & UI STYLES ======== */
         /* ========================================= */
 
-        /* Better Card Design */
-        .card {
-            border: none;
-            border-radius: .75rem; /* Smoother corners */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            transition: all 0.2s ease-in-out;
-        }
-
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-
-        .card-header {
-            background-color: #fff;
-            border-bottom: 1px solid #e9ecef;
-            padding: 1rem 1.5rem;
-        }
-
-        /* Advanced Stat Card for Dashboard */
-        .stat-card {
-            border-radius: .75rem;
-            color: white;
-            padding: 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: transform 0.2s ease;
-            cursor: pointer;
-        }
-
-        .stat-card:hover {
-            transform: scale(1.03);
-        }
-
-        .stat-card h5 {
-            font-size: 1rem;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-card .display-4 {
-            font-weight: 700;
-        }
-
-        .stat-card .stat-icon {
-            font-size: 3rem;
-            opacity: 0.3;
-        }
-
+        .card { border: none; border-radius: .75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); transition: all 0.2s ease-in-out; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .card-header { background-color: #fff; border-bottom: 1px solid #e9ecef; padding: 1rem 1.5rem; }
+        .stat-card { border-radius: .75rem; color: white; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; transition: transform 0.2s ease; cursor: pointer; }
+        .stat-card:hover { transform: scale(1.03); }
+        .stat-card h5 { font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem; }
+        .stat-card .display-4 { font-weight: 700; }
+        .stat-card .stat-icon { font-size: 3rem; opacity: 0.3; }
         .bg-gradient-primary { background: linear-gradient(87deg, #5e72e4 0, #825ee4 100%) !important; }
         .bg-gradient-success { background: linear-gradient(87deg, #2dce89 0, #2dcecc 100%) !important; }
         .bg-gradient-info { background: linear-gradient(87deg, #11cdef 0, #1171ef 100%) !important; }
         .bg-gradient-warning { background: linear-gradient(87deg, #fb6340 0, #fbb140 100%) !important; }
 
-        /* Table Alignment & Styles */
-        .table th, .table td {
-            text-align: center; /* Center aligns all table data */
-            vertical-align: middle;
-        }
-        
-        .table th {
-            white-space: nowrap;
-        }
+        .table th, .table td { text-align: center; vertical-align: middle; }
+        .table th { white-space: nowrap; }
+        .table-responsive { word-break: normal; }
 
-        .table-responsive {
-            word-break: normal;
-        }
-
-        /* Making it Mobile Friendly */
         @media (max-width: 768px) {
-            .table {
-                font-size: 0.85rem;
-            }
-            .table th, .table td {
-                padding: 0.5rem 0.4rem;
-            }
-            .card-header h5, #header-title {
-                font-size: 1.1rem;
-            }
-            .filters-card .col-md-3, .filters-card .col-md-4 {
-                flex: 0 0 50%;
-                max-width: 50%;
-            }
-            .main-content {
-                padding: 1rem 0.75rem;
-            }
-            .top-header {
-                padding: 0.75rem 1rem;
-            }
+            .table { font-size: 0.85rem; }
+            .table th, .table td { padding: 0.5rem 0.4rem; }
+            .card-header h5, #header-title { font-size: 1.1rem; }
+            .filters-card .col-md-3, .filters-card .col-md-4 { flex: 0 0 50%; max-width: 50%; }
+            .main-content { padding: 1rem 0.75rem; }
+            .top-header { padding: 0.75rem 1rem; }
         }
 
         /* ========================================= */
         /* ====== WHATSAPP-LIKE CHAT STYLES ======== */
         /* ========================================= */
-        #chat-messages {
-            background-color: #f0f2f5;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .message-wrapper {
-            display: flex;
-            margin-bottom: 10px;
-            max-width: 75%;
-        }
-
-        .message-bubble {
-            padding: 8px 12px;
-            border-radius: 12px;
-            position: relative;
-            word-break: break-word;
-        }
-
-        .message-wrapper.received {
-            align-self: flex-start;
-        }
-        .message-bubble.received-bubble {
-            background-color: #ffffff;
-            border-top-left-radius: 0;
-            box-shadow: 0 1px 1px rgba(0,0,0,0.05);
-        }
-
-        .message-wrapper.sent {
-            align-self: flex-end;
-        }
-        .message-bubble.sent-bubble {
-            background-color: #dcf8c6;
-            border-top-right-radius: 0;
-            box-shadow: 0 1px 1px rgba(0,0,0,0.05);
-        }
-
-        .message-meta {
-            font-size: 0.75rem;
-            color: #8898aa;
-            text-align: right;
-            margin-top: 4px;
-        }
-
-        .message-ticks {
-            display: inline-block;
-            margin-left: 5px;
-            color: #8898aa;
-        }
-        .message-ticks.read {
-            color: #34b7f1;
-        }
-
-        #message-form .form-control {
-            border-radius: 20px;
-        }
-        #message-form .btn {
-            border-radius: 50%;
-            width: 45px;
-            height: 45px;
-        }
+        #chat-messages { background-color: #f0f2f5; padding: 15px; display: flex; flex-direction: column; }
+        .message-wrapper { display: flex; margin-bottom: 10px; max-width: 75%; }
+        .message-bubble { padding: 8px 12px; border-radius: 12px; position: relative; word-break: break-word; }
+        .message-wrapper.received { align-self: flex-start; }
+        .message-bubble.received-bubble { background-color: #ffffff; border-top-left-radius: 0; box-shadow: 0 1px 1px rgba(0,0,0,0.05); }
+        .message-wrapper.sent { align-self: flex-end; }
+        .message-bubble.sent-bubble { background-color: #dcf8c6; border-top-right-radius: 0; box-shadow: 0 1px 1px rgba(0,0,0,0.05); }
+        .message-meta { font-size: 0.75rem; color: #8898aa; text-align: right; margin-top: 4px; }
+        .message-ticks { display: inline-block; margin-left: 5px; color: #8898aa; }
+        .message-ticks.read { color: #34b7f1; }
+        #message-form .form-control { border-radius: 20px; }
+        #message-form .btn { border-radius: 50%; width: 45px; height: 45px; }
     </style>
 </head>
 <body>
@@ -290,16 +174,45 @@
             'trucker-open-loads-view': `<div class="view"><div class="card mb-4 filters-card"><div class="card-body"><div class="row g-3 align-items-end"><div class="col-md-4"><label class="form-label form-label-sm">Req. Start Date</label><input type="date" id="trucker-req-filter-start-date" class="form-control form-control-sm"></div><div class="col-md-4"><label class="form-label form-label-sm">Req. End Date</label><input type="date" id="trucker-req-filter-end-date" class="form-control form-control-sm"></div><div class="col-md-4"><button class="btn btn-primary btn-sm w-100" onclick="load_trucker_open_loads_view()">Apply Filters</button></div></div></div></div><div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2"><h5>Open Loads for Bidding</h5><button class="btn btn-success" onclick="handleBulkBidSubmit()"><i class="fas fa-check-double me-2"></i>Submit Bids</button></div><div id="trucker-bidding-table-container" class="card"></div></div>`,
             'trucker-bidding-history-view': `<div class="view"><div class="card mb-4 filters-card"><div class="card-body"><div class="row g-3 align-items-end"><div class="col-md-3"><label class="form-label form-label-sm">Status</label><select id="trucker-bids-filter-status" class="form-select form-select-sm"><option value="">All Statuses</option><option value="Active">Active</option><option value="Awarded">Awarded</option></select></div><div class="col-md-3"><label class="form-label form-label-sm">Start Date</label><input type="date" id="trucker-bids-filter-start-date" class="form-control form-control-sm"></div><div class="col-md-3"><label class="form-label form-label-sm">End Date</label><input type="date" id="trucker-bids-filter-end-date" class="form-control form-control-sm"></div><div class="col-md-3"><button class="btn btn-primary btn-sm w-100" onclick="load_trucker_bidding_history_view()">Apply Filters</button></div></div></div></div><div class="card"><div class="card-header d-flex justify-content-between"><h5>My Bidding History</h5><button class="btn btn-sm btn-success" onclick="downloadTableData('trucker-bids-table', 'Bidding_History.xlsx')"><i class="fas fa-download me-2"></i>Download</button></div><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle" id="trucker-bids-table"><thead class="table-light"><tr><th>Load ID</th><th>Inhouse Req No.</th><th>Loading Point</th><th>Unloading Point</th><th>Material</th><th>Truck Type</th><th>Weight</th><th>Req. Date</th><th>My Bid</th><th>My Rank</th><th>L1 Bid</th><th>Status</th><th>Remarks</th><th>Date</th></tr></thead><tbody id="trucker-bids-tbody"></tbody></table></div><div id="trucker-bids-empty-state"></div></div></div></div>`,
             'trucker-awarded-contracts-view': `<div class="view"><div class="card mb-4 filters-card"><div class="card-body"><div class="row g-3 align-items-end"><div class="col-md-4"><label class="form-label form-label-sm">Award Start Date</label><input type="date" id="trucker-awarded-filter-start-date" class="form-control form-control-sm"></div><div class="col-md-4"><label class="form-label form-label-sm">Award End Date</label><input type="date" id="trucker-awarded-filter-end-date" class="form-control form-control-sm"></div><div class="col-md-4"><button class="btn btn-primary btn-sm w-100" onclick="load_trucker_awarded_contracts_view()">Apply Filters</button></div></div></div></div><div class="card"><div class="card-header d-flex justify-content-between"><h5><i class="fas fa-trophy me-2"></i>My Awarded Contracts</h5><button class="btn btn-sm btn-success" onclick="downloadTableData('trucker-awarded-table', 'My_Contracts.xlsx')"><i class="fas fa-download me-2"></i>Download</button></div><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle" id="trucker-awarded-table"><thead class="table-light"><tr><th>Load ID</th><th>Loading Point</th><th>Unloading Point</th><th>Material</th><th>Truck Type</th><th>Weight</th><th>Req. Date</th><th>Awarded Amount</th><th>Award Date</th></tr></thead><tbody id="trucker-awarded-tbody"></tbody></table></div><div id="trucker-awarded-empty-state"></div></div></div></div>`,
-            'admin-dashboard-view': `<div class="row g-4 mb-4 view"><div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-primary" onclick="navigateTo('admin-all-loads-view')"><div><h5 class="mb-0">Active Loads</h5><p class="display-4" id="stats-active-loads">--</p></div><i class="fas fa-truck stat-icon"></i></div></div><div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-success" onclick="navigateTo('admin-user-approvals-view')"><div><h5 class="mb-0">Pending Users</h5><p class="display-4" id="stats-pending-users">--</p></div><i class="fas fa-user-check stat-icon"></i></div></div><div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-warning" onclick="navigateTo('admin-pending-loads-view')"><div><h5 class="mb-0">Pending Loads</h5><p class="display-4" id="stats-pending-loads">--</p></div><i class="fas fa-inbox stat-icon"></i></div></div><div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-info" onclick="navigateTo('admin-awarded-contracts-view')"><div><h5 class="mb-0">Loads Awarded</h5><p class="display-4" id="stats-awarded-contracts">--</p></div><i class="fas fa-trophy stat-icon"></i></div></div></div><div class="text-end mb-3"><button class="btn btn-primary" onclick="openBulkUploadModal('load')"><i class="fas fa-upload me-2"></i>Bulk Upload Loads</button></div><div class="row g-4"><div class="col-12"><div class="card"><div class="card-header"><h5 class="mb-0"><i class="fas fa-chart-area me-2"></i>Analytics Overview</h5></div><div class="card-body"><div class="row"><div class="col-lg-7 mb-4 mb-lg-0"><h6 class="text-muted text-center">Load Creation Trends</h6><div class="chart-container"><canvas id="adminLoadChart"></canvas></div></div><div class="col-lg-5"><h6 class="text-muted text-center">Top Trucker Bidding</h6><div class="chart-container"><canvas id="adminTruckerBiddingChart"></canvas></div></div></div></div></div></div></div>`,
+            'admin-dashboard-view': `<div class="row g-4 mb-4 view"><div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-primary" onclick="navigateTo('admin-all-loads-view')"><div><h5 class="mb-0">Active Loads</h5><p class="display-4" id="stats-active-loads">--</p></div><i class="fas fa-truck stat-icon"></i></div></div><div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-success" onclick="navigateTo('admin-user-approvals-view')"><div><h5 class="mb-0">Pending Users</h5><p class="display-4" id="stats-pending-users">--</p></div><i class="fas fa-user-check stat-icon"></i></div></div><div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-warning" onclick="navigateTo('admin-pending-loads-view')"><div><h5 class="mb-0">Pending Loads</h5><p class="display-4" id="stats-pending-loads">--</p></div><i class="fas fa-inbox stat-icon"></i></div></div><div class="col-lg-3 col-md-6"><div class="stat-card bg-gradient-info" onclick="navigateTo('admin-awarded-contracts-view')"><div><h5 class="mb-0">Loads Awarded</h5><p class="display-4" id="stats-awarded-contracts">--</p></div><i class="fas fa-trophy stat-icon"></i></div></div></div><div class="row g-4"><div class="col-12"><div class="card"><div class="card-header"><h5 class="mb-0"><i class="fas fa-chart-area me-2"></i>Analytics Overview</h5></div><div class="card-body"><div class="row"><div class="col-lg-7 mb-4 mb-lg-0"><h6 class="text-muted text-center">Load Creation Trends</h6><div class="chart-container"><canvas id="adminLoadChart"></canvas></div></div><div class="col-lg-5"><h6 class="text-muted text-center">Top Trucker Bidding</h6><div class="chart-container"><canvas id="adminTruckerBiddingChart"></canvas></div></div></div></div></div></div></div>`,
             
-            'admin-pending-loads-view': `<div class="card view"><div class="card-header d-flex justify-content-between"><h5>Pending Load Approvals</h5><button class="btn btn-sm btn-success" onclick="openBulkApproveModal()"><i class="fas fa-check-double me-2"></i>Approve Selected</button></div><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle" id="admin-pending-loads-table"><thead class="table-light"><tr><th><input type="checkbox" onchange="$(this).closest('table').find('.load-checkbox').prop('checked', this.checked)"></th><th>Inhouse Req No.</th><th>Load ID</th><th>Loading Point</th><th>Unloading Point</th><th>Material</th><th>Truck Type</th><th>Weight</th><th>Req. Date</th><th>Remarks</th></tr></thead><tbody id="admin-pending-loads-tbody"></tbody></table></div><div id="admin-pending-loads-empty-state"></div></div></div>`,
+            'admin-bulk-upload-history-view': `<div class="card view">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-history me-2"></i>Bulk Upload History</h5>
+                    <button class="btn btn-primary" onclick="openBulkUploadModal('load')">
+                        <i class="fas fa-upload me-2"></i>Bulk Upload Loads
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle" id="admin-bulk-history-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>File Name</th>
+                                    <th>Started at</th>
+                                    <th>Completed at</th>
+                                    <th>Uploaded by</th>
+                                    <th>Status</th>
+                                    <th>Total Rows</th>
+                                    <th>Success</th>
+                                    <th>Errors</th>
+                                    <th>Error File</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-bulk-history-tbody"></tbody>
+                        </table>
+                    </div>
+                    <div id="admin-bulk-history-empty-state"></div>
+                </div>
+            </div>`,
 
+            'admin-pending-loads-view': `<div class="card view"><div class="card-header d-flex justify-content-between"><h5>Pending Load Approvals</h5><button class="btn btn-sm btn-success" onclick="openBulkApproveModal()"><i class="fas fa-check-double me-2"></i>Approve Selected</button></div><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle" id="admin-pending-loads-table"><thead class="table-light"><tr><th><input type="checkbox" onchange="$(this).closest('table').find('.load-checkbox').prop('checked', this.checked)"></th><th>Inhouse Req No.</th><th>Load ID</th><th>Loading Point</th><th>Unloading Point</th><th>Material</th><th>Truck Type</th><th>Weight</th><th>Req. Date</th><th>Remarks</th></tr></thead><tbody id="admin-pending-loads-tbody"></tbody></table></div><div id="admin-pending-loads-empty-state"></div></div></div>`,
             'admin-all-loads-view': `<div class="view"><div class="card mb-4 filters-card"><div class="card-body"><div class="row g-3 align-items-end"><div class="col-lg-3 col-md-6 col-12"><label class="form-label form-label-sm">Status</label><select id="admin-loads-filter-status" class="form-select form-select-sm"><option value="Active" selected>Active</option><option value="Awarded">Awarded</option><option value="Pending Approval">Pending Approval</option></select></div><div class="col-lg-3 col-md-6 col-12"><label class="form-label form-label-sm">Req. Start Date</label><input type="date" id="admin-loads-filter-start-date" class="form-control form-control-sm"></div><div class="col-lg-3 col-md-6 col-12"><label class="form-label form-label-sm">Req. End Date</label><input type="date" id="admin-loads-filter-end-date" class="form-control form-control-sm"></div><div class="col-lg-3 col-md-6 col-12"><button class="btn btn-primary btn-sm w-100" onclick="load_admin_all_loads_view()">Apply Filters</button></div></div></div></div><div class="card"><div class="card-header d-flex justify-content-between flex-wrap gap-2"><h5>All Loads</h5><div><button class="btn btn-sm btn-warning" onclick="openBulkSetTimeModal()"><i class="fas fa-clock me-2"></i>Set Bulk Time</button><button class="btn btn-sm btn-success ms-2" onclick="openAdvancedBulkAwardModal()"><i class="fas fa-trophy me-2"></i>Award Selected</button><button class="btn btn-sm btn-info ms-2" onclick="downloadTableData('admin-loads-table', 'All_Loads_Report.xlsx')"><i class="fas fa-download me-2"></i>Download</button></div></div><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle" id="admin-loads-table"><thead class="table-light"><tr><th><input type="checkbox" onchange="$(this).closest('table').find('.load-checkbox').prop('checked', this.checked)"></th><th>Inhouse Req No.</th><th>Load ID</th><th>Loading Point</th><th>Unloading Point</th><th>Material</th><th>Truck Type</th><th>Weight</th><th>Req. Date</th><th>Status</th><th>L1 Bid</th><th>Remarks</th><th>Actions</th></tr></thead><tbody id="admin-loads-tbody"></tbody></table></div><div id="admin-loads-empty-state"></div></div></div></div>`,
             
             'admin-manage-loads-view': `<div class="view"><div class="card"><div class="card-header"><h5><i class="fas fa-edit me-2"></i>Manage Loads</h5></div><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle" id="admin-manage-loads-table"><thead class="table-light"><tr><th>Inhouse Req No.</th><th>Load ID</th><th>Loading Point</th><th>Unloading Point</th><th>Material</th><th>Truck Type</th><th>Weight</th><th>Req. Date</th><th>Status</th><th>Remarks</th><th>Actions</th></tr></thead><tbody id="admin-manage-loads-tbody"></tbody></table></div><div id="admin-manage-loads-empty-state"></div></div></div></div>`,
             'admin-bidding-history-view': `<div class="view"><div class="card mb-4 filters-card"><div class="card-body"><div class="row g-3 align-items-end"><div class="col-md-4"><label class="form-label form-label-sm">Start Date</label><input type="date" id="admin-bids-filter-start-date" class="form-control form-control-sm"></div><div class="col-md-4"><label class="form-label form-label-sm">End Date</label><input type="date" id="admin-bids-filter-end-date" class="form-control form-control-sm"></div><div class="col-md-4"><button class="btn btn-primary btn-sm w-100" onclick="load_admin_bidding_history_view()">Apply Filters</button></div></div></div></div><div class="card"><div class="card-header d-flex justify-content-between"><h5>Platform Bidding History</h5><button class="btn btn-sm btn-success" onclick="downloadTableData('admin-bids-table', 'Bidding_History.xlsx')"><i class="fas fa-download me-2"></i>Download</button></div><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle" id="admin-bids-table"><thead class="table-light"><tr><th>Inhouse Req No.</th><th>Load ID</th><th>Loading Point</th><th>Unloading Point</th><th>Material</th><th>Truck Type</th><th>Req. Date</th><th>Trucker</th><th>Bid Amount</th><th>Remarks</th><th>Date</th></tr></thead><tbody id="admin-bids-tbody"></tbody></table></div><div id="admin-bids-empty-state"></div></div></div></div>`,
             'admin-awarded-contracts-view': `<div class="view"><div class="card mb-4 filters-card"><div class="card-body"><div class="row g-3 align-items-end"><div class="col-md-4"><label class="form-label form-label-sm">Start Date</label><input type="date" id="admin-awarded-filter-start-date" class="form-control form-control-sm"></div><div class="col-md-4"><label class="form-label form-label-sm">End Date</label><input type="date" id="admin-awarded-filter-end-date" class="form-control form-control-sm"></div><div class="col-md-4"><button class="btn btn-primary btn-sm w-100" onclick="load_admin_awarded_contracts_view()">Apply Filters</button></div></div></div></div><div class="card"><div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2"><h5>All Awarded Contracts</h5><div><button class="btn btn-sm btn-danger" onclick="openReopenBiddingModal()"><i class="fas fa-history me-2"></i>Re-open Selected</button><button class="btn btn-sm btn-success ms-2" onclick="downloadTableData('admin-awarded-table', 'Awarded_Contracts_Report.xlsx')"><i class="fas fa-download me-2"></i>Download</button></div></div><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle" id="admin-awarded-table"><thead class="table-light"><tr><th><input type="checkbox" onchange="$(this).closest('table').find('.awarded-load-checkbox').prop('checked', this.checked)"></th><th>Inhouse Req No.</th><th>Load ID</th><th>Trucker</th><th>Contact</th><th>Loading Point</th><th>Unloading Point</th><th>Material</th><th>Truck Type</th><th>Req. Date</th><th>Amount</th><th>Award Date</th><th>Actions</th></tr></thead><tbody id="admin-awarded-tbody"></tbody></table></div><div id="admin-awarded-empty-state"></div></div></div></div>`,
-            'admin-reports-view': `<div class="card view"><div class="card-header d-flex justify-content-between"><h5>Reports & Analytics</h5><button class="btn btn-sm btn-success" onclick="downloadReport()"><i class="fas fa-download me-2"></i>Download Detailed Report</button></div><div class="card-body"><div class="row g-3 align-items-center border p-3 rounded mb-4"><div class="col-md-5"><label class="form-label-sm">Start Date</label><input type="date" id="report-start-date" class="form-control form-control-sm"></div><div class="col-md-5"><label class="form-label form-label-sm">End Date</label><input type="date" id="report-end-date" class="form-control form-control-sm"></div><div class="col-md-2 d-grid"><button id="report-apply-filter" class="btn btn-primary btn-sm mt-md-3">Apply</button></div></div><div class="row g-4" id="report-kpis"></div><hr class="my-4"><div class="row g-5"><div class="col-lg-4"><h5 class="text-center text-muted mb-3">Top 5 Truckers (by Wins)</h5><div class="chart-container" style="height:300px;"><canvas id="top-truckers-chart"></canvas></div></div><div class="col-lg-8"><h5 class="text-center text-muted mb-3">Spend by Material</h5><div class="chart-container" style="height:300px;"><canvas id="spend-material-chart"></canvas></div></div><div class="col-12 mt-4"><h5 class="text-center text-muted mb-3">Total Spend Over Time</h5><div class="chart-container" style="height:300px;"><canvas id="spend-time-chart"></canvas></div></div></div><div class="mt-5"><h5 class="text-center text-muted">Detailed Report</h5><div class="table-responsive"><table class="table table-sm table-striped" id="detailed-report-table"><thead><tr><th>Inhouse Req No.</th><th>Load ID</th><th>Loading Point</th><th>Unloading Point</th><th>Material</th><th>Truck Type</th><th>Weight</th><th>Req. Date</th><th>Trucker</th><th>Awarded Amount</th><th>Remarks</th><th>Award Date</th></tr></thead><tbody></tbody></table></div></div></div></div>`,
+            'admin-reports-view': `<div class="card view"><div class="card-header d-flex justify-content-between"><h5>Reports & Analytics</h5><button class="btn btn-sm btn-success" onclick="downloadReport()"><i class="fas fa-download me-2"></i>Download Detailed Report</button></div><div class="card-body"><div class="row g-3 align-items-center border p-3 rounded mb-4"><div class="col-md-5"><label class="form-label-sm">Start Date</label><input type="date" id="report-start-date" class="form-control form-control-sm"></div><div class="col-md-5"><label class="form-label-sm">End Date</label><input type="date" id="report-end-date" class="form-control form-control-sm"></div><div class="col-md-2 d-grid"><button id="report-apply-filter" class="btn btn-primary btn-sm mt-md-3">Apply</button></div></div><div class="row g-4" id="report-kpis"></div><hr class="my-4"><div class="row g-5"><div class="col-lg-4"><h5 class="text-center text-muted mb-3">Top 5 Truckers (by Wins)</h5><div class="chart-container" style="height:300px;"><canvas id="top-truckers-chart"></canvas></div></div><div class="col-lg-8"><h5 class="text-center text-muted mb-3">Spend by Material</h5><div class="chart-container" style="height:300px;"><canvas id="spend-material-chart"></canvas></div></div><div class="col-12 mt-4"><h5 class="text-center text-muted mb-3">Total Spend Over Time</h5><div class="chart-container" style="height:300px;"><canvas id="spend-time-chart"></canvas></div></div></div><div class="mt-5"><h5 class="text-center text-muted">Detailed Report</h5><div class="table-responsive"><table class="table table-sm table-striped" id="detailed-report-table"><thead><tr><th>Inhouse Req No.</th><th>Load ID</th><th>Loading Point</th><th>Unloading Point</th><th>Material</th><th>Truck Type</th><th>Weight</th><th>Req. Date</th><th>Trucker</th><th>Awarded Amount</th><th>Remarks</th><th>Award Date</th></tr></thead><tbody></tbody></table></div></div></div></div>`,
             'admin-master-data-view': `<div class="row view"><div class="col-md-6 mb-4 mb-md-0"><div class="card"><div class="card-header d-flex justify-content-between"><span>Material Types</span><div><button class="btn btn-info btn-sm me-2" onclick="openBulkUploadModal('item')"><i class="fas fa-upload"></i></button><button class="btn btn-success btn-sm" onclick="openMasterDataModal('item')"><i class="fas fa-plus"></i></button></div></div><div class="card-body table-responsive p-0"><table class="table table-hover"><tbody id="item-master-tbody"></tbody></table></div></div></div><div class="col-md-6"><div class="card"><div class="card-header d-flex justify-content-between"><span>Truck Types</span><div><button class="btn btn-info btn-sm me-2" onclick="openBulkUploadModal('truck')"><i class="fas fa-upload"></i></button><button class="btn btn-success btn-sm" onclick="openMasterDataModal('truck')"><i class="fas fa-plus"></i></button></div></div><div class="card-body table-responsive p-0"><table class="table table-hover"><tbody id="truck-master-tbody"></tbody></table></div></div></div></div>`,
             'admin-user-approvals-view': `<div class="card view"><div class="card-header"><h5 class="mb-0">Pending User Approvals</h5></div><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Name</th><th>Email</th><th>Role</th><th>Company</th><th>Contact</th><th>Action</th></tr></thead><tbody id="admin-pending-users-tbody"></tbody></table></div><div id="admin-pending-users-empty-state"></div></div></div>`,
             'admin-user-control-view': `<div class="card view"><div class="card-header d-flex justify-content-between align-items-center"><h5>User Control Center</h5><button class="btn btn-success btn-sm" onclick="openAddUserModal()"><i class="fas fa-plus me-2"></i>Add User</button></div><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Name</th><th>Email</th><th>Role</th><th>Company</th><th>Contact</th><th>GSTIN</th><th>Action</th></tr></thead><tbody id="admin-users-tbody"></tbody></table></div><div id="admin-users-empty-state"></div></div></div>`,
@@ -373,7 +286,6 @@
                 }
             });
 
-            // FIX: Event listener for the Send Email button (more reliable)
             $(document).on('click', '.send-email-btn', function() {
                 try {
                     const contractString = $(this).attr('data-contract');
@@ -413,6 +325,8 @@
 
                 const response = await fetch(url, options);
                 if (response.status === 204) return { success: true };
+                if (response.status === 202) return await response.json(); // For async processing start
+
                 const resultText = await response.text();
                 let result;
                 try {
@@ -468,7 +382,7 @@
             const roleNavs = {
                 'Shipper': `<a class="nav-link" data-view="shipper-create-load-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-plus-circle"></i> <span>Post New Loads</span></div></a><a class="nav-link" data-view="shipper-status-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-history"></i> <span>My Load Status</span></div></a><a class="nav-link" data-view="messaging-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-comments"></i> <span>Messages</span></div><span class="badge bg-danger rounded-pill" id="badge-unread-messages"></span></a>`,
                 'Trucker': `<a class="nav-link" data-view="trucker-dashboard-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a><a class="nav-link" data-view="trucker-open-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-truck-loading"></i> <span>Open Loads</span></div></a><a class="nav-link" data-view="trucker-bidding-history-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-gavel"></i> <span>Bidding History</span></div></a><a class="nav-link" data-view="trucker-awarded-contracts-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>My Contracts</span></div></a><a class="nav-link" data-view="messaging-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-comments"></i> <span>Messages</span></div><span class="badge bg-danger rounded-pill" id="badge-unread-messages"></span></a>`,
-                'Admin': `<a class="nav-link" data-view="admin-dashboard-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a><a class="nav-link" data-view="admin-pending-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-inbox"></i> <span>Load Approvals</span></div><span class="badge bg-warning rounded-pill" id="badge-pending-loads"></span></a><a class="nav-link" data-view="admin-all-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-list-alt"></i> <span>All Loads</span></div></a><a class="nav-link" data-view="admin-manage-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-edit"></i> <span>Manage Loads</span></div></a><a class="nav-link" data-view="admin-bidding-history-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-history"></i> <span>Bidding History</span></div></a><a class="nav-link" data-view="admin-awarded-contracts-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>Awarded Contracts</span></div></a><a class="nav-link" data-view="admin-reports-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-chart-line"></i> <span>Reports</span></div></a><a class="nav-link" data-view="admin-master-data-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-database"></i> <span>Master Data</span></div></a><a class="nav-link" data-view="admin-user-approvals-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-user-check"></i> <span>User Approvals</span></div><span class="badge bg-warning rounded-pill" id="badge-pending-users"></span></a><a class="nav-link" data-view="admin-user-control-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-users-cog"></i> <span>User Control</span></div></a><a class="nav-link" data-view="messaging-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-comments"></i> <span>Messages</span></div><span class="badge bg-danger rounded-pill" id="badge-unread-messages"></span></a>`,
+                'Admin': `<a class="nav-link" data-view="admin-dashboard-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></div></a><a class="nav-link" data-view="admin-bulk-upload-history-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-upload"></i> <span>Bulk Uploads</span></div></a><a class="nav-link" data-view="admin-pending-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-inbox"></i> <span>Load Approvals</span></div><span class="badge bg-warning rounded-pill" id="badge-pending-loads"></span></a><a class="nav-link" data-view="admin-all-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-list-alt"></i> <span>All Loads</span></div></a><a class="nav-link" data-view="admin-manage-loads-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-edit"></i> <span>Manage Loads</span></div></a><a class="nav-link" data-view="admin-bidding-history-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-history"></i> <span>Bidding History</span></div></a><a class="nav-link" data-view="admin-awarded-contracts-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-trophy"></i> <span>Awarded Contracts</span></div></a><a class="nav-link" data-view="admin-reports-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-chart-line"></i> <span>Reports</span></div></a><a class="nav-link" data-view="admin-master-data-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-database"></i> <span>Master Data</span></div></a><a class="nav-link" data-view="admin-user-approvals-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-user-check"></i> <span>User Approvals</span></div><span class="badge bg-warning rounded-pill" id="badge-pending-users"></span></a><a class="nav-link" data-view="admin-user-control-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-users-cog"></i> <span>User Control</span></div></a><a class="nav-link" data-view="messaging-view" onclick="navigateTo(this.dataset.view)"><div class="nav-link-text"><i class="fas fa-comments"></i> <span>Messages</span></div><span class="badge bg-danger rounded-pill" id="badge-unread-messages"></span></a>`,
             };
             roleNavs['Super Admin'] = roleNavs['Admin'];
             const appHTML = `
@@ -586,6 +500,52 @@
         async function load_trucker_bidding_history_view() { const tbody = $('#trucker-bids-tbody'), empty = $('#trucker-bids-empty-state'); try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().parent().hide(); const filters = { status: $('#trucker-bids-filter-status').val(), startDate: $('#trucker-bids-filter-start-date').val(), endDate: $('#trucker-bids-filter-end-date').val() }; const result = await apiCall('/trucker/bidding-history', 'GET', filters); if (result.data.length === 0) { tbody.parent().parent().show(); return renderEmptyState(empty, 'No bidding history found.', 'fa-gavel');} tbody.html(result.data.map(b => `<tr><td>${b.load_id}</td><td>${b.inhouse_requisition_no || '-'}</td><td>${b.loading_point_address}</td><td>${b.unloading_point_address}</td><td>${b.item_name}</td><td>${b.truck_name}</td><td>${b.approx_weight_tonnes}T</td><td>${formatDate(b.requirement_date)}</td><td><strong>${formatCurrency(b.bid_amount)}</strong></td><td><span class="badge bg-info">L${b.rank || 'N/A'}</span></td><td>${b.l1_bid ? formatCurrency(b.l1_bid) : '-'}</td><td><span class="badge bg-${getBadgeColor(b.status)}">${b.status}</span></td><td>${b.remarks || '-'}</td><td>${formatDate(b.submitted_at, true)}</td></tr>`).join('')); tbody.parent().parent().show(); empty.empty(); } catch (e) {} }
         async function load_trucker_awarded_contracts_view() { const tbody = $('#trucker-awarded-tbody'), empty = $('#trucker-awarded-empty-state'); try { renderEmptyState(empty, 'Loading...', 'fa-spinner fa-spin'); tbody.parent().parent().hide(); const filters = { startDate: $('#trucker-awarded-filter-start-date').val(), endDate: $('#trucker-awarded-filter-end-date').val() }; const result = await apiCall('/trucker/awarded-contracts', 'GET', filters); if (result.data.length === 0) { tbody.parent().parent().show(); return renderEmptyState(empty, 'No contracts awarded yet.', 'fa-trophy');} tbody.html(result.data.map(c => `<tr><td>${c.load_id}</td><td>${c.loading_point_address}</td><td>${c.unloading_point_address}</td><td>${c.item_name || 'N/A'}</td><td>${c.truck_name || 'N/A'}</td><td>${c.approx_weight_tonnes ? c.approx_weight_tonnes + 'T' : 'N/A'}</td><td>${c.requirement_date ? formatDate(c.requirement_date) : 'N/A'}</td><td><strong>${formatCurrency(c.awarded_amount)}</strong></td><td>${formatDate(c.awarded_date)}</td></tr>`).join('')); tbody.parent().parent().show(); empty.empty(); } catch (e) {} }
         async function load_admin_dashboard_view() { try { const result = await apiCall('/admin/dashboard-stats'); const data = result.data; $('#stats-active-loads').text(data.activeLoads || '0'); $('#stats-pending-users').text(data.pendingUsers || '0'); $('#stats-pending-loads').text(data.pendingLoads || '0'); $('#stats-awarded-contracts').text(data.awardedContracts || '0'); createChart('adminLoadChart', 'bar', { labels: data.charts.loadTrends.labels, datasets: [{ label: 'Loads Created', data: data.charts.loadTrends.data, backgroundColor: '#5E72E4' }] }); createChart('adminTruckerBiddingChart', 'doughnut', { labels: data.charts.biddingActivity.labels, datasets: [{ data: data.charts.biddingActivity.data, backgroundColor: ['#5E72E4', '#2DCE89', '#FB6340', '#11CDEF', '#F5365C'] }] }); } catch (e) {} }
+        
+        async function load_admin_bulk_upload_history_view() {
+            const tbody = $('#admin-bulk-history-tbody'), empty = $('#admin-bulk-history-empty-state');
+            try {
+                renderEmptyState(empty, 'Loading history...', 'fa-spinner fa-spin');
+                tbody.parent().parent().hide();
+                const result = await apiCall('/admin/bulk-upload-history');
+
+                if (result.data.length === 0) {
+                    tbody.parent().parent().show();
+                    return renderEmptyState(empty, 'No bulk uploads have been performed yet.', 'fa-upload');
+                }
+                
+                const statusColors = {
+                    'SUCCESS': { text: 'success', icon: 'fa-check-circle' },
+                    'PARTIAL': { text: 'warning', icon: 'fa-exclamation-triangle' },
+                    'FAILED': { text: 'danger', icon: 'fa-times-circle' },
+                    'PROCESSING': { text: 'info', icon: 'fa-spinner fa-spin' }
+                };
+
+                tbody.html(result.data.map(h => {
+                    const statusInfo = statusColors[h.status] || { text: 'secondary', icon: 'fa-question-circle' };
+                    return `<tr>
+                        <td><small>${h.file_name}</small></td>
+                        <td>${formatDate(h.started_at, true)}</td>
+                        <td>${h.completed_at ? formatDate(h.completed_at, true) : '-'}</td>
+                        <td>${h.uploaded_by_name}</td>
+                        <td>
+                            <span class="badge text-bg-${statusInfo.text}"><i class="fas ${statusInfo.icon} me-1"></i> ${h.status}</span>
+                        </td>
+                        <td>${h.total_rows}</td>
+                        <td class="text-success fw-bold">${h.success_count}</td>
+                        <td class="text-danger fw-bold">${h.error_count}</td>
+                        <td>
+                            ${h.error_file_path ? `<a href="/api/admin/download-error-file/${h.upload_id}" class="btn btn-sm btn-outline-danger" title="Download Error Report"><i class="fas fa-file-excel"></i></a>` : '-'}
+                        </td>
+                    </tr>`
+                }).join(''));
+
+                tbody.parent().parent().show();
+                empty.empty();
+            } catch (e) {
+                tbody.parent().parent().show();
+                renderEmptyState(empty, 'Failed to load upload history.', 'fa-exclamation-triangle');
+            }
+        }
         
         async function load_admin_pending_loads_view() { 
             const tbody = $('#admin-pending-loads-tbody'), empty = $('#admin-pending-loads-empty-state'); 
@@ -763,40 +723,8 @@
         function createChart(chartId, type, data, options = {}) { if (charts[chartId]) charts[chartId].destroy(); const ctx = document.getElementById(chartId)?.getContext('2d'); if (!ctx) return; charts[chartId] = new Chart(ctx, { type, data, options: { responsive: true, maintainAspectRatio: false, ...options } }); }
         async function fetchSidebarCounts() { try { const result = await apiCall('/sidebar-counts', 'GET', null, false, false); if (result.success) { $('#badge-unread-messages').text(result.data.unreadMessages > 0 ? result.data.unreadMessages : '').toggle(result.data.unreadMessages > 0); $('#badge-pending-loads').text(result.data.pendingLoads > 0 ? result.data.pendingLoads : '').toggle(result.data.pendingLoads > 0); $('#badge-pending-users').text(result.data.pendingUsers > 0 ? result.data.pendingUsers : '').toggle(result.data.pendingUsers > 0); if(result.data.unreadMessages > 0) { $('#notification-bell-badge').removeClass('visually-hidden'); } else { $('#notification-bell-badge').addClass('visually-hidden'); } } } catch (e) {} }
         
-        // --- EMAIL FUNCTIONS ---
-        function generateAwardMailBody(c) {
-            const body = `Dear ${c.trucker_name},
-
-Congratulations! You have been awarded the following contract. Please find the details below:
-
-----------------------------------------
-Inhouse Req No.:   ${c.inhouse_requisition_no || 'N/A'}
-Loading Point:      ${c.loading_point_address}
-Unloading Point:    ${c.unloading_point_address}
-Material:           ${c.item_name || 'N/A'}
-Truck Type:         ${c.truck_name || 'N/A'}
-Weight:             ${c.approx_weight_tonnes ? c.approx_weight_tonnes + 'T' : 'N/A'}
-Requirement Date:   ${c.requirement_date ? formatDate(c.requirement_date) : 'N/A'}
-Your Awarded Bid:   ${formatCurrency(c.awarded_amount)}
-Remarks:            ${c.remarks || 'N/A'}
-----------------------------------------
-
-Our team will contact you shortly regarding the next steps.
-
-Sincerely,
-The DEB'S LOGISTICS Team`;
-            return body;
-        }
-
-        function sendAwardConfirmation(contract) {
-          if (!contract.trucker_email) {
-            return showToast('This trucker does not have an email address.', 'error');
-          }
-          const subject = `Contract Award Confirmation - Load ID: ${contract.load_id}`;
-          const body = generateAwardMailBody(contract);
-          const mailtoLink = `mailto:${contract.trucker_email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-          window.location.href = mailtoLink;
-        }
+        function generateAwardMailBody(c) { const body = `Dear ${c.trucker_name},\n\nCongratulations! You have been awarded the following contract. Please find the details below:\n\n----------------------------------------\nInhouse Req No.:    ${c.inhouse_requisition_no || 'N/A'}\nLoading Point:       ${c.loading_point_address}\nUnloading Point:     ${c.unloading_point_address}\nMaterial:            ${c.item_name || 'N/A'}\nTruck Type:          ${c.truck_name || 'N/A'}\nWeight:              ${c.approx_weight_tonnes ? c.approx_weight_tonnes + 'T' : 'N/A'}\nRequirement Date:    ${c.requirement_date ? formatDate(c.requirement_date) : 'N/A'}\nYour Awarded Bid:    ${formatCurrency(c.awarded_amount)}\nRemarks:             ${c.remarks || 'N/A'}\n----------------------------------------\n\nOur team will contact you shortly regarding the next steps.\n\nSincerely,\nThe DEB'S LOGISTICS Team`; return body; }
+        function sendAwardConfirmation(contract) { if (!contract.trucker_email) { return showToast('This trucker does not have an email address.', 'error'); } const subject = `Contract Award Confirmation - Load ID: ${contract.load_id}`; const body = generateAwardMailBody(contract); const mailtoLink = `mailto:${contract.trucker_email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`; window.location.href = mailtoLink; }
 
         async function openViewBidsModal(loadId) { $('#viewBidsModalTitle').text(`Bids for Load #${loadId}`); $('#viewBidsModalBody').html(renderEmptyState(null, 'Loading bids...', 'fa-spinner fa-spin')); viewBidsModal.show(); try { const result = await apiCall(`/admin/loads/${loadId}/bids`); if (!result.data || !result.data.bids) { throw new Error("Invalid data received for bids."); } if (result.data.bids.length === 0) { $('#viewBidsModalBody').html('<p class="text-center">No bids have been submitted for this load yet.</p>'); return; } const bidsHTML = `<table class="table table-sm"><thead><tr><th>Select</th><th>Rank</th><th>Trucker</th><th>Bid Amount</th><th>Negotiation Rate</th><th>Date</th></tr></thead><tbody>` + result.data.bids.map((b, i) => { const bidData = { ...b, ...result.data.loadDetails }; return `<tr><td><input class="form-check-input" type="radio" name="award-radio-${loadId}" value='${JSON.stringify(bidData)}'></td><td><span class="badge bg-info">L${i + 1}</span></td><td>${b.trucker_name}</td><td><strong>${formatCurrency(b.bid_amount)}</strong></td><td><input type="number" class="form-control form-control-sm negotiation-rate" placeholder="Final Rate"></td><td>${formatDate(b.submitted_at, true)}</td></tr>` }).join('') + `</tbody></table><div class="mt-3"><label>Remarks</label><textarea class="form-control" id="award-remarks-${loadId}"></textarea><button class="btn btn-success mt-2 float-end" onclick="handleSingleAward(${loadId})">Award Selected</button></div>`; $('#viewBidsModalBody').html(bidsHTML); } catch (e) { $('#viewBidsModalBody').html(renderEmptyState(null, 'Could not load bids. Please try again.', 'fa-exclamation-triangle')); } }
         
@@ -837,30 +765,34 @@ The DEB'S LOGISTICS Team`;
         function openMasterDataModal(type, data = null) { const isEdit = data !== null; $('#master-data-modal-title').text(`${isEdit ? 'Edit' : 'Add'} ${type === 'item' ? 'Material' : 'Truck Type'}`); const form = $('#master-data-form'); form.data('type', type); form.data('id', isEdit ? (data.item_id || data.truck_type_id) : ''); $('#master-name').val(isEdit ? (data.item_name || data.truck_name) : ''); if (isEdit) { $('#master-active-switch').show(); $('#master-active').prop('checked', data.is_active); } else { $('#master-active-switch').hide(); } masterDataModal.show(); }
         async function handleMasterDataSubmit(e) { e.preventDefault(); const form = $(e.currentTarget); const type = form.data('type'), id = form.data('id'), isEdit = id !== ''; const name = $('#master-name').val(), isActive = $('#master-active').is(':checked'); const endpoint = isEdit ? `/master-data/${type}s/${id}` : `/master-data/${type}s`; const method = isEdit ? 'PUT' : 'POST'; const body = isEdit ? { name: name, is_active: isActive } : { name: name }; try { await apiCall(endpoint, method, body); showToast(`${type} data saved!`, 'success'); masterDataModal.hide(); load_admin_master_data_view(); } catch (e) {} }
         function openBulkUploadModal(type) { $('#bulk-upload-modal-title').text(`Bulk Upload ${type === 'item' ? 'Materials' : (type === 'truck' ? 'Truck Types' : 'Loads')}`); $('#download-template-link').off('click').on('click', () => downloadBulkTemplate(type)); $('#bulk-upload-type').val(type); bulkUploadModal.show(); }
-        async function handleBulkUpload(e) { e.preventDefault(); const file = $('#bulk-upload-file')[0].files[0]; if (!file) return showToast('Please select a file.', 'error'); const type = $('#bulk-upload-type').val(); const endpoint = type === 'load' ? '/loads/bulk-upload' : `/master-data/${type}s/bulk-upload`; const formData = new FormData(); formData.append('bulkFile', file); try { await apiCall(endpoint, 'POST', formData, true); showToast('File uploaded and processed.', 'success'); bulkUploadModal.hide(); if (type !== 'load') load_admin_master_data_view(); else navigateTo('admin-pending-loads-view'); } catch (e) {} }
+        
+        async function handleBulkUpload(e) {
+            e.preventDefault();
+            const file = $('#bulk-upload-file')[0].files[0];
+            if (!file) return showToast('Please select a file.', 'error');
+            const type = $('#bulk-upload-type').val();
+            
+            const endpoint = type === 'load' ? '/loads/bulk-upload' : `/master-data/${type}s/bulk-upload`;
+            
+            const formData = new FormData();
+            formData.append('bulkFile', file);
+            
+            try {
+                const result = await apiCall(endpoint, 'POST', formData, true);
+                showToast(result.message, type === 'load' ? 'info' : 'success'); // Show 'info' for starting message
+                bulkUploadModal.hide();
+                
+                if (type === 'load') {
+                    navigateTo('admin-bulk-upload-history-view');
+                } else {
+                    load_admin_master_data_view();
+                }
+            } catch (e) {}
+        }
+
         function downloadBulkTemplate(type) { let data, filename; if (type === 'load') { data = [{ "LoadingPoint": "City A", "UnloadingPoint": "City B", "MaterialName": "STEEL ITEMS", "TruckName": "10 Wheeler Truck", "WeightInTonnes": 15, "RequirementDate": "2025-10-25", "InhouseRequestionNo": "REQ-123", "Remarks": "Urgent delivery" }]; filename = "Bulk_Load_Template.xlsx"; } else { data = [{ "Name": `Sample ${type === 'item' ? 'Material' : 'Truck'}` }]; filename = `Bulk_${type}_Template.xlsx`; } const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Template"); XLSX.writeFile(wb, filename); }
         
-        // --- EXCEL DOWNLOAD FUNCTIONS ---
-        function downloadTableData(tableId, filename) {
-            try {
-                const table = document.getElementById(tableId);
-                if (!table) {
-                    showToast(`Error: Table with ID "${tableId}" not found.`, 'error');
-                    return;
-                }
-                const tableBody = table.querySelector('tbody');
-                if (!tableBody || tableBody.rows.length === 0) {
-                    showToast('No data available to download.', 'info');
-                    return;
-                }
-                const wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
-                XLSX.writeFile(wb, filename);
-                showToast('Downloading report...', 'success');
-            } catch (error) {
-                console.error("Download Error:", error);
-                showToast('Could not generate Excel file.', 'error');
-            }
-        }
+        function downloadTableData(tableId, filename) { try { const table = document.getElementById(tableId); if (!table) { showToast(`Error: Table with ID "${tableId}" not found.`, 'error'); return; } const tableBody = table.querySelector('tbody'); if (!tableBody || tableBody.rows.length === 0) { showToast('No data available to download.', 'info'); return; } const wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" }); XLSX.writeFile(wb, filename); showToast('Downloading report...', 'success'); } catch (error) { console.error("Download Error:", error); showToast('Could not generate Excel file.', 'error'); } }
         function downloadReport() { const table = document.getElementById("detailed-report-table"); if (!table || $(table).find('tbody tr').length === 0 || $(table).find('tbody td').length <= 1) return showToast('No data to download.', 'warning'); const wb = XLSX.utils.table_to_book(table, { sheet: "Report" }); XLSX.writeFile(wb, "Awarded_Loads_Report.xlsx"); }
 
         async function load_messaging_view() { const chatList = $('#chat-list'); try { renderEmptyState(chatList, 'Loading...', 'fa-spinner fa-spin'); const result = await apiCall('/conversations'); if (result.data.length === 0) return renderEmptyState(chatList, 'No users to chat with.'); chatList.html(result.data.map(u => `<a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" onclick="openChat(${u.user_id}, '${u.full_name}')"><div class="chat-list-item"><strong class="chat-user-name">${u.full_name}</strong><div class="last-message">${u.last_message || `Role: ${u.role}`}</div></div><div class="text-end"><span class="badge bg-success rounded-pill">${u.unread_count > 0 ? u.unread_count : ''}</span><div class="message-info">${u.last_message_timestamp ? formatDate(u.last_message_timestamp, true) : ''}</div></div></a>`).join('')); } catch (e) {} }
