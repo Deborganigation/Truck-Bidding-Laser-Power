@@ -829,7 +829,7 @@
             } catch (e) {}
         }
 
-        function downloadBulkTemplate(type) { let data, filename; if (type === 'load') { data = [{ "LoadingPoint": "City A", "UnloadingPoint": "City B", "MaterialName": "STEEL ITEMS", "TruckName": "10 Wheeler Truck", "WeightInTonnes": 15, "RequirementDate": "2025-10-25", "InhouseRequestionNo": "REQ-123", "Remarks": "Urgent delivery" }]; filename = "Bulk_Load_Template.xlsx"; } else { data = [{ "Name": `Sample ${type === 'item' ? 'Material' : 'Truck'}` }]; filename = `Bulk_${type}_Template.xlsx`; } const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Template"); XLSX.writeFile(wb, filename); }
+        function downloadBulkTemplate(type) { let data, filename; if (type === 'load') { data = [{ "LoadingPoint": "City A", "UnloadingPoint": "City B", "MaterialName": "STEEL ITEMS", "TruckName": "10 Wheeler Truck", "WeightInTonnes": 15, "RequirementDate": "2025-10-25", "InhouseRequisitionNo": "REQ-123", "Remarks": "Urgent delivery" }]; filename = "Bulk_Load_Template.xlsx"; } else { data = [{ "Name": `Sample ${type === 'item' ? 'Material' : 'Truck'}` }]; filename = `Bulk_${type}_Template.xlsx`; } const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Template"); XLSX.writeFile(wb, filename); }
         
         function downloadTableData(tableId, filename) {
             const dataToDownload = dataCache[tableId];
@@ -864,6 +864,7 @@
             const fetchAndRender = async () => { 
                 const messagesDiv = $('#chat-messages'); 
                 const currentUser = JSON.parse(sessionStorage.getItem('loggedInUser')); 
+                // FIX: Set showLoaderFlag to false for silent refresh
                 const result = await apiCall(`/messages/${id}`, 'GET', null, false, false); 
                 if (!result.success) return; 
                 const isScrolledToBottom = messagesDiv.scrollTop() + messagesDiv.innerHeight() >= messagesDiv[0].scrollHeight - 50; 
