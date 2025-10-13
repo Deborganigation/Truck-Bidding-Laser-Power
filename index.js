@@ -295,7 +295,7 @@ apiRouter.get('/admin/download-error-file/:uploadId', authenticateToken, isAdmin
         // FINAL FIX: Explicitly set the content type header for .xlsx files
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 
-        res.download(filePath, `error_${history.file_name || 'report'}.xlsx`, (err) => {
+        res.download(filePath, `error_${history.file_name || 'report'}`, (err) => {
             if (err) {
                  console.error("Error downloading file:", err);
                  if (!res.headersSent) {
@@ -324,3 +324,4 @@ app.use((err, req, res, next) => {
 });
 
 module.exports = app;
+
