@@ -232,50 +232,39 @@ apiRouter.get('/messages/:otherUserId', authenticateToken, async (req, res, next
 apiRouter.get('/sidebar-counts', authenticateToken, async (req, res, next) => { try { let counts = { unreadMessages: 0, pendingLoads: 0, pendingUsers: 0 }; const [[msgCount]] = await dbPool.query("SELECT COUNT(*) as count FROM messages WHERE recipient_id = ? AND status != 'read'", [req.user.userId]); counts.unreadMessages = msgCount.count; if(req.user.role === 'Admin' || req.user.role === 'Super Admin') { const [[pendingUsers]] = await dbPool.query("SELECT COUNT(*) as count FROM pending_users"); counts.pendingUsers = pendingUsers.count; const [[pendingLoads]] = await dbPool.query("SELECT COUNT(*) as count FROM truck_loads WHERE status = 'Pending Approval'"); counts.pendingLoads = pendingLoads.count; } res.json({ success: true, data: counts }); } catch(e){next(e)} });
 
 // =========================================================================
-// NEW FIX: Add the missing route for bulk load uploads
+// FINAL FIX: Add the missing route for bulk load uploads with 'total_rows' fix
 // =========================================================================
 apiRouter.post('/loads/bulk-upload', authenticateToken, isAdmin, upload.single('bulkFile'), async (req, res, next) => {
     if (!req.file) {
         return res.status(400).json({ success: false, message: 'No Excel file provided.' });
     }
 
-    let connection;
     try {
-        connection = await dbPool.getConnection();
-        await connection.beginTransaction();
+        // Step 1: Read the file to get row count first
+        const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
+        const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+        const totalRows = jsonData.length;
 
-        const [result] = await connection.query(
-            "INSERT INTO bulk_upload_history (file_name, uploaded_by_user_id, status, started_at) VALUES (?, ?, 'PROCESSING', NOW())",
-            [req.file.originalname, req.user.userId]
+        // Step 2: Insert the initial record into the database WITH total_rows
+        const [result] = await dbPool.query(
+            "INSERT INTO bulk_upload_history (file_name, uploaded_by_user_id, status, started_at, total_rows) VALUES (?, ?, 'PROCESSING', NOW(), ?)",
+            [req.file.originalname, req.user.userId, totalRows]
         );
         const uploadId = result.insertId;
 
-        const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
-        const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-
-        await connection.query(
-            "UPDATE bulk_upload_history SET total_rows = ? WHERE upload_id = ?",
-            [jsonData.length, uploadId]
-        );
-
-        await connection.commit();
-
+        // Step 3: Send an immediate response to the client
         res.status(202).json({ success: true, message: 'File received. Processing has started. Check history for status updates.' });
         
-        // Process in the background
+        // Step 4: Process the actual upload in the background (no 'await' here)
         processBulkUpload(uploadId, jsonData, req.user.userId);
 
     } catch (error) {
-        if (connection) await connection.rollback();
+        console.error("Error in bulk upload initial handling:", error);
+        // This will be caught by the global error handler
         next(error);
-    } finally {
-        if (connection) connection.release();
     }
 });
 
-// =========================================================================
-// ROUTE FOR FETCHING BULK UPLOAD HISTORY
-// =========================================================================
 apiRouter.get('/admin/bulk-upload-history', authenticateToken, isAdmin, async (req, res, next) => {
     try {
         const [historyRows] = await dbPool.query(`
@@ -291,9 +280,6 @@ apiRouter.get('/admin/bulk-upload-history', authenticateToken, isAdmin, async (r
     }
 });
 
-// =========================================================================
-// ROUTE FOR DOWNLOADING ERROR FILES
-// =========================================================================
 apiRouter.get('/admin/download-error-file/:uploadId', authenticateToken, isAdmin, async (req, res, next) => {
     try {
         const { uploadId } = req.params;
@@ -335,16 +321,3 @@ app.use((err, req, res, next) => {
 });
 
 module.exports = app;
-" in the document and am asking a query about/based on this code below.
-Instructions to follow:
-  * Don't output/edit the document if the query is Direct/Simple. For example, if the query asks for a simple explanation, output a direct answer.
-  * Make sure to **edit** the document if the query shows the intent of editing the document, in which case output the entire edited document, **not just that section or the edits**.
-    * Don't output the same document/empty document and say that you have edited it.
-    * Don't change unrelated code in the document.
-  * Don't output  and  in your final response.
-  * Any references like "this" or "selected code" refers to the code between  and  tags.
-  * Just acknowledge my request in the introduction.
-  * Make sure to refer to the document as "Canvas" in your response.
-
-delete whole code and make a new code with mern stack and tailwind css with complete crud operation of user control with edit, update, delete modal with registration and login form and also add searchbar on the top of table and also add a button to download the table data into a exel file and there should be a proper authentication and the project should be a single file code
-
