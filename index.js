@@ -9,14 +9,13 @@ const sgMail = require('@sendgrid/mail');
 require('dotenv').config();
 const path = require('path');
 const fs = require('fs/promises');
-const os = require('os'); // FIX 1: OS module ko import karein temporary directory ke liye
+const os = require('os');
 
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 const upload = multer({ storage: multer.memoryStorage() });
 
-// FIX 1: Read-only file system error ko fix karne ke liye temporary directory ka istemaal karein
 const ERROR_REPORTS_DIR = path.join(os.tmpdir(), 'error_reports');
 
 if (process.env.SENDGRID_API_KEY) {
@@ -26,7 +25,6 @@ if (process.env.SENDGRID_API_KEY) {
     console.warn('⚠️ SENDGRID_API_KEY not found in .env file. Email notifications will be disabled.');
 }
 
-// Ensure an 'error_reports' directory exists in the temp folder
 (async () => {
     try {
         await fs.access(ERROR_REPORTS_DIR);
@@ -84,12 +82,10 @@ const isAdmin = (req, res, next) => {
 const sendAwardNotificationEmails = async (awardedBids) => {
     if (!process.env.SENDGRID_API_KEY || !process.env.SENDER_EMAIL) { return; }
     if (!awardedBids || awardedBids.length === 0) { return; }
-
     const loadIds = awardedBids.map(b => b.load_id);
     const [loadDetailsRows] = await dbPool.query(`SELECT tl.load_id, tl.loading_point_address, tl.unloading_point_address, tl.approx_weight_tonnes, tl.requirement_date, im.item_name, ttm.truck_name FROM truck_loads tl JOIN item_master im ON tl.item_id = im.item_id JOIN truck_type_master ttm ON tl.truck_type_id = ttm.truck_type_id WHERE tl.load_id IN (?)`, [loadIds]);
     const loadDetailsMap = new Map(loadDetailsRows.map(row => [row.load_id, row]));
     const fullAwardedBids = awardedBids.map(bid => ({ ...bid, ...loadDetailsMap.get(bid.load_id) }));
-    
     const notificationsByVendor = {};
     for (const bid of fullAwardedBids) {
         if (!notificationsByVendor[bid.vendor_id]) {
@@ -98,63 +94,16 @@ const sendAwardNotificationEmails = async (awardedBids) => {
         notificationsByVendor[bid.vendor_id].loads.push(bid);
         notificationsByVendor[bid.vendor_id].totalValue += parseFloat(bid.final_amount);
     }
-
     const [adminRows] = await dbPool.query("SELECT email FROM users WHERE role IN ('Admin', 'Super Admin') AND is_active = 1");
     const adminEmails = adminRows.map(a => a.email);
-
     for (const vendorId in notificationsByVendor) {
         const notification = notificationsByVendor[vendorId];
         const subject = `Congratulations! You've been awarded ${notification.loads.length} new load(s) from DEB'S LOGISTICS`;
-
         const loadsHtml = notification.loads.map(load => {
             const reqDate = new Date(load.requirement_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-            return `<tr>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: center; word-wrap: break-word; word-break: break-all;">${load.load_id}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word; word-break: break-all;">${load.loading_point_address}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word; word-break: break-all;">${load.unloading_point_address}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word; word-break: break-all;">${load.item_name}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word; word-break: break-all;">${load.truck_name}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: right; word-wrap: break-word; word-break: break-all;">${parseFloat(load.approx_weight_tonnes).toFixed(2)}T</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: center; word-wrap: break-word; word-break: break-all;">${reqDate}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: right; font-weight: bold; word-wrap: break-word; word-break: break-all;">₹${parseFloat(load.final_amount).toLocaleString('en-IN')}</td>
-                    </tr>`;
+            return `<tr><td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: center; word-wrap: break-word; word-break: break-all;">${load.load_id}</td><td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word; word-break: break-all;">${load.loading_point_address}</td><td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word; word-break: break-all;">${load.unloading_point_address}</td><td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word; word-break: break-all;">${load.item_name}</td><td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word; word-break: break-all;">${load.truck_name}</td><td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: right; word-wrap: break-word; word-break: break-all;">${parseFloat(load.approx_weight_tonnes).toFixed(2)}T</td><td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: center; word-wrap: break-word; word-break: break-all;">${reqDate}</td><td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: right; font-weight: bold; word-wrap: break-word; word-break: break-all;">₹${parseFloat(load.final_amount).toLocaleString('en-IN')}</td></tr>`;
         }).join('');
-
-        const htmlBody = `<div style="font-family: Arial, sans-serif; max-width: 960px; margin: auto; border: 1px solid #ddd; border-radius: 8px;">
-            <div style="background-color: #172B4D; color: white; padding: 20px; text-align: center; border-top-left-radius: 8px; border-top-right-radius: 8px;">
-                <h1 style="margin: 0;">Contract Awarded</h1>
-            </div>
-            <div style="padding: 20px;">
-                <p>Dear ${notification.vendorName},</p>
-                <p>Congratulations! We are pleased to inform you that you have been awarded the following load(s):</p>
-                <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; table-layout: fixed;">
-                        <thead style="background-color: #f8f9fa;">
-                            <tr>
-                                <th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6; width: 6%;">Load ID</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; width: 22%;">Loading Point</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; width: 22%;">Unloading Point</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; width: 12%;">Material</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; width: 10%;">Truck</th>
-                                <th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6; width: 8%;">Weight</th>
-                                <th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6; width: 10%;">Req. Date</th>
-                                <th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6; width: 10%;">Your Awarded Bid</th>
-                            </tr>
-                        </thead>
-                        <tbody>${loadsHtml}</tbody>
-                        <tfoot>
-                            <tr style="font-weight: bold; background-color: #f8f9fa;">
-                                <td colspan="7" style="padding: 10px; text-align: right;">Total Value:</td>
-                                <td style="padding: 10px; text-align: right;">₹${notification.totalValue.toLocaleString('en-IN')}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                <p style="margin-top: 25px;">Our team will contact you shortly regarding the next steps. Thank you for your participation.</p>
-                <p>Sincerely,<br/><b>The DEB'S LOGISTICS Team</b></p>
-            </div>
-        </div>`;
-
+        const htmlBody = `<div style="font-family: Arial, sans-serif; max-width: 960px; margin: auto; border: 1px solid #ddd; border-radius: 8px;"><div style="background-color: #172B4D; color: white; padding: 20px; text-align: center; border-top-left-radius: 8px; border-top-right-radius: 8px;"><h1 style="margin: 0;">Contract Awarded</h1></div><div style="padding: 20px;"><p>Dear ${notification.vendorName},</p><p>Congratulations! We are pleased to inform you that you have been awarded the following load(s):</p><div style="overflow-x: auto; -webkit-overflow-scrolling: touch;"><table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; table-layout: fixed;"><thead style="background-color: #f8f9fa;"><tr><th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6; width: 6%;">Load ID</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; width: 22%;">Loading Point</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; width: 22%;">Unloading Point</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; width: 12%;">Material</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; width: 10%;">Truck</th><th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6; width: 8%;">Weight</th><th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6; width: 10%;">Req. Date</th><th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6; width: 10%;">Your Awarded Bid</th></tr></thead><tbody>${loadsHtml}</tbody><tfoot><tr style="font-weight: bold; background-color: #f8f9fa;"><td colspan="7" style="padding: 10px; text-align: right;">Total Value:</td><td style="padding: 10px; text-align: right;">₹${notification.totalValue.toLocaleString('en-IN')}</td></tr></tfoot></table></div><p style="margin-top: 25px;">Our team will contact you shortly regarding the next steps. Thank you for your participation.</p><p>Sincerely,<br/><b>The DEB'S LOGISTICS Team</b></p></div></div>`;
         try {
             await sgMail.send({ to: notification.vendorEmail, from: { name: "DEB'S LOGISTICS", email: process.env.SENDER_EMAIL }, cc: adminEmails, subject: subject, html: htmlBody });
         } catch (error) {
@@ -171,57 +120,38 @@ async function processBulkUpload(uploadId, jsonData, userId) {
         const [truckRows] = await connection.query('SELECT truck_type_id, truck_name FROM truck_type_master WHERE is_active = 1');
         const itemMap = new Map(itemRows.map(i => [String(i.item_name).trim().toLowerCase(), i.item_id]));
         const truckMap = new Map(truckRows.map(t => [String(t.truck_name).trim().toLowerCase(), t.truck_type_id]));
-        
         await connection.beginTransaction();
         const [reqResult] = await connection.query("INSERT INTO requisitions (created_by, status, created_at) VALUES (?, 'Pending Approval', NOW())", [userId]);
         const reqId = reqResult.insertId;
-
         let successCount = 0;
         const errors = [];
-
         for (const row of jsonData) {
             const materialName = row.MaterialName ? String(row.MaterialName).trim().toLowerCase() : null;
             const truckName = row.TruckName ? String(row.TruckName).trim().toLowerCase() : null;
             const itemId = itemMap.get(materialName);
             const truckTypeId = truckMap.get(truckName);
             let errorReason = '';
-
             if (!row.LoadingPoint) errorReason = 'LoadingPoint is missing.';
             else if (!row.UnloadingPoint) errorReason = 'UnloadingPoint is missing.';
             else if (!itemId) errorReason = `MaterialName '${row.MaterialName}' not found or is inactive.`;
             else if (!truckTypeId) errorReason = `TruckName '${row.TruckName}' not found or is inactive.`;
             else if (!row.WeightInTonnes) errorReason = 'WeightInTonnes is missing.';
             else if (!row.RequirementDate) errorReason = 'RequirementDate is missing.';
-
             if (errorReason) {
                 errors.push({ ...row, ErrorReason: errorReason });
                 continue;
             }
-
             try {
                 await connection.query(
                     `INSERT INTO truck_loads (requisition_id, created_by, loading_point_address, unloading_point_address, item_id, approx_weight_tonnes, truck_type_id, requirement_date, status, inhouse_requisition_no, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending Approval', ?, ?)`,
-                    [
-                        reqId, 
-                        userId, 
-                        row.LoadingPoint, 
-                        row.UnloadingPoint, 
-                        itemId, 
-                        row.WeightInTonnes, 
-                        truckTypeId,
-                        row.RequirementDate, 
-                        row.InhouseRequestionNo, 
-                        row.Remarks
-                    ]
+                    [reqId, userId, row.LoadingPoint, row.UnloadingPoint, itemId, row.WeightInTonnes, truckTypeId, row.RequirementDate, row.InhouseRequestionNo, row.Remarks]
                 );
                 successCount++;
             } catch (dbError) {
                 errors.push({ ...row, ErrorReason: `Database Error: ${dbError.message}` });
             }
         }
-
         await connection.commit();
-
         let finalStatus = 'FAILED';
         let errorFilePath = null;
         if (successCount === jsonData.length) {
@@ -229,7 +159,6 @@ async function processBulkUpload(uploadId, jsonData, userId) {
         } else if (successCount > 0) {
             finalStatus = 'PARTIAL';
         }
-        
         if (errors.length > 0) {
             const errorFileName = `error_report_${uploadId}_${Date.now()}.xlsx`;
             errorFilePath = path.join('error_reports', errorFileName);
@@ -238,20 +167,15 @@ async function processBulkUpload(uploadId, jsonData, userId) {
             xlsx.utils.book_append_sheet(wb, ws, "Errors");
             await xlsx.writeFile(wb, path.join(ERROR_REPORTS_DIR, errorFileName));
         }
-
         await connection.query(
             "UPDATE bulk_upload_history SET status = ?, success_count = ?, error_count = ?, completed_at = NOW(), error_file_path = ? WHERE upload_id = ?",
             [finalStatus, successCount, errors.length, errorFilePath, uploadId]
         );
-
     } catch (error) {
         console.error(`Error processing uploadId ${uploadId}:`, error);
         if (connection) {
             await connection.rollback();
-            await connection.query(
-                "UPDATE bulk_upload_history SET status = 'FAILED', completed_at = NOW() WHERE upload_id = ?",
-                [uploadId]
-            );
+            await connection.query("UPDATE bulk_upload_history SET status = 'FAILED', completed_at = NOW() WHERE upload_id = ?", [uploadId]);
         }
     } finally {
         if (connection) connection.release();
@@ -259,8 +183,8 @@ async function processBulkUpload(uploadId, jsonData, userId) {
     }
 }
 
+// All API routes
 const apiRouter = express.Router();
-
 apiRouter.post('/bids', authenticateToken, async (req, res, next) => { let connection; try { connection = await dbPool.getConnection(); const { bids } = req.body; await connection.beginTransaction(); const skippedBids = []; for (const bid of bids) { const vendorId = req.user.userId; const [[loadDetails]] = await connection.query(`SELECT status, (CONVERT_TZ(NOW(), 'SYSTEM', '+05:30') >= bidding_start_time OR bidding_start_time IS NULL) as is_after_start, (CONVERT_TZ(NOW(), 'SYSTEM', '+05:30') <= bidding_end_time OR bidding_end_time IS NULL) as is_before_end FROM truck_loads WHERE load_id = ?`, [bid.loadId]); if (!loadDetails || loadDetails.status !== 'Active') { skippedBids.push(`Load ID ${bid.loadId} (Not active)`); continue; } if (!(loadDetails.is_after_start && loadDetails.is_before_end)) { skippedBids.push(`Load ID ${bid.loadId} (Bidding window closed)`); continue; } await connection.query('DELETE FROM bids WHERE load_id = ? AND vendor_id = ?', [bid.loadId, vendorId]); const [result] = await connection.query("INSERT INTO bids (load_id, vendor_id, bid_amount, submitted_at) VALUES (?, ?, ?, NOW())", [bid.loadId, vendorId, bid.bid_amount]); await connection.query("INSERT INTO bidding_history_log (bid_id, load_id, vendor_id, bid_amount) VALUES (?, ?, ?, ?)", [result.insertId, bid.loadId, vendorId, bid.bid_amount]); } await connection.commit(); let message = `${bids.length - skippedBids.length} bid(s) submitted successfully.`; if (skippedBids.length > 0) { message += ` Skipped bids: ${skippedBids.join(', ')}.`; } res.json({ success: true, message }); } catch (error) { if (connection) await connection.rollback(); next(error); } finally { if (connection) connection.release(); }});
 apiRouter.post('/messages', authenticateToken, async (req, res, next) => { try { const { recipientId, messageBody } = req.body; await dbPool.query('INSERT INTO messages (sender_id, recipient_id, message_body, timestamp, status) VALUES (?, ?, ?, NOW(), ?)', [req.user.userId, recipientId, messageBody, 'sent']); res.status(201).json({ success: true, message: 'Message sent' }); } catch(e) { next(e); }});
 apiRouter.post('/contracts/award', authenticateToken, isAdmin, async (req, res, next) => { let connection; try { connection = await dbPool.getConnection(); const { bids } = req.body; if (!bids || bids.length === 0) { return res.status(400).json({ success: false, message: 'No bids provided to award.' }); } const vendorIds = [...new Set(bids.map(b => b.vendor_id))]; const [users] = await dbPool.query('SELECT user_id, full_name, email FROM users WHERE user_id IN (?)', [vendorIds]); const vendorInfoMap = new Map(users.map(user => [user.user_id, { trucker_name: user.full_name, trucker_email: user.email }])); const bidsForEmail = bids.map(bid => ({ ...bid, ...vendorInfoMap.get(bid.vendor_id) })); await connection.beginTransaction(); for (const bid of bids) { await connection.query( "UPDATE bids SET bid_amount = ? WHERE load_id = ? AND vendor_id = ?", [bid.final_amount, bid.load_id, bid.vendor_id] ); await connection.query("DELETE FROM awarded_contracts WHERE load_id = ?", [bid.load_id]); await connection.query( "INSERT INTO awarded_contracts (load_id, requisition_id, vendor_id, awarded_amount, remarks, awarded_date) VALUES (?, ?, ?, ?, ?, NOW())", [bid.load_id, bid.requisition_id, bid.vendor_id, bid.final_amount, bid.remarks] ); await connection.query("UPDATE truck_loads SET status = 'Awarded' WHERE load_id = ?", [bid.load_id]); } await connection.commit(); sendAwardNotificationEmails(bidsForEmail).catch(err => console.error("Email sending failed after award:", err)); res.json({ success: true, message: 'Contract(s) awarded successfully.' }); } catch (error) { if (connection) await connection.rollback(); next(error); } finally { if (connection) connection.release(); }});
@@ -308,12 +232,54 @@ apiRouter.get('/messages/:otherUserId', authenticateToken, async (req, res, next
 apiRouter.get('/sidebar-counts', authenticateToken, async (req, res, next) => { try { let counts = { unreadMessages: 0, pendingLoads: 0, pendingUsers: 0 }; const [[msgCount]] = await dbPool.query("SELECT COUNT(*) as count FROM messages WHERE recipient_id = ? AND status != 'read'", [req.user.userId]); counts.unreadMessages = msgCount.count; if(req.user.role === 'Admin' || req.user.role === 'Super Admin') { const [[pendingUsers]] = await dbPool.query("SELECT COUNT(*) as count FROM pending_users"); counts.pendingUsers = pendingUsers.count; const [[pendingLoads]] = await dbPool.query("SELECT COUNT(*) as count FROM truck_loads WHERE status = 'Pending Approval'"); counts.pendingLoads = pendingLoads.count; } res.json({ success: true, data: counts }); } catch(e){next(e)} });
 
 // =========================================================================
-// FIX 2: /api/admin/bulk-upload-history ke liye missing route yahan add karein
+// NEW FIX: Add the missing route for bulk load uploads
+// =========================================================================
+apiRouter.post('/loads/bulk-upload', authenticateToken, isAdmin, upload.single('bulkFile'), async (req, res, next) => {
+    if (!req.file) {
+        return res.status(400).json({ success: false, message: 'No Excel file provided.' });
+    }
+
+    let connection;
+    try {
+        connection = await dbPool.getConnection();
+        await connection.beginTransaction();
+
+        const [result] = await connection.query(
+            "INSERT INTO bulk_upload_history (file_name, uploaded_by_user_id, status, started_at) VALUES (?, ?, 'PROCESSING', NOW())",
+            [req.file.originalname, req.user.userId]
+        );
+        const uploadId = result.insertId;
+
+        const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
+        const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+
+        await connection.query(
+            "UPDATE bulk_upload_history SET total_rows = ? WHERE upload_id = ?",
+            [jsonData.length, uploadId]
+        );
+
+        await connection.commit();
+
+        res.status(202).json({ success: true, message: 'File received. Processing has started. Check history for status updates.' });
+        
+        // Process in the background
+        processBulkUpload(uploadId, jsonData, req.user.userId);
+
+    } catch (error) {
+        if (connection) await connection.rollback();
+        next(error);
+    } finally {
+        if (connection) connection.release();
+    }
+});
+
+// =========================================================================
+// ROUTE FOR FETCHING BULK UPLOAD HISTORY
 // =========================================================================
 apiRouter.get('/admin/bulk-upload-history', authenticateToken, isAdmin, async (req, res, next) => {
     try {
         const [historyRows] = await dbPool.query(`
-            SELECT b.*, u.full_name as uploaded_by_user_id_name 
+            SELECT b.*, u.full_name as uploaded_by_name 
             FROM bulk_upload_history b
             LEFT JOIN users u ON b.uploaded_by_user_id = u.user_id
             ORDER BY b.started_at DESC
@@ -325,7 +291,9 @@ apiRouter.get('/admin/bulk-upload-history', authenticateToken, isAdmin, async (r
     }
 });
 
-// FIX 2: Error file download karne ke liye route
+// =========================================================================
+// ROUTE FOR DOWNLOADING ERROR FILES
+// =========================================================================
 apiRouter.get('/admin/download-error-file/:uploadId', authenticateToken, isAdmin, async (req, res, next) => {
     try {
         const { uploadId } = req.params;
@@ -341,7 +309,6 @@ apiRouter.get('/admin/download-error-file/:uploadId', authenticateToken, isAdmin
         res.download(filePath, `error_${history.file_name || 'report'}.xlsx`, (err) => {
             if (err) {
                  console.error("Error downloading file:", err);
-                 // Check if headers have been sent before trying to send a response
                  if (!res.headersSent) {
                     res.status(500).send('Could not download the file.');
                  }
@@ -354,7 +321,7 @@ apiRouter.get('/admin/download-error-file/:uploadId', authenticateToken, isAdmin
 });
 
 
-app.use('/error_reports', authenticateToken, isAdmin, express.static(ERROR_REPORTS_DIR)); // FIX 1: Static serving ko temporary directory se point karein
+app.use('/error_reports', authenticateToken, isAdmin, express.static(ERROR_REPORTS_DIR));
 app.use('/api', apiRouter);
 
 app.use((err, req, res, next) => {
@@ -368,5 +335,3 @@ app.use((err, req, res, next) => {
 });
 
 module.exports = app;
-
-
