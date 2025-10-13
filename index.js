@@ -291,6 +291,9 @@ apiRouter.get('/admin/download-error-file/:uploadId', authenticateToken, isAdmin
         
         const fileName = path.basename(history.error_file_path);
         const filePath = path.join(ERROR_REPORTS_DIR, fileName);
+        
+        // FINAL FIX: Explicitly set the content type header for .xlsx files
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 
         res.download(filePath, `error_${history.file_name || 'report'}.xlsx`, (err) => {
             if (err) {
@@ -321,3 +324,16 @@ app.use((err, req, res, next) => {
 });
 
 module.exports = app;
+" in the document and am asking a query about/based on this code below.
+Instructions to follow:
+  * Don't output/edit the document if the query is Direct/Simple. For example, if the query asks for a simple explanation, output a direct answer.
+  * Make sure to **edit** the document if the query shows the intent of editing the document, in which case output the entire edited document, **not just that section or the edits**.
+    * Don't output the same document/empty document and say that you have edited it.
+    * Don't change unrelated code in the document.
+  * Don't output  and  in your final response.
+  * Any references like "this" or "selected code" refers to the code between  and  tags.
+  * Just acknowledge my request in the introduction.
+  * Make sure to refer to the document as "Canvas" in your response.
+
+delete whole code and make a new code with mern stack and tailwind css with complete crud operation of user control with edit, update, delete modal with registration and login form and also add searchbar on the top of table and also add a button to download the table data into a exel file and there should be a proper authentication and the project should be a single file code
+
