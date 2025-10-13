@@ -8,12 +8,16 @@ const xlsx = require('xlsx');
 const sgMail = require('@sendgrid/mail');
 require('dotenv').config();
 const path = require('path');
-const fs = require('fs/promises'); // File System module
+const fs = require('fs/promises');
+const os = require('os'); // FIX 1: OS module ko import karein temporary directory ke liye
 
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 const upload = multer({ storage: multer.memoryStorage() });
+
+// FIX 1: Read-only file system error ko fix karne ke liye temporary directory ka istemaal karein
+const ERROR_REPORTS_DIR = path.join(os.tmpdir(), 'error_reports');
 
 if (process.env.SENDGRID_API_KEY) {
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -22,13 +26,13 @@ if (process.env.SENDGRID_API_KEY) {
     console.warn('⚠️ SENDGRID_API_KEY not found in .env file. Email notifications will be disabled.');
 }
 
-// Ensure an 'error_reports' directory exists
+// Ensure an 'error_reports' directory exists in the temp folder
 (async () => {
     try {
-        await fs.access(path.join(__dirname, 'error_reports'));
+        await fs.access(ERROR_REPORTS_DIR);
     } catch (e) {
-        await fs.mkdir(path.join(__dirname, 'error_reports'));
-        console.log("✅ Created 'error_reports' directory.");
+        await fs.mkdir(ERROR_REPORTS_DIR);
+        console.log(`✅ Created '${ERROR_REPORTS_DIR}' directory.`);
     }
 })();
 
@@ -232,7 +236,7 @@ async function processBulkUpload(uploadId, jsonData, userId) {
             const ws = xlsx.utils.json_to_sheet(errors);
             const wb = xlsx.utils.book_new();
             xlsx.utils.book_append_sheet(wb, ws, "Errors");
-            await xlsx.writeFile(wb, path.join(__dirname, errorFilePath));
+            await xlsx.writeFile(wb, path.join(ERROR_REPORTS_DIR, errorFileName));
         }
 
         await connection.query(
@@ -303,7 +307,54 @@ apiRouter.get('/conversations', authenticateToken, async (req, res, next) => { t
 apiRouter.get('/messages/:otherUserId', authenticateToken, async (req, res, next) => { let connection; try { connection = await dbPool.getConnection(); const { otherUserId } = req.params; const myId = req.user.userId; await connection.beginTransaction(); const [messages] = await connection.query('SELECT * FROM messages WHERE (sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?) ORDER BY timestamp ASC', [myId, otherUserId, otherUserId, myId]); await connection.query("UPDATE messages SET status = 'read' WHERE recipient_id = ? AND sender_id = ? AND status != 'read'", [myId, otherUserId]); await connection.commit(); res.json({ success: true, data: messages }); } catch(e) { if(connection) await connection.rollback(); next(e); } finally { if(connection) connection.release(); }});
 apiRouter.get('/sidebar-counts', authenticateToken, async (req, res, next) => { try { let counts = { unreadMessages: 0, pendingLoads: 0, pendingUsers: 0 }; const [[msgCount]] = await dbPool.query("SELECT COUNT(*) as count FROM messages WHERE recipient_id = ? AND status != 'read'", [req.user.userId]); counts.unreadMessages = msgCount.count; if(req.user.role === 'Admin' || req.user.role === 'Super Admin') { const [[pendingUsers]] = await dbPool.query("SELECT COUNT(*) as count FROM pending_users"); counts.pendingUsers = pendingUsers.count; const [[pendingLoads]] = await dbPool.query("SELECT COUNT(*) as count FROM truck_loads WHERE status = 'Pending Approval'"); counts.pendingLoads = pendingLoads.count; } res.json({ success: true, data: counts }); } catch(e){next(e)} });
 
-app.use('/error_reports', authenticateToken, isAdmin, express.static(path.join(__dirname, 'error_reports')));
+// =========================================================================
+// FIX 2: /api/admin/bulk-upload-history ke liye missing route yahan add karein
+// =========================================================================
+apiRouter.get('/admin/bulk-upload-history', authenticateToken, isAdmin, async (req, res, next) => {
+    try {
+        const [historyRows] = await dbPool.query(`
+            SELECT b.*, u.full_name as uploaded_by_name 
+            FROM bulk_upload_history b
+            LEFT JOIN users u ON b.uploaded_by = u.user_id
+            ORDER BY b.started_at DESC
+            LIMIT 50
+        `);
+        res.json({ success: true, data: historyRows });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// FIX 2: Error file download karne ke liye route
+apiRouter.get('/admin/download-error-file/:uploadId', authenticateToken, isAdmin, async (req, res, next) => {
+    try {
+        const { uploadId } = req.params;
+        const [[history]] = await dbPool.query("SELECT error_file_path, file_name FROM bulk_upload_history WHERE upload_id = ?", [uploadId]);
+
+        if (!history || !history.error_file_path) {
+            return res.status(404).send('Error file not found.');
+        }
+        
+        const fileName = path.basename(history.error_file_path);
+        const filePath = path.join(ERROR_REPORTS_DIR, fileName);
+
+        res.download(filePath, `error_${history.file_name || 'report'}.xlsx`, (err) => {
+            if (err) {
+                 console.error("Error downloading file:", err);
+                 // Check if headers have been sent before trying to send a response
+                 if (!res.headersSent) {
+                    res.status(500).send('Could not download the file.');
+                 }
+            }
+        });
+
+    } catch(e) {
+        next(e);
+    }
+});
+
+
+app.use('/error_reports', authenticateToken, isAdmin, express.static(ERROR_REPORTS_DIR)); // FIX 1: Static serving ko temporary directory se point karein
 app.use('/api', apiRouter);
 
 app.use((err, req, res, next) => {
@@ -315,5 +366,6 @@ app.use((err, req, res, next) => {
         message: err.message || 'Something went wrong!'
     });
 });
-// YEH EK LINE ADD KAR DEIN
+
 module.exports = app;
+
