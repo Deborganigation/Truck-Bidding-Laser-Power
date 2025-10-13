@@ -313,9 +313,9 @@ apiRouter.get('/sidebar-counts', authenticateToken, async (req, res, next) => { 
 apiRouter.get('/admin/bulk-upload-history', authenticateToken, isAdmin, async (req, res, next) => {
     try {
         const [historyRows] = await dbPool.query(`
-            SELECT b.*, u.full_name as uploaded_by_name 
+            SELECT b.*, u.full_name as uploaded_by_user_id_name 
             FROM bulk_upload_history b
-            LEFT JOIN users u ON b.uploaded_by = u.user_id
+            LEFT JOIN users u ON b.uploaded_by_user_id = u.user_id
             ORDER BY b.started_at DESC
             LIMIT 50
         `);
@@ -368,4 +368,5 @@ app.use((err, req, res, next) => {
 });
 
 module.exports = app;
+
 
