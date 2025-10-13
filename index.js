@@ -82,44 +82,48 @@ const isAdmin = (req, res, next) => {
 const sendAwardNotificationEmails = async (awardedBids) => {
     if (!process.env.SENDGRID_API_KEY || !process.env.SENDER_EMAIL) { return; }
     if (!awardedBids || awardedBids.length === 0) { return; }
-    const loadIds = awardedBids.map(b => b.load_id);
-    // Fetch remarks for the specific awarded contract
-    const [remarksRows] = await dbPool.query(`SELECT load_id, remarks FROM awarded_contracts WHERE load_id IN (?)`, [loadIds]);
-    const remarksMap = new Map(remarksRows.map(row => [row.load_id, row.remarks]));
 
-    const [loadDetailsRows] = await dbPool.query(`SELECT tl.load_id, tl.loading_point_address, tl.unloading_point_address, tl.approx_weight_tonnes, tl.requirement_date, im.item_name, ttm.truck_name FROM truck_loads tl JOIN item_master im ON tl.item_id = im.item_id JOIN truck_type_master ttm ON tl.truck_type_id = ttm.truck_type_id WHERE tl.load_id IN (?)`, [loadIds]);
-    const loadDetailsMap = new Map(loadDetailsRows.map(row => [row.load_id, row]));
+    const loadIds = awardedBids.map(b => b.load_id);
+
+    // FIX: Fetch truck_loads remarks (load_remarks) along with other details
+    const [loadDetailsRows] = await dbPool.query(`SELECT tl.load_id, tl.loading_point_address, tl.unloading_point_address, tl.approx_weight_tonnes, tl.requirement_date, im.item_name, ttm.truck_name, tl.remarks as load_remarks FROM truck_loads tl JOIN item_master im ON tl.item_id = im.item_id JOIN truck_type_master ttm ON tl.truck_type_id = ttm.truck_type_id WHERE tl.load_id IN (?)`, [loadIds]);
     
-    const fullAwardedBids = awardedBids.map(bid => ({ ...bid, ...loadDetailsMap.get(bid.load_id), remarks: remarksMap.get(bid.load_id) }));
+    const loadDetailsMap = new Map(loadDetailsRows.map(row => [row.load_id, row]));
+    const fullAwardedBids = awardedBids.map(bid => ({ ...bid, ...loadDetailsMap.get(bid.load_id) }));
     
     const notificationsByVendor = {};
     for (const bid of fullAwardedBids) {
         if (!notificationsByVendor[bid.vendor_id]) {
-            notificationsByVendor[bid.vendor_id] = { vendorName: bid.trucker_name, vendorEmail: bid.trucker_email, loads: [], totalValue: 0 };
+            notificationsByVendor[bid.vendor_id] = { vendorName: bid.trucker_name, vendorEmail: bid.trucker_email, loads: [], totalValue: 0, adminRemarks: bid.remarks }; // Capture admin remarks
         }
         notificationsByVendor[bid.vendor_id].loads.push(bid);
         notificationsByVendor[bid.vendor_id].totalValue += parseFloat(bid.final_amount);
     }
+
     const [adminRows] = await dbPool.query("SELECT email FROM users WHERE role IN ('Admin', 'Super Admin') AND is_active = 1");
     const adminEmails = adminRows.map(a => a.email);
+
     for (const vendorId in notificationsByVendor) {
         const notification = notificationsByVendor[vendorId];
         const subject = `Congratulations! You've been awarded ${notification.loads.length} new load(s) from DEB'S LOGISTICS`;
+
         const loadsHtml = notification.loads.map(load => {
             const reqDate = new Date(load.requirement_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
             return `<tr>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: center; word-wrap: break-word; word-break: break-all;">${load.load_id}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word; word-break: break-all;">${load.loading_point_address}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word; word-break: break-all;">${load.unloading_point_address}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word; word-break: break-all;">${load.item_name}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word; word-break: break-all;">${load.truck_name}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: right; word-wrap: break-word; word-break: break-all;">${parseFloat(load.approx_weight_tonnes).toFixed(2)}T</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: center; word-wrap: break-word; word-break: break-all;">${reqDate}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: right; font-weight: bold; word-wrap: break-word; word-break: break-all;">₹${parseFloat(load.final_amount).toLocaleString('en-IN')}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word; word-break: break-all;">${load.remarks || '-'}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: center; word-wrap: break-word;">${load.load_id}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word;">${load.loading_point_address}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word;">${load.unloading_point_address}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word;">${load.item_name}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word;">${load.truck_name}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: right; word-wrap: break-word;">${parseFloat(load.approx_weight_tonnes).toFixed(2)}T</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: center; word-wrap: break-word;">${reqDate}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: right; font-weight: bold; word-wrap: break-word;">₹${parseFloat(load.final_amount).toLocaleString('en-IN')}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word;">${load.load_remarks || '-'}</td>
                     </tr>`;
         }).join('');
-        const htmlBody = `<div style="font-family: Arial, sans-serif; max-width: 960px; margin: auto; border: 1px solid #ddd; border-radius: 8px;"><div style="background-color: #172B4D; color: white; padding: 20px; text-align: center; border-top-left-radius: 8px; border-top-right-radius: 8px;"><h1 style="margin: 0;">Contract Awarded</h1></div><div style="padding: 20px;"><p>Dear ${notification.vendorName},</p><p>Congratulations! We are pleased to inform you that you have been awarded the following load(s):</p><div style="overflow-x: auto; -webkit-overflow-scrolling: touch;"><table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; table-layout: fixed;"><thead style="background-color: #f8f9fa;"><tr><th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6; width: 6%;">Load ID</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; width: 18%;">Loading Point</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; width: 18%;">Unloading Point</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; width: 10%;">Material</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; width: 10%;">Truck</th><th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6; width: 8%;">Weight</th><th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6; width: 10%;">Req. Date</th><th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6; width: 10%;">Your Awarded Bid</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; width: 10%;">Remarks</th></tr></thead><tbody>${loadsHtml}</tbody><tfoot><tr style="font-weight: bold; background-color: #f8f9fa;"><td colspan="8" style="padding: 10px; text-align: right;">Total Value:</td><td style="padding: 10px; text-align: right;">₹${notification.totalValue.toLocaleString('en-IN')}</td></tr></tfoot></table></div><p style="margin-top: 25px;">Our team will contact you shortly regarding the next steps. Thank you for your participation.</p><p>Sincerely,<br/><b>The DEB'S LOGISTICS Team</b></p></div></div>`;
+        
+        // FIX: Removed fixed layout and widths, added load remarks column and admin remarks section
+        const htmlBody = `<div style="font-family: Arial, sans-serif; max-width: 960px; margin: auto; border: 1px solid #ddd; border-radius: 8px;"><div style="background-color: #172B4D; color: white; padding: 20px; text-align: center; border-top-left-radius: 8px; border-top-right-radius: 8px;"><h1 style="margin: 0;">Contract Awarded</h1></div><div style="padding: 20px;"><p>Dear ${notification.vendorName},</p><p>Congratulations! We are pleased to inform you that you have been awarded the following load(s):</p><div style="overflow-x: auto; -webkit-overflow-scrolling: touch;"><table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;"><thead style="background-color: #f8f9fa;"><tr><th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6;">Load ID</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Loading Point</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Unloading Point</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Material</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Truck</th><th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Weight</th><th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6;">Req. Date</th><th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Your Awarded Bid</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Load Remarks</th></tr></thead><tbody>${loadsHtml}</tbody><tfoot><tr style="font-weight: bold; background-color: #f8f9fa;"><td colspan="8" style="padding: 10px; text-align: right;">Total Value:</td><td style="padding: 10px; text-align: right;">₹${notification.totalValue.toLocaleString('en-IN')}</td></tr></tfoot></table></div><p style="margin-top: 15px;"><b>Admin Remarks:</b> ${notification.adminRemarks || 'N/A'}</p><p style="margin-top: 25px;">Our team will contact you shortly regarding the next steps. Thank you for your participation.</p><p>Sincerely,<br/><b>The DEB'S LOGISTICS Team</b></p></div></div>`;
         try {
             await sgMail.send({ to: notification.vendorEmail, from: { name: "DEB'S LOGISTICS", email: process.env.SENDER_EMAIL }, cc: adminEmails, subject: subject, html: htmlBody });
         } catch (error) {
