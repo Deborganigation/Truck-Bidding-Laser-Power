@@ -95,14 +95,14 @@ const sendAwardNotificationEmails = async (awardedBids) => {
         const loadsHtml = notification.loads.map(load => {
             const reqDate = new Date(load.requirement_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
             return `<tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: center; word-break: break-word;">${load.load_id}</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6; word-break: break-word;">${load.loading_point_address}</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6; word-break: break-word;">${load.unloading_point_address}</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6; word-break: break-word;">${load.item_name}</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6; word-break: break-word;">${load.truck_name}</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: right; word-break: break-word;">${parseFloat(load.approx_weight_tonnes).toFixed(2)}T</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: center; word-break: break-word;">${reqDate}</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #dee2e6; text-align: right; font-weight: bold; word-break: break-word;">₹${parseFloat(load.final_amount).toLocaleString('en-IN')}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: center; word-wrap: break-word; word-break: break-all;">${load.load_id}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word; word-break: break-all;">${load.loading_point_address}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word; word-break: break-all;">${load.unloading_point_address}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word; word-break: break-all;">${load.item_name}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word; word-break: break-all;">${load.truck_name}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: right; word-wrap: break-word; word-break: break-all;">${parseFloat(load.approx_weight_tonnes).toFixed(2)}T</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: center; word-wrap: break-word; word-break: break-all;">${reqDate}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: right; font-weight: bold; word-wrap: break-word; word-break: break-all;">₹${parseFloat(load.final_amount).toLocaleString('en-IN')}</td>
                     </tr>`;
         }).join('');
 
@@ -113,18 +113,18 @@ const sendAwardNotificationEmails = async (awardedBids) => {
             <div style="padding: 20px;">
                 <p>Dear ${notification.vendorName},</p>
                 <p>Congratulations! We are pleased to inform you that you have been awarded the following load(s):</p>
-                <div style="overflow-x: auto;">
+                <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
                     <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; table-layout: fixed;">
                         <thead style="background-color: #f8f9fa;">
                             <tr>
-                                <th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6; width: 50px;">Load ID</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Loading Point</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Unloading Point</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Material</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Truck</th>
-                                <th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Weight</th>
-                                <th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6;">Req. Date</th>
-                                <th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Your Awarded Bid</th>
+                                <th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6; width: 8%;">Load ID</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; width: 20%;">Loading Point</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; width: 20%;">Unloading Point</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; width: 12%;">Material</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6; width: 10%;">Truck</th>
+                                <th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6; width: 8%;">Weight</th>
+                                <th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6; width: 10%;">Req. Date</th>
+                                <th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6; width: 12%;">Your Awarded Bid</th>
                             </tr>
                         </thead>
                         <tbody>${loadsHtml}</tbody>
@@ -148,7 +148,6 @@ const sendAwardNotificationEmails = async (awardedBids) => {
         }
     }
 };
-
 
 const apiRouter = express.Router();
 
