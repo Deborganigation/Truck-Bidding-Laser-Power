@@ -72,6 +72,34 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
+// ====================================================================
+// NEW: Middleware for Power BI API Key Authentication
+// ====================================================================
+const authenticatePowerBi = (req, res, next) => {
+    // We check for the key in a header named 'x-api-key'.
+    const apiKey = req.headers['x-api-key']; 
+    const serverApiKey = process.env.POWER_BI_API_KEY;
+
+    if (!apiKey) {
+        return res.status(401).json({ success: false, message: 'API Key is missing.' });
+    }
+    
+    // This is a safety check for you on the server side.
+    if (!serverApiKey) {
+        console.error('FATAL: POWER_BI_API_KEY is not set in environment variables.');
+        return res.status(500).json({ success: false, message: 'Server configuration error.' });
+    }
+
+    if (apiKey === serverApiKey) {
+        // If the key from Power BI matches your server key, allow the request.
+        next();
+    } else {
+        // If keys don't match, block the request.
+        return res.status(403).json({ success: false, message: 'Forbidden: Invalid API Key.' });
+    }
+};
+
+
 const isAdmin = (req, res, next) => {
     if (!['Admin', 'Super Admin'].includes(req.user.role)) {
         return res.status(403).json({ success: false, message: 'Admin access required' });
@@ -116,16 +144,16 @@ const sendAwardNotificationEmails = async (awardedBids) => {
         const loadsHtml = notification.loads.map(load => {
             const reqDate = new Date(load.requirement_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
             return `<tr>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: center; word-wrap: break-word;">${load.load_id}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word;">${load.loading_point_address}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word;">${load.unloading_point_address}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word;">${load.item_name}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word;">${load.truck_name}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: right; word-wrap: break-word;">${parseFloat(load.approx_weight_tonnes).toFixed(2)}T</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: center; word-wrap: break-word;">${reqDate}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: right; font-weight: bold; word-wrap: break-word;">₹${parseFloat(load.final_amount).toLocaleString('en-IN')}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word;">${load.load_remarks || '-'}</td>
-                    </tr>`;
+                            <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: center; word-wrap: break-word;">${load.load_id}</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word;">${load.loading_point_address}</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word;">${load.unloading_point_address}</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word;">${load.item_name}</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word;">${load.truck_name}</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: right; word-wrap: break-word;">${parseFloat(load.approx_weight_tonnes).toFixed(2)}T</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: center; word-wrap: break-word;">${reqDate}</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: right; font-weight: bold; word-wrap: break-word;">₹${parseFloat(load.final_amount).toLocaleString('en-IN')}</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #dee2e6; word-wrap: break-word;">${load.load_remarks || '-'}</td>
+                        </tr>`;
         }).join('');
         
         const htmlBody = `<div style="font-family: Arial, sans-serif; max-width: 960px; margin: auto; border: 1px solid #ddd; border-radius: 8px;"><div style="background-color: #172B4D; color: white; padding: 20px; text-align: center; border-top-left-radius: 8px; border-top-right-radius: 8px;"><h1 style="margin: 0;">Contract Awarded</h1></div><div style="padding: 20px;"><p>Dear ${notification.vendorCompanyName || notification.vendorName},</p><p>Congratulations! We are pleased to inform you that you have been awarded the following load(s):</p><div style="overflow-x: auto; -webkit-overflow-scrolling: touch;"><table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;"><thead style="background-color: #f8f9fa;"><tr><th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6;">Load ID</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Loading Point</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Unloading Point</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Material</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Truck</th><th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Weight</th><th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6;">Req. Date</th><th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Your Awarded Bid</th><th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Load Remarks</th></tr></thead><tbody>${loadsHtml}</tbody><tfoot><tr style="font-weight: bold; background-color: #f8f9fa;"><td colspan="8" style="padding: 10px; text-align: right;">Total Value:</td><td style="padding: 10px; text-align: right;">₹${notification.totalValue.toLocaleString('en-IN')}</td></tr></tfoot></table></div><p style="margin-top: 15px;"><b>Admin Remarks:</b> ${notification.adminRemarks || 'N/A'}</p><p style="margin-top: 25px;">Our team will contact you shortly regarding the next steps. Thank you for your participation.</p><p>Sincerely,<br/><b>The DEB'S LOGISTICS Team</b></p></div></div>`;
@@ -225,6 +253,47 @@ async function processBulkUpload(uploadId, jsonData, userId) {
 
 // All API routes
 const apiRouter = express.Router();
+
+// ====================================================================
+// NEW: Dedicated route for Power BI to fetch pending load data
+// ====================================================================
+apiRouter.get('/powerbi/pending-loads', authenticatePowerBi, async (req, res, next) => {
+    try {
+        // This query fetches all loads with 'Pending Approval' status.
+        // It's secured by the 'authenticatePowerBi' middleware above.
+        const [pendingLoads] = await dbPool.query(`
+            SELECT 
+                tl.load_id,
+                tl.requisition_id,
+                tl.created_by,
+                tl.loading_point_address,
+                tl.unloading_point_address,
+                tl.item_id,
+                COALESCE(im.item_name, 'N/A') as item_name,
+                tl.approx_weight_tonnes,
+                tl.truck_type_id,
+                COALESCE(ttm.truck_name, 'N/A') as truck_name,
+                tl.requirement_date,
+                tl.status,
+                tl.inhouse_requisition_no,
+                tl.remarks,
+                tl.bidding_start_time,
+                tl.bidding_end_time
+            FROM truck_loads tl
+            LEFT JOIN item_master im ON tl.item_id = im.item_id
+            LEFT JOIN truck_type_master ttm ON tl.truck_type_id = ttm.truck_type_id
+            WHERE tl.status = 'Pending Approval'
+        `);
+        
+        // We send the data as a simple JSON array, which is perfect for Power BI.
+        res.json(pendingLoads); 
+
+    } catch (error) {
+        next(error);
+    }
+});
+
+
 apiRouter.post('/bids', authenticateToken, async (req, res, next) => { let connection; try { connection = await dbPool.getConnection(); const { bids } = req.body; await connection.beginTransaction(); const skippedBids = []; for (const bid of bids) { const vendorId = req.user.userId; const [[loadDetails]] = await connection.query(`SELECT status, (CONVERT_TZ(NOW(), 'SYSTEM', '+05:30') >= bidding_start_time OR bidding_start_time IS NULL) as is_after_start, (CONVERT_TZ(NOW(), 'SYSTEM', '+05:30') <= bidding_end_time OR bidding_end_time IS NULL) as is_before_end FROM truck_loads WHERE load_id = ?`, [bid.loadId]); if (!loadDetails || loadDetails.status !== 'Active') { skippedBids.push(`Load ID ${bid.loadId} (Not active)`); continue; } if (!(loadDetails.is_after_start && loadDetails.is_before_end)) { skippedBids.push(`Load ID ${bid.loadId} (Bidding window closed)`); continue; } await connection.query('DELETE FROM bids WHERE load_id = ? AND vendor_id = ?', [bid.loadId, vendorId]); const [result] = await connection.query("INSERT INTO bids (load_id, vendor_id, bid_amount, submitted_at) VALUES (?, ?, ?, NOW())", [bid.loadId, vendorId, bid.bid_amount]); await connection.query("INSERT INTO bidding_history_log (bid_id, load_id, vendor_id, bid_amount) VALUES (?, ?, ?, ?)", [result.insertId, bid.loadId, vendorId, bid.bid_amount]); } await connection.commit(); let message = `${bids.length - skippedBids.length} bid(s) submitted successfully.`; if (skippedBids.length > 0) { message += ` Skipped bids: ${skippedBids.join(', ')}.`; } res.json({ success: true, message }); } catch (error) { if (connection) await connection.rollback(); next(error); } finally { if (connection) connection.release(); }});
 apiRouter.post('/messages', authenticateToken, async (req, res, next) => { try { const { recipientId, messageBody } = req.body; await dbPool.query('INSERT INTO messages (sender_id, recipient_id, message_body, timestamp, status) VALUES (?, ?, ?, NOW(), ?)', [req.user.userId, recipientId, messageBody, 'sent']); res.status(201).json({ success: true, message: 'Message sent' }); } catch(e) { next(e); }});
 apiRouter.post('/contracts/award', authenticateToken, isAdmin, async (req, res, next) => { let connection; try { connection = await dbPool.getConnection(); const { bids } = req.body; if (!bids || bids.length === 0) { return res.status(400).json({ success: false, message: 'No bids provided to award.' }); } const vendorIds = [...new Set(bids.map(b => b.vendor_id))]; const [users] = await dbPool.query('SELECT user_id, full_name, email, company_name FROM users WHERE user_id IN (?)', [vendorIds]); const vendorInfoMap = new Map(users.map(user => [user.user_id, { trucker_name: user.full_name, trucker_email: user.email, company_name: user.company_name }])); const bidsForEmail = bids.map(bid => ({ ...bid, ...vendorInfoMap.get(bid.vendor_id) })); await connection.beginTransaction(); for (const bid of bids) { await connection.query( "UPDATE bids SET bid_amount = ? WHERE load_id = ? AND vendor_id = ?", [bid.final_amount, bid.load_id, bid.vendor_id] ); await connection.query("DELETE FROM awarded_contracts WHERE load_id = ?", [bid.load_id]); await connection.query( "INSERT INTO awarded_contracts (load_id, requisition_id, vendor_id, awarded_amount, remarks, awarded_date) VALUES (?, ?, ?, ?, ?, NOW())", [bid.load_id, bid.requisition_id, bid.vendor_id, bid.final_amount, bid.remarks] ); await connection.query("UPDATE truck_loads SET status = 'Awarded' WHERE load_id = ?", [bid.load_id]); } await connection.commit(); sendAwardNotificationEmails(bidsForEmail).catch(err => console.error("Email sending failed after award:", err)); res.json({ success: true, message: 'Contract(s) awarded successfully.' }); } catch (error) { if (connection) await connection.rollback(); next(error); } finally { if (connection) connection.release(); }});
