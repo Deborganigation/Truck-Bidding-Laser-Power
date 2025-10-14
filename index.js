@@ -72,11 +72,7 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// ====================================================================
-// NEW: Middleware for Power BI API Key Authentication
-// ====================================================================
 const authenticatePowerBi = (req, res, next) => {
-    // We check for the key in a header named 'x-api-key'.
     const apiKey = req.headers['x-api-key']; 
     const serverApiKey = process.env.POWER_BI_API_KEY;
 
@@ -84,17 +80,14 @@ const authenticatePowerBi = (req, res, next) => {
         return res.status(401).json({ success: false, message: 'API Key is missing.' });
     }
     
-    // This is a safety check for you on the server side.
     if (!serverApiKey) {
         console.error('FATAL: POWER_BI_API_KEY is not set in environment variables.');
         return res.status(500).json({ success: false, message: 'Server configuration error.' });
     }
 
     if (apiKey === serverApiKey) {
-        // If the key from Power BI matches your server key, allow the request.
         next();
     } else {
-        // If keys don't match, block the request.
         return res.status(403).json({ success: false, message: 'Forbidden: Invalid API Key.' });
     }
 };
@@ -209,7 +202,6 @@ async function processBulkUpload(uploadId, jsonData, userId) {
                 continue;
             }
             try {
-                // FINAL FIX: Changed row.InhouseRequestionNo to row.InhouseRequisitionNo
                 await connection.query(
                     `INSERT INTO truck_loads (requisition_id, created_by, loading_point_address, unloading_point_address, item_id, approx_weight_tonnes, truck_type_id, requirement_date, status, inhouse_requisition_no, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending Approval', ?, ?)`,
                     [reqId, userId, row.LoadingPoint, row.UnloadingPoint, itemId, row.WeightInTonnes, truckTypeId, requirementDate, row.InhouseRequisitionNo, row.Remarks]
@@ -254,39 +246,56 @@ async function processBulkUpload(uploadId, jsonData, userId) {
 // All API routes
 const apiRouter = express.Router();
 
+
 // ====================================================================
-// NEW: Dedicated route for Power BI to fetch pending load data
+// FINAL: Master API route for Power BI to fetch all tables at once
 // ====================================================================
-apiRouter.get('/powerbi/pending-loads', authenticatePowerBi, async (req, res, next) => {
+apiRouter.get('/powerbi/all-data', authenticatePowerBi, async (req, res, next) => {
     try {
-        // This query fetches all loads with 'Pending Approval' status.
-        // It's secured by the 'authenticatePowerBi' middleware above.
-        const [pendingLoads] = await dbPool.query(`
-            SELECT 
-                tl.load_id,
-                tl.requisition_id,
-                tl.created_by,
-                tl.loading_point_address,
-                tl.unloading_point_address,
-                tl.item_id,
-                COALESCE(im.item_name, 'N/A') as item_name,
-                tl.approx_weight_tonnes,
-                tl.truck_type_id,
-                COALESCE(ttm.truck_name, 'N/A') as truck_name,
-                tl.requirement_date,
-                tl.status,
-                tl.inhouse_requisition_no,
-                tl.remarks,
-                tl.bidding_start_time,
-                tl.bidding_end_time
-            FROM truck_loads tl
-            LEFT JOIN item_master im ON tl.item_id = im.item_id
-            LEFT JOIN truck_type_master ttm ON tl.truck_type_id = ttm.truck_type_id
-            WHERE tl.status = 'Pending Approval'
-        `);
-        
-        // We send the data as a simple JSON array, which is perfect for Power BI.
-        res.json(pendingLoads); 
+        // We will run all queries in parallel for maximum efficiency
+        const [
+            [allLoads],
+            [awardedContracts],
+            [vendors],
+            [items],
+            [truckTypes]
+        ] = await Promise.all([
+            // Query 1: Get all loads
+            dbPool.query(`
+                SELECT tl.*, im.item_name, ttm.truck_name 
+                FROM truck_loads tl
+                LEFT JOIN item_master im ON tl.item_id = im.item_id
+                LEFT JOIN truck_type_master ttm ON tl.truck_type_id = ttm.truck_type_id
+                ORDER BY tl.load_id DESC
+            `),
+            // Query 2: Get all awarded contracts
+            dbPool.query(`
+                SELECT ac.*, u.full_name AS trucker_name, u.company_name, tl.loading_point_address, tl.unloading_point_address
+                FROM awarded_contracts ac
+                LEFT JOIN users u ON ac.vendor_id = u.user_id
+                LEFT JOIN truck_loads tl ON ac.load_id = tl.load_id
+                ORDER BY ac.awarded_date DESC
+            `),
+            // Query 3: Get all vendors (truckers)
+            dbPool.query(`
+                SELECT user_id, full_name, email, company_name, contact_number, gstin 
+                FROM users WHERE role = 'Vendor'
+            `),
+            // Query 4: Get item master
+            dbPool.query(`SELECT * FROM item_master`),
+            // Query 5: Get truck type master
+            dbPool.query(`SELECT * FROM truck_type_master`)
+        ]);
+
+        // We package all results into a single JSON object.
+        // Each key in this object will become a table in Power BI.
+        res.json({
+            all_loads: allLoads,
+            awarded_contracts: awardedContracts,
+            vendors: vendors,
+            items_master: items,
+            truck_types_master: truckTypes
+        });
 
     } catch (error) {
         next(error);
@@ -294,6 +303,9 @@ apiRouter.get('/powerbi/pending-loads', authenticatePowerBi, async (req, res, ne
 });
 
 
+// ====================================================================
+// Original Application API routes
+// ====================================================================
 apiRouter.post('/bids', authenticateToken, async (req, res, next) => { let connection; try { connection = await dbPool.getConnection(); const { bids } = req.body; await connection.beginTransaction(); const skippedBids = []; for (const bid of bids) { const vendorId = req.user.userId; const [[loadDetails]] = await connection.query(`SELECT status, (CONVERT_TZ(NOW(), 'SYSTEM', '+05:30') >= bidding_start_time OR bidding_start_time IS NULL) as is_after_start, (CONVERT_TZ(NOW(), 'SYSTEM', '+05:30') <= bidding_end_time OR bidding_end_time IS NULL) as is_before_end FROM truck_loads WHERE load_id = ?`, [bid.loadId]); if (!loadDetails || loadDetails.status !== 'Active') { skippedBids.push(`Load ID ${bid.loadId} (Not active)`); continue; } if (!(loadDetails.is_after_start && loadDetails.is_before_end)) { skippedBids.push(`Load ID ${bid.loadId} (Bidding window closed)`); continue; } await connection.query('DELETE FROM bids WHERE load_id = ? AND vendor_id = ?', [bid.loadId, vendorId]); const [result] = await connection.query("INSERT INTO bids (load_id, vendor_id, bid_amount, submitted_at) VALUES (?, ?, ?, NOW())", [bid.loadId, vendorId, bid.bid_amount]); await connection.query("INSERT INTO bidding_history_log (bid_id, load_id, vendor_id, bid_amount) VALUES (?, ?, ?, ?)", [result.insertId, bid.loadId, vendorId, bid.bid_amount]); } await connection.commit(); let message = `${bids.length - skippedBids.length} bid(s) submitted successfully.`; if (skippedBids.length > 0) { message += ` Skipped bids: ${skippedBids.join(', ')}.`; } res.json({ success: true, message }); } catch (error) { if (connection) await connection.rollback(); next(error); } finally { if (connection) connection.release(); }});
 apiRouter.post('/messages', authenticateToken, async (req, res, next) => { try { const { recipientId, messageBody } = req.body; await dbPool.query('INSERT INTO messages (sender_id, recipient_id, message_body, timestamp, status) VALUES (?, ?, ?, NOW(), ?)', [req.user.userId, recipientId, messageBody, 'sent']); res.status(201).json({ success: true, message: 'Message sent' }); } catch(e) { next(e); }});
 apiRouter.post('/contracts/award', authenticateToken, isAdmin, async (req, res, next) => { let connection; try { connection = await dbPool.getConnection(); const { bids } = req.body; if (!bids || bids.length === 0) { return res.status(400).json({ success: false, message: 'No bids provided to award.' }); } const vendorIds = [...new Set(bids.map(b => b.vendor_id))]; const [users] = await dbPool.query('SELECT user_id, full_name, email, company_name FROM users WHERE user_id IN (?)', [vendorIds]); const vendorInfoMap = new Map(users.map(user => [user.user_id, { trucker_name: user.full_name, trucker_email: user.email, company_name: user.company_name }])); const bidsForEmail = bids.map(bid => ({ ...bid, ...vendorInfoMap.get(bid.vendor_id) })); await connection.beginTransaction(); for (const bid of bids) { await connection.query( "UPDATE bids SET bid_amount = ? WHERE load_id = ? AND vendor_id = ?", [bid.final_amount, bid.load_id, bid.vendor_id] ); await connection.query("DELETE FROM awarded_contracts WHERE load_id = ?", [bid.load_id]); await connection.query( "INSERT INTO awarded_contracts (load_id, requisition_id, vendor_id, awarded_amount, remarks, awarded_date) VALUES (?, ?, ?, ?, ?, NOW())", [bid.load_id, bid.requisition_id, bid.vendor_id, bid.final_amount, bid.remarks] ); await connection.query("UPDATE truck_loads SET status = 'Awarded' WHERE load_id = ?", [bid.load_id]); } await connection.commit(); sendAwardNotificationEmails(bidsForEmail).catch(err => console.error("Email sending failed after award:", err)); res.json({ success: true, message: 'Contract(s) awarded successfully.' }); } catch (error) { if (connection) await connection.rollback(); next(error); } finally { if (connection) connection.release(); }});
@@ -342,7 +354,6 @@ apiRouter.get('/conversations', authenticateToken, async (req, res, next) => {
         let query = 'SELECT user_id, full_name, role FROM users WHERE user_id != ? AND is_active = 1';
         const params = [myId];
 
-        // If the current user is a Trucker, only show Admins and Shippers
         if (req.user.role === 'Trucker') {
             query += " AND role IN ('Admin', 'Super Admin', 'User')";
         }
@@ -384,33 +395,26 @@ apiRouter.get('/conversations', authenticateToken, async (req, res, next) => {
 });
 apiRouter.get('/messages/:otherUserId', authenticateToken, async (req, res, next) => { let connection; try { connection = await dbPool.getConnection(); const { otherUserId } = req.params; const myId = req.user.userId; await connection.beginTransaction(); const [messages] = await connection.query('SELECT * FROM messages WHERE (sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?) ORDER BY timestamp ASC', [myId, otherUserId, otherUserId, myId]); await connection.query("UPDATE messages SET status = 'read' WHERE recipient_id = ? AND sender_id = ? AND status != 'read'", [myId, otherUserId]); await connection.commit(); res.json({ success: true, data: messages }); } catch(e) { if(connection) await connection.rollback(); next(e); } finally { if(connection) connection.release(); }});
 apiRouter.get('/sidebar-counts', authenticateToken, async (req, res, next) => { try { let counts = { unreadMessages: 0, pendingLoads: 0, pendingUsers: 0 }; const [[msgCount]] = await dbPool.query("SELECT COUNT(*) as count FROM messages WHERE recipient_id = ? AND status != 'read'", [req.user.userId]); counts.unreadMessages = msgCount.count; if(req.user.role === 'Admin' || req.user.role === 'Super Admin') { const [[pendingUsers]] = await dbPool.query("SELECT COUNT(*) as count FROM pending_users"); counts.pendingUsers = pendingUsers.count; const [[pendingLoads]] = await dbPool.query("SELECT COUNT(*) as count FROM truck_loads WHERE status = 'Pending Approval'"); counts.pendingLoads = pendingLoads.count; } res.json({ success: true, data: counts }); } catch(e){next(e)} });
-
 apiRouter.post('/loads/bulk-upload', authenticateToken, isAdmin, upload.single('bulkFile'), async (req, res, next) => {
     if (!req.file) {
         return res.status(400).json({ success: false, message: 'No Excel file provided.' });
     }
-
     try {
         const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
         const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { cellDates: true });
         const totalRows = jsonData.length;
-
         const [result] = await dbPool.query(
             "INSERT INTO bulk_upload_history (file_name, uploaded_by_user_id, status, started_at, total_rows) VALUES (?, ?, 'PROCESSING', NOW(), ?)",
             [req.file.originalname, req.user.userId, totalRows]
         );
         const uploadId = result.insertId;
-
         res.status(202).json({ success: true, message: 'File received. Processing has started. Check history for status updates.' });
-        
         processBulkUpload(uploadId, jsonData, req.user.userId);
-
     } catch (error) {
         console.error("Error in bulk upload initial handling:", error);
         next(error);
     }
 });
-
 apiRouter.get('/admin/bulk-upload-history', authenticateToken, isAdmin, async (req, res, next) => {
     try {
         const [historyRows] = await dbPool.query(`
@@ -425,24 +429,18 @@ apiRouter.get('/admin/bulk-upload-history', authenticateToken, isAdmin, async (r
         next(error);
     }
 });
-
 apiRouter.get('/admin/download-error-file/:uploadId', authenticateToken, isAdmin, async (req, res, next) => {
     try {
         const { uploadId } = req.params;
         const [[history]] = await dbPool.query("SELECT error_file_path, file_name FROM bulk_upload_history WHERE upload_id = ?", [uploadId]);
-
         if (!history || !history.error_file_path) {
             return res.status(404).send('Error file not found.');
         }
-        
         const fileName = path.basename(history.error_file_path);
         const filePath = path.join(ERROR_REPORTS_DIR, fileName);
-        
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-
         const originalFileName = history.file_name.replace(/\.xlsx$/i, '');
         const downloadFileName = `error_${originalFileName}.xlsx`;
-
         res.download(filePath, downloadFileName, (err) => {
             if (err) {
                  console.error("Error downloading file:", err);
@@ -451,7 +449,6 @@ apiRouter.get('/admin/download-error-file/:uploadId', authenticateToken, isAdmin
                  }
             }
         });
-
     } catch(e) {
         next(e);
     }
@@ -461,6 +458,7 @@ apiRouter.get('/admin/download-error-file/:uploadId', authenticateToken, isAdmin
 app.use('/error_reports', authenticateToken, isAdmin, express.static(ERROR_REPORTS_DIR));
 app.use('/api', apiRouter);
 
+// Global Error Handler
 app.use((err, req, res, next) => {
     console.error("====== GLOBAL ERROR HANDLER CAUGHT AN ERROR ======");
     console.error("ROUTE: ", req.method, req.originalUrl);
